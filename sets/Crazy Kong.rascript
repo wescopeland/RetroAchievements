@@ -96,9 +96,10 @@ Conveyor = 0x02
 Spring   = 0x03
 Rivet    = 0x04
 
-function CurrentJumpPointsAward() => byte(0x0342)               // $0342: [8-bit] Current Jump Points Award
-function HammerIsHittingObject()  => byte(0x0350)               // $0350: [8-bit] Hammer Hit an Object
-function CurrentBonusTimer()      => byte(0x038C)               // $038C: [8-bit] Current Bonus Timer (Decimal); 0x68 = 6800, 0x70 = 7000
+function CurrentJumpPointsAward()  => byte(0x0342)              // $0342: [8-bit] Current Jump Points Award
+function HammerIsHittingObject()   => byte(0x0350)              // $0350: [8-bit] Hammer Hit an Object
+function CurrentInternalTimeLeft() => byte(0x0387)              // $0387: [8-bit] Current Internal Time Left
+function CurrentBonusTimer()       => byte(0x038C)              // $038C: [8-bit] Current Bonus Timer (Decimal); 0x68 = 6800, 0x70 = 7000
 
 // $040D: [8-bit] Springboard Fireball Current Action
 function SpringboardFireballCurrentAction() => byte(0x040D)
@@ -144,8 +145,9 @@ BarrelRollingDownB = 0x05
 
 // Game state functions
 function GameStart() => prev(GameState()) == CreditsAdded && GameState() == GamePlaying
-function InGame() => GameState() == GamePlaying
+function InGame() => GameState() == GamePlaying && PlayingState() == PlayerPlaying
 function OnePlayerMode() => PlayerCount() == OnePlayer
+function TwoPlayerMode() => PlayerCount() == TwoPlayer
 function GameOver() => PlayingState() == GameOver
 function ScreenCleared() => PlayingState() == Victory
 function Dead() => PlayingState() == Dying
@@ -155,7 +157,7 @@ function HasCollectedOneItem() => HatIsVisible() == 0 || PurseIsVisible() == 0 |
 function HasCollectedAllItems() => HatIsVisible() == 0 && PurseIsVisible() == 0 && ParasolIsVisible() == 0
 
 // Dip settings functions
-function DefaultSettings() => StartingLives() <= 0x03 && BonusLifeAt() <= 0x07
+function DefaultSettings() => StartingLives() <= 0x03 && BonusLifeAt() <= 0x07 && OnePlayerMode()
 
 // --------------------------------------------------------
 // Achievements Functions
@@ -164,9 +166,12 @@ function DefaultSettings() => StartingLives() <= 0x03 && BonusLifeAt() <= 0x07
 function IsUsingDefaultSettings() {
     start = once(GameState() == AttractMode)
 
-    cancel = never(InGame()) && never(GameState() == GamePlaying)
+    cancel = 
+        never(InGame() && TwoPlayerMode()) 
+        && never(InGame() && StartingLives() > 0x03)
+        && never(InGame() && BonusLifeAt() > 0x07)
 
-    return start && cancel && trigger_when(DefaultSettings() && GameState() == CreditsAdded)
+    return start && cancel && trigger_when(DefaultSettings() && GameState() == GamePlaying)
 }
 
 function StageKindCleared(stageKind) {
@@ -183,7 +188,7 @@ function StageKindCleared(stageKind) {
 }
 
 function Progress(level, stageKind) {
-    start = once(InGame() && OnePlayerMode() && DefaultSettings())
+    start = once(InGame() && DefaultSettings())
     
     cancel = never(GameOver())
     
@@ -196,8 +201,26 @@ function Progress(level, stageKind) {
     )
 }
 
+function KillScreenProgress() {
+    start = once(InGame() && DefaultSettings() && CurrentLevel() >= 18)
+    
+    cancel = never(GameOver())
+    
+    return (
+        start
+        && cancel
+        && trigger_when(
+            CurrentLevel() == 22
+            && CurrentStageKind() == Barrel
+            && CurrentBonusTimer() == 0x37
+            && CurrentInternalTimeLeft() == 0x00
+            && PlayingState() == Dying
+        )
+    )
+}
+
 function ExtraLifeEarned() {
-    start = once(InGame() && PlayingState() == PlayerPlaying && DefaultSettings())
+    start = once(InGame() && DefaultSettings())
 
     cancel = never(GameOver())
 
@@ -205,20 +228,19 @@ function ExtraLifeEarned() {
 }
 
 function HammerlessProgress(level, stageKind) {
-    start = once(InGame() && OnePlayerMode() && DefaultSettings())
+    start = once(InGame() && DefaultSettings())
     
     cancel = never(GameOver()) && disable_when(MarioIsUsingHammer() == 1, GameStart())
     
     return (
         start
         && cancel
-        && InGame()
         && trigger_when(CurrentLevel() == level && CurrentStageKind() == stageKind && ScreenCleared())
     )
 }
 
 function DeathlessProgress(level, stageKind) {
-    start = once(InGame() && OnePlayerMode() && DefaultSettings() && CurrentLevel() >= level - 2)
+    start = once(InGame() && DefaultSettings() && CurrentLevel() >= level - 2)
     
     cancel = never(Dead()) && disable_when(Dead(), GameStart())
     
@@ -230,7 +252,7 @@ function DeathlessProgress(level, stageKind) {
 }
 
 function EarnedScore(score) {
-    start = once(InGame() && OnePlayerMode() && DefaultSettings())
+    start = once(InGame() && DefaultSettings())
     
     cancel = never(GameOver())
     
@@ -238,7 +260,7 @@ function EarnedScore(score) {
 }
 
 function DeathlessEarnedScore(score) {
-    start = once(InGame() && OnePlayerMode() && DefaultSettings())
+    start = once(InGame() && DefaultSettings())
     
     cancel = never(Dead()) && disable_when(Dead(), GameStart())
     
@@ -251,9 +273,9 @@ function DeathlessEarnedScore(score) {
 }
 
 function LeechFirstFireball() {
-    start = once(InGame() && CurrentLevel() == 1 && CurrentStageKind() == Barrel)
+    start = once(InGame() && CurrentLevel() == 1 && CurrentStageKind() == Barrel && DefaultSettings())
 
-    cancel = never(GameState() != GamePlaying) && never(Dead()) && never(CurrentLevel() != 1)
+    cancel = never(PlayingState() != PlayerPlaying) && never(Dead()) && never(CurrentLevel() != 1)
 
     return (
         start
@@ -265,7 +287,7 @@ function LeechFirstFireball() {
 }
 
 function PointsBeforeFirstLadder() {
-    start = once(InGame() && OnePlayerMode() && CurrentLevel() == 1 && CurrentStageKind() == Barrel)
+    start = once(InGame() && DefaultSettings() && CurrentLevel() == 1 && CurrentStageKind() == Barrel)
     
     cancel = never(GameState() != GamePlaying) || never(Dead()) || never(PlayingState() == HowHighScreen)
     
@@ -292,9 +314,9 @@ function PointsBeforeFirstLadder() {
 }
 
 function SmashesWithHammer(smashes, stageKind, isHammerActive) {
-    start = once(InGame() && OnePlayerMode() && CurrentStageKind() == stageKind && isHammerActive == 1)
+    start = once(InGame() && DefaultSettings() && CurrentStageKind() == stageKind && isHammerActive == 1)
     
-    cancel = never(isHammerActive == 0)
+    cancel = never(isHammerActive == 0) && never(CurrentStageKind() != stageKind) && never(Dead())
     
     return (
         start
@@ -308,9 +330,9 @@ function SmashesWithHammer(smashes, stageKind, isHammerActive) {
 }
 
 function SmashesWithAnyHammer(smashes, stageKind) {
-    start = once(InGame() && OnePlayerMode() && CurrentStageKind() == stageKind && (HammerOneIsActive() == 1) || (HammerTwoIsActive() == 1))
+    start = once(InGame() && DefaultSettings() && (HammerOneIsActive() == 1) || (HammerTwoIsActive() == 1))
     
-    cancel = never(HammerOneIsActive() == 0 && HammerTwoIsActive() == 0)
+    cancel = never(HammerOneIsActive() == 0 && HammerTwoIsActive() == 0) && never(CurrentStageKind() != stageKind) && never(Dead())
     
     return (
         start
@@ -324,9 +346,9 @@ function SmashesWithAnyHammer(smashes, stageKind) {
 }
 
 function TimerFinish(stageKind, neededTime) {
-    start = once(InGame() && CurrentStageKind() == stageKind)
+    start = once(InGame() && CurrentStageKind() == stageKind && DefaultSettings())
 
-    cancel = never(GameOver())
+    cancel = never(GameOver()) && never(CurrentStageKind() != stageKind)
 
     return (
         start
@@ -338,7 +360,7 @@ function TimerFinish(stageKind, neededTime) {
 }
 
 function ClimbOilCan() {
-    start = once(InGame() && CurrentStageKind() == Barrel)
+    start = once(InGame() && CurrentStageKind() == Barrel && DefaultSettings())
 
     cancel = never(GameOver())
 
@@ -356,7 +378,7 @@ function ClimbOilCan() {
 function GhostHammerGrab(stageKind) {
     start = once(
         InGame() 
-        && PlayingState() == PlayerPlaying
+        && DefaultSettings()
         && CurrentStageKind() == stageKind 
         && (HammerOneIsActive() == 0x01 || HammerOneIsAvailable() == 0x00)
     )
@@ -364,9 +386,11 @@ function GhostHammerGrab(stageKind) {
     cancel = (
         never(Dead()) 
         && never(GameOver()) 
-        && never(GameState() != GamePlaying)
+        && never(PlayingState() != PlayerPlaying)
+        && never(CurrentStageKind() != stageKind)
+        && never(HammerOneIsActive() == 0x01 && HammerTwoIsAvailable() == 0x00)
         && never(HammerTwoIsActive() == 0x01 && HammerOneIsAvailable() == 0x01)
-        && never(HammerTwoIsAvailable() == 0x00 && HammerOneIsAvailable() == 0x01)
+        && never(HammerTwoIsAvailable() == 0x00 && HammerOneIsAvailable() == 0x00)
     )
 
     return (
@@ -377,9 +401,9 @@ function GhostHammerGrab(stageKind) {
 }
 
 function ClearedWithAllPrizes(stageKind) {
-    start = once(InGame() && CurrentStageKind() == stageKind && PlayingState() == PlayerPlaying && DefaultSettings())
+    start = once(InGame() && CurrentStageKind() == stageKind && DefaultSettings())
 
-    cancel = never(GameOver())
+    cancel = never(GameOver()) && never(CurrentStageKind() != stageKind)
 
     return (
         start
@@ -393,13 +417,14 @@ function ClearedWithAllPrizes(stageKind) {
 }
 
 function LeechElevatorFireball() {
-    start = once(InGame() && CurrentStageKind() == Spring)
+    start = once(InGame() && CurrentStageKind() == Spring && DefaultSettings())
 
-    cancel = never(Dead()) && never(GameOver())
+    cancel = never(Dead()) && never(GameOver()) && never(CurrentStageKind() != Spring)
 
     return (
         start
         && cancel
+        && MarioX() <= 0x45
         && MarioIsJumpingOrFalling() == 0x01
         && CurrentJumpPointsAward() == 0x01
         && (
@@ -414,9 +439,14 @@ function BarrelIsRollingOverhead(marioX, marioY, barrelX, barrelY) {
 }
 
 function LadderTrick(times) {
-    start = once(InGame() && CurrentStageKind() == Barrel && MarioIsClimbingLadder() == 1)
+    start = once(InGame() && CurrentStageKind() == Barrel && MarioIsClimbingLadder() == 1 && DefaultSettings())
     
-    cancel = never(Dead()) && never(GameOver()) && never(MarioIsClimbingLadder() == 0)
+    cancel = 
+        never(Dead()) 
+        && never(GameOver()) 
+        && never(MarioIsClimbingLadder() == 0)
+        && never(HammerOneIsActive() == 0x01)
+        && never(HammerTwoIsActive() == 0x01)
     
     return (
         start
@@ -432,20 +462,27 @@ function LadderTrick(times) {
 }
 
 function SpringLeech() {
-    start = once(InGame() && CurrentStageKind() == Spring && MarioIsJumpingOrFalling() == 0x01)
+    start = once(
+        InGame() 
+        && CurrentStageKind() == Spring 
+        && DefaultSettings()
+        && MarioX() > 0xA8
+    )
     
-    cancel = never(Dead()) && never(GameOver()) && never(MarioIsJumpingOrFalling() != 0x01)
+    cancel = 
+        never(Dead()) 
+        && never(GameOver()) 
+        && never(MarioX() <= 0xA8)
     
     return (
         start
         && cancel
-        && MarioX() > 0xA8
-        && Score() > prev(Score())
+        && trigger_when(MarioIsJumpingOrFalling() == 0x01 && Score() > prev(Score()))
     )
 }
 
 function StarPattern() {
-    start = once(InGame() && CurrentStageKind() == Rivet)
+    start = once(InGame() && CurrentStageKind() == Rivet && DefaultSettings())
     
     cancel = 
         never(Dead() 
@@ -472,9 +509,9 @@ function StarPattern() {
 }
 
 function BarrelSteers(steerCount) {
-    start = once(InGame() && CurrentStageKind() == Barrel && PlayingState() == PlayerPlaying && DefaultSettings())
+    start = once(InGame() && CurrentStageKind() == Barrel && DefaultSettings())
     
-    cancel = never(Dead()) && never(GameOver())
+    cancel = never(Dead()) && never(GameOver()) && never(CurrentStageKind() != Barrel)
     
     return (
         start
@@ -565,66 +602,65 @@ function BarrelSteers(steerCount) {
     )
 }
 
-achievement("Default settings check", "Description", 1, IsUsingDefaultSettings())
+achievement("DEFAULT SETTINGS CHECK", "Lives = 3, Bonus Life = 7000, One Player Mode", 0, IsUsingDefaultSettings(), 293496, "", "", "325542")
 
-achievement("Clear 1-1", "Description", 5, Progress(1, Barrel))
-achievement("Clear 1-4", "Description", 5, Progress(1, Rivet))
-achievement("Clear 2-4", "Description", 5, Progress(2, Rivet))
-achievement("Clear 3-4", "Description", 10, Progress(3, Rivet))
-achievement("Clear 4-4", "Description", 10, Progress(4, Rivet))
-achievement("Clear 5-4", "Description", 10, Progress(5, Rivet))
-achievement("Clear 21-4", "Description", 100, Progress(21, Rivet))
+achievement("How High Can You Try", "Clear 1-1", 5, Progress(1, Barrel), 293497, "", "", "325543")
+achievement("Only 20 More Loops Left", "Clear 1-4", 5, Progress(1, Rivet), 293499, "", "", "325545")
+achievement("Novice of the Arcade", "Clear 2-4", 5, Progress(2, Rivet), 293500, "", "", "325546")
+achievement("Student of the Arcade", "Clear 3-4", 10, Progress(3, Rivet), 293501, "", "", "325547")
+achievement("Enthusiast of the Arcade", "Clear 4-4", 10, Progress(4, Rivet), 293502, "", "", "325548")
+achievement("Adept of the Arcade", "Clear 5-4", 10, Progress(5, Rivet), 293503, "", "", "325549")
 
-achievement("Earn your only extra life", "Description", 5, ExtraLifeEarned())
+achievement("Veteran of the Arcade", "Clear 4-4 on your very first life", 25, DeathlessProgress(4, Rivet), 293504, "", "", "325550")
 
-achievement("Clear 4-4 on your first life", "Description", 25, DeathlessProgress(4, Rivet))
+achievement("Prodigy of the Arcade", "Score 200,000 points", 25, EarnedScore(200000), 293505, "", "", "325551")
+achievement("Master of the Arcade", "Score 400,000 points", 25, EarnedScore(400000), 293506, "", "", "325552")
 
-achievement("Score 100,000 points", "Description", 25, EarnedScore(100000))
-achievement("Score 350,000 points", "Description", 25, EarnedScore(350000))
+achievement("Oil Can Antics", "Jump to the top of the oil can on any barrel board", 5, ClimbOilCan(), 293507, "", "", "325553")
 
-achievement("Reach L=05 without using a hammer", "Description", 50, HammerlessProgress(4, Rivet))
+achievement("Barrel Bounce", "Leech the first falling barrel on 1-1", 5, DefaultSettings() && InGame() && Score() == 100 && CurrentBonusTimer() == 0x47, 293508, "", "", "325554")
 
-achievement("Jump over three objects", "Description", 10, InGame() && ObjectsJumpedOver() >= 3)
+achievement("Hammered Out I", "Successfully finish a barrel board after using both hammers", 5, StageKindCleared(Barrel) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00, 293509, "", "", "325555")
+achievement("Hammered Out II", "Successfully finish a conveyor board after using both hammers", 5, StageKindCleared(Conveyor) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00, 293510, "", "", "325556")
 
-achievement("Leech the falling barrel on 1-1", "Description", 5, InGame() && Score() == 100 && CurrentBonusTimer() == 0x47)
-achievement("Leech the fireball on 1-1 as it jumps from the oil can", "Description", 5, LeechFirstFireball())
-achievement("Score 1000 points before touching a ladder", "Description", 10, PointsBeforeFirstLadder())
-achievement("Score 1000 points before touching a ladder by 4300", "Description", 25, PointsBeforeFirstLadder() && CurrentBonusTimer() > 0x43)
+achievement("Barrel Manipulator I", "By pointing the joystick towards barrels as they rolled over ladder tops, you forced (\"steered\") 10 of them down the ladders.", 2, BarrelSteers(10), 293511, "", "", "325557")
+achievement("Barrel Manipulator II", "Use the ladder trick to dodge 2 barrels in a row (Note: the ladder trick is when you climb a ladder and wait at the top, which forces barrels to roll by)", 3, LadderTrick(2), 293512, "", "", "325558")
+achievement("Barrel Manipulator III", "Use the ladder trick to dodge 8 barrels in a row", 5, LadderTrick(8), 293513, "", "", "325559")
+achievement("Barrel Manipulator IV", "Steer barrels down ladders 45 times on any barrel screen", 10, BarrelSteers(45), 293515, "", "", "325561")
 
-achievement("Get 6 smashes with a single bottom hammer on the barrel board", "Description", 10, SmashesWithHammer(6, Barrel, HammerTwoIsActive()))
-achievement("Get 7 smashes with a single top hammer on the barrel board", "Description", 10, SmashesWithHammer(7, Barrel, HammerOneIsActive()))
-achievement("Get 4 smashes with the middle hammer on the pie factory", "Description", 10, SmashesWithHammer(4, Conveyor, HammerTwoIsActive()))
+achievement("Conveyor Collector", "Collect all three of Pauline's items on any conveyor board and finish the stage", 5, ClearedWithAllPrizes(Conveyor), 293516, "", "", "325562")
+achievement("Spring Scavenger", "Collect all three of Pauline's items on any spring board and finish the stage", 5, ClearedWithAllPrizes(Spring), 293517, "", "", "325563")
+achievement("Rivet Retriever", "Collect all three of Pauline's items on any rivet board and finish the stage", 5, ClearedWithAllPrizes(Rivet), 293518, "", "", "325564")
 
-achievement("Get 5 smashes with any hammer on the rivet board", "Description", 25, SmashesWithAnyHammer(5, Rivet))
+achievement("Barrel Vaulting Pro", "Make corrupted graphics appear by leaping over three obstacles in a single jump", 10, InGame() && ObjectsJumpedOver() >= 3 && DefaultSettings(), 293519, "", "", "325565")
 
-achievement("Turbo Barrel Finish a barrel board with at least 6800 left on the timer", "Description", 10, TimerFinish(Barrel, 0x68))
-achievement("Finish a conveyor board with at least 6800 left on the timer", "Description", 25, TimerFinish(Conveyor, 0x68))
-achievement("Finish a spring board with at least 6800 left on the timer", "Description", 25, TimerFinish(Spring, 0x68))
-achievement("Turbo Rivet Finish a rivet board with at least 5200 left on the timer", "Description", 50, TimerFinish(Rivet, 0x52))
+achievement("Proper Rivet Form", "Execute the Star Pattern on any rivet board (Bottom left -> Top 2 left -> Take left hammer -> Run across) [Watch: https://youtu.be/85flrK1vivI?t=7620]", 10, StarPattern(), 293520, "", "", "325587")
 
-achievement("Climb the oil can on a barrel board", "Description", 5, ClimbOilCan())
+achievement("Heat Seeker I", "Leech the fireball on 1-1 for 100 points as it jumps out of the oil can", 5, LeechFirstFireball(), 293521, "", "", "325567")
+achievement("Heat Seeker II", "Score 1,000 points before climbing a single ladder", 10, PointsBeforeFirstLadder(), 293522, "", "", "325568")
+achievement("Heat Seeker III", "Score 1,000 points before climbing a single ladder and before the bonus timer hits 4300", 25, PointsBeforeFirstLadder() && CurrentBonusTimer() > 0x43, 293523, "", "", "325569")
 
-achievement("On the barrel board, grab the top hammer first and the bottom hammer second", "Description", 10, GhostHammerGrab(Barrel))
-achievement("On the rivet board, grab the left hammer first and the middle hammer second", "Description", 5, GhostHammerGrab(Rivet))
-achievement("On the conveyor board, grab the left hammer first and the middle hammer second", "Description", 10, GhostHammerGrab(Conveyor))
+achievement("Super Smasher I", "Get 3 smashes with a single bottom hammer on any barrel board", 5, SmashesWithHammer(3, Barrel, HammerTwoIsActive()), 293524, "", "", "325570")
+achievement("Super Smasher II", "Get 4 smashes with a single top hammer on any barrel board", 5, SmashesWithHammer(4, Barrel, HammerOneIsActive()), 293525, "", "", "325571")
+achievement("Super Smasher III", "Get 6 smashes with a single bottom hammer on any barrel board", 10, SmashesWithHammer(6, Barrel, HammerTwoIsActive()), 293526, "", "", "325572")
+achievement("Super Smasher IV", "Get 7 smashes with a single top hammer on any barrel board", 10, SmashesWithHammer(7, Barrel, HammerOneIsActive()), 293527, "", "", "325573")
+achievement("Super Smasher V", "Get 5 smashes with a single middle hammer on any conveyor board", 10, SmashesWithHammer(5, Conveyor, HammerTwoIsActive()), 293528, "", "", "325574")
+achievement("Super Smasher VI", "Get 5 smashes with a single hammer on any rivet board", 25, SmashesWithAnyHammer(5, Rivet), 293529, "", "", "325575")
 
-achievement("Grab both hammers on a barrel stage and finish the board", "Description", 5, StageKindCleared(Barrel) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00)
-achievement("Grab both hammers on a conveyor stage and finish the board", "Description", 5, StageKindCleared(Conveyor) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00)
+achievement("Turbo Barrel", "Finish a barrel board with at least 6800 left on the timer", 10, TimerFinish(Barrel, 0x68), 293530, "", "", "325576")
+achievement("Turbo Conveyor", "Finish a conveyor board with at least 6800 left on the timer", 25, TimerFinish(Conveyor, 0x68), 293531, "", "", "325577")
+achievement("Turbo Spring", "Finish a spring board with at least 6700 left on the timer", 50, TimerFinish(Spring, 0x67), 293532, "", "", "325578")
+achievement("Turbo Rivet", "Finish a rivet board with at least 5000 left on the timer", 50, TimerFinish(Rivet, 0x50), 293533, "", "", "325579")
 
-achievement("Collect all items on the pie factory and finish", "Description", 5, ClearedWithAllPrizes(Conveyor))
-achievement("Collect all items on the spring board and finish", "Description", 5, ClearedWithAllPrizes(Spring))
-achievement("Collect all items on the rivet board and finish", "Description", 5, ClearedWithAllPrizes(Rivet))
+achievement("Barrel Phantom Hammer", "On any barrel board, grab the top hammer first and the bottom hammer second", 10, GhostHammerGrab(Barrel), 293534, "", "", "325580")
+achievement("Rivet Phantom Hammer", "On any rivet board, grab the left hammer first and the middle hammer second", 5, GhostHammerGrab(Rivet), 293535, "", "", "325581")
+achievement("Conveyor Phantom Hammer", "On any conveyor board, grab the left hammer first and the middle hammer second", 5, GhostHammerGrab(Conveyor), 293536, "", "", "325582")
 
-achievement("Fireball leech on the spring board while riding the elevator", "Description", 5, LeechElevatorFireball())
+achievement("Elevator Elite", "On any spring board, leech the fireball for 100 points while riding the elevator (Note: Points are more likely to be awarded if left or right are held near the top of your jump)", 5, LeechElevatorFireball(), 293537, "", "", "325583")
+achievement("Spring Board Elite", "Leech a spring for 100 points on the right-hand side of any spring board", 5, SpringLeech(), 293538, "", "", "325584")
 
-achievement("Do the ladder trick 6 times during a single ladder climb", "Description", 5, LadderTrick(6))
-
-achievement("Leech a spring on the right-hand side of the spring board", "Description", 5, SpringLeech())
-
-achievement("Steer barrels 8 times on any barrel screen", "Description", 5, BarrelSteers(8))
-achievement("Steer barrels 40 times on any barrel screen", "Description", 10, BarrelSteers(40))
-
-achievement("Execute the star pattern on the rivet board", "Description", 10, StarPattern())
+achievement("The Hammerless Hero", "Reach L=05 without using a single hammer", 50, HammerlessProgress(4, Rivet), 293539, "", "", "325585")
+achievement("Legend of the Arcade", "Put all the skills you've learned to use: reach 22-1 and survive until the game gives up", 100, KillScreenProgress(), 293540, "", "", "325586")
 
 // --------------------------------------------------------
 // Rich Presence
@@ -672,7 +708,8 @@ levelOnes = {
 }
 
 rich_presence_conditional_display(GameState() == AttractMode, "Attract Mode")
-rich_presence_conditional_display(GameState() == CreditsAdded, "Coined up")
+rich_presence_conditional_display(GameState() == CreditsAdded, "Coined Up")
+rich_presence_conditional_display(!DefaultSettings(), "Playing casually with non-default settings")
 rich_presence_display(
     "L={0}{1}-{2} | {3} lives | {4} points",
     rich_presence_lookup("Level Tens", LevelCounterX0(), levelTens),
