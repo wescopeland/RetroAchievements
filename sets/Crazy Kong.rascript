@@ -2,6 +2,11 @@
 // #ID = 15758
 // https://retroachievements.org/game/15758
 
+// CHANGELOG
+// MARCH 9 2023 - Fix bugs with Heat Seeker I and Barrel Bounce accidental unlock,
+//                add pluralization to life count rich presence indicator,
+//                update no hammer leaderboard to submit when a hammer is grabbed
+
 // $0005: [8-bit] Game State
 //        0x01 = Attract Mode
 //        0x02 = Credits Added
@@ -280,10 +285,23 @@ function LeechFirstFireball() {
     return (
         start
         && cancel
+        && disable_when(PlayingState() == PlayerPlaying && MarioY() <= 0xD3) // Climbed the first ladder
         && CurrentBonusTimer() == 0x45
         && MarioIsJumpingOrFalling() == 0x01
         && Score() > prev(Score())
     )
+}
+
+function BarrelBounce() {
+    return (
+        disable_when(PlayingState() == PlayerPlaying && MarioY() <= 0xD3) // Climbed the first ladder
+        && DefaultSettings() 
+        && InGame() 
+        && CurrentLevel() == 1
+        && CurrentStageKind() == Barrel
+        && Score() == 100 
+        && CurrentBonusTimer() == 0x47
+    ) 
 }
 
 function PointsBeforeFirstLadder() {
@@ -618,7 +636,7 @@ achievement("Master of the Arcade", "Score 400,000 points", 25, EarnedScore(4000
 
 achievement("Oil Can Antics", "Jump to the top of the oil can on any barrel board", 5, ClimbOilCan(), 293507, "", "", "325553")
 
-achievement("Barrel Bounce", "Leech the first falling barrel on 1-1", 5, DefaultSettings() && InGame() && Score() == 100 && CurrentBonusTimer() == 0x47, 293508, "", "", "325554")
+achievement("Barrel Bounce", "Leech the first falling barrel on 1-1", 5, BarrelBounce(), 293508, "", "", "325554")
 
 achievement("Hammered Out I", "Successfully finish a barrel board after using both hammers", 5, StageKindCleared(Barrel) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00, 293509, "", "", "325555")
 achievement("Hammered Out II", "Successfully finish a conveyor board after using both hammers", 5, StageKindCleared(Conveyor) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00, 293510, "", "", "325556")
@@ -707,15 +725,20 @@ levelOnes = {
     0x09: "9"
 }
 
+livesLabels = {
+    0x01: "life"
+}
+
 rich_presence_conditional_display(GameState() == AttractMode, "Attract Mode")
 rich_presence_conditional_display(GameState() == CreditsAdded, "Coined Up")
 rich_presence_conditional_display(!DefaultSettings(), "Playing casually with non-default settings")
 rich_presence_display(
-    "L={0}{1}-{2} | {3} lives | {4} points",
+    "L={0}{1}-{2} | {3} {4} | {5} points",
     rich_presence_lookup("Level Tens", LevelCounterX0(), levelTens),
     rich_presence_lookup("Level Ones", LevelCounter0X(), levelOnes),
     rich_presence_lookup("Stage", CurrentExactStage(), exactStages, "1"),
     rich_presence_value("Lives", TotalLivesLeft()),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives"),
     rich_presence_value("Score", Score())
 )
 
@@ -736,7 +759,7 @@ leaderboard(
     "High Score (no hammer)",
     "High score on default settings, no hammers allowed",
     DefaultSettings() && GameState() == GamePlaying && OnePlayerMode(),
-    MarioIsUsingHammer() == 1,
-    GameOver(),
+    always_false(),
+    MarioIsUsingHammer() == 1 || GameOver(),
     Score()
 )
