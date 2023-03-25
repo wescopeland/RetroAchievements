@@ -36,8 +36,10 @@ FreeSpaceSpawning = 0x07
 PlayerWarpingInFromHyperspace = 0x50
 PlayerKilled = 0x58
 WaveCompletedScreenOrHyperspace = 0x77
+BootChecksRunning = 0x88
 GameStartingOrPlayerExploding = 0x7F
 TitleScreen = 0xFB
+Bootup = 0xFD
 AttractMode = 0xD9
 MaybeGameOver = 0xFF
 
@@ -49,6 +51,7 @@ function HumanoidsRemaining() => byte(0xE2FA)                   // $E2FA: [8-bit
 AllHumanoidsRemaining = 0x0A
 
 function LandersRemaining() => byte(0xE312)
+function MutantsRemaining() => byte(0xE315)
 function BaitersRemaining() => byte(0xE319)
 
 // $E3C3: Player 1 Score (BCD)
@@ -99,9 +102,6 @@ function DefaultSettings() => (
         && PlayerOneSmartBombsRemaining() != 3
     )
 )
-
-// Anti-cheat:
-// When # of credits decreases, Game State should be 7F and smart bombs should be 03
 
 // --------------------------------------------------------
 // Achievements Functions
@@ -344,6 +344,21 @@ function BaiterKill() {
     )
 }
 
+function MutantKill() {
+    start = once(PlayerOneActive() && DefaultSettings())
+    
+    cancel = never(GameOver()) && never(Dead()) && never(ShowingWaveCompletedScreen())
+    
+    return (
+        start
+        && cancel
+        && once(MutantsRemaining() >= 1)
+        && trigger_when(
+            MutantsRemaining() < prev(MutantsRemaining())
+        )
+    )
+}
+
 function WaveBaiterKills(killCount, showTriggerCount) {
     start = once(PlayerOneActive() && DefaultSettings())
     
@@ -354,6 +369,19 @@ function WaveBaiterKills(killCount, showTriggerCount) {
         && cancel
         && repeated(showTriggerCount, BaitersRemaining() < prev(BaitersRemaining()))
         && trigger_when(repeated(killCount, BaitersRemaining() < prev(BaitersRemaining())))
+    )
+}
+
+function WaveMutantKills(killCount, showTriggerCount) {
+    start = once(PlayerOneActive() && DefaultSettings())
+    
+    cancel = never(GameOver()) && never(Dead()) && never(ShowingWaveCompletedScreen())
+    
+    return (
+        start
+        && cancel
+        && repeated(showTriggerCount, MutantsRemaining() < prev(MutantsRemaining()))
+        && trigger_when(repeated(killCount, MutantsRemaining() < prev(MutantsRemaining())))
     )
 }
 
@@ -399,19 +427,25 @@ achievement("Clear Wave 1 with 10 humanoids remaining", "", 5, HumanoidsRemainin
 achievement("Clear Wave 2 with 10 humanoids remaining", "", 5, HumanoidsRemainingProgress(2, 10))
 achievement("Clear Wave 3 with 10 humanoids remaining", "", 5, HumanoidsRemainingProgress(3, 10))
 achievement("Clear Wave 4 with 9 humanoids remaining", "", 5, HumanoidsRemainingProgress(4, 9))
-achievement("Clear Wave 5 with 8 humanoids remaining", "", 5, HumanoidsRemainingProgress(5, 8))
+achievement("Clear Wave 5 with 8 humanoids remaining", "", 5, HumanoidsRemainingProgress(5, 9))
 
 achievement("Score 10,000 points", "", 5, EarnedScore(10000))
 achievement("Score 200,000 points", "", 5, EarnedScore(200000))
 
 achievement("Hold more than 5 lives in reserve", "", 5, ReserveLives())
+
 achievement("Catch a humanoid", "", 5, CatchHumanoid())
+
 achievement("Return a humanoid to the ground", "", 5, ReturnHumanoidToGround())
 
 achievement("Score 5000 points without dying", "", 5, DeathlessEarnedScore(5000, 0))
 achievement("Score 10,000 points without dying", "", 5, DeathlessEarnedScore(10000, 5000))
 achievement("Score 20,000 points without dying", "", 5, DeathlessEarnedScore(20000, 10000))
 achievement("Score 30,000 points without dying", "", 5, DeathlessEarnedScore(30000, 20000))
+
+achievement("Kill a Mutant", "", 5, MutantKill())
+achievement("Kill four mutants in one wave", "", 5, WaveMutantKills(4, 2))
+achievement("Kill fourteen mutants in one wave", "", 5, WaveMutantKills(14, 13))
 
 achievement("Kill a Baiter", "", 5, BaiterKill())
 achievement("Kill three baiters in one wave", "", 5, WaveBaiterKills(3, 1))
@@ -422,8 +456,9 @@ achievement("Space Invaders Tribute", "Clear a wave without pressing Up or Down"
 achievement("Hold 4 humanoids at once", "", 5, HoldingHumanoids(4))
 achievement("Hold 10 humanoids at once", "", 5, HoldingHumanoids(10))
 
-achievement("Clear Wave 2 and have never used a smart bomb", "", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
-achievement("Clear Wave 4 and have never used a smart bomb", "", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
+achievement("Reach Wave 2 without ever using a smart bomb", "", 5, WithoutButtonProgress(1, IsSmartBombButtonPressed()))
+achievement("Reach Wave 3 without ever using a smart bomb", "", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
+achievement("Reach Wave 5 without ever using a smart bomb", "", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
 
 achievement("Clear Wave 1 and have never used reverse", "", 5, WithoutButtonProgress(1, IsReverseButtonPressed()))
 achievement("Clear Wave 2 and have never used reverse", "", 5, WithoutButtonProgress(2, IsReverseButtonPressed()))
@@ -447,23 +482,66 @@ achievement("Reach Wave 4 within 2 minutes and 15 seconds", "", 5, ProgressTime(
 // Rich Presence
 // --------------------------------------------------------
 
-// TODO: initial bootup config
-
 livesLabels = {
     0x01: "life"
 }
 
-rich_presence_conditional_display(Credits() >= 1, "Coined Up")
+rich_presence_conditional_display(
+    GameState() == BootChecksRunning || GameState() == Bootup,
+    "Game Booting"
+)
 
 rich_presence_conditional_display(
     GameState() == AttractMode || GameState() == TitleScreen,
     "Attract Mode"
 )
 
-rich_presence_display(
-    "Wave {0} | {1} {2} | {3} points",
+rich_presence_conditional_display(
+    GameState() == GameStartingOrPlayerExploding,
+    "Wave {0} • {1} points • {2} {3} • {4} humanoids",
     rich_presence_value("Current Wave", PlayerOneCurrentWave()),
+    rich_presence_value("Score", Score()), // TODO: rollovers?
     rich_presence_value("Lives", PlayerOneLives()),
     rich_presence_lookup("Lives Label", PlayerOneLives(), livesLabels, "lives"),
-    rich_presence_value("Score", Score()) // TODO: rollovers?
+    rich_presence_value("Humanoids", HumanoidsRemaining())
+)
+
+rich_presence_display(
+    "Wave {0} • {1} points • {2} {3} • {4} humanoids",
+    rich_presence_value("Current Wave", PlayerOneCurrentWave()),
+    rich_presence_value("Score", Score()), // TODO: rollovers?
+    rich_presence_value("Lives", PlayerOneLives() + 1), // Count the life currently in use
+    rich_presence_lookup("Lives Label", PlayerOneLives() + 1, livesLabels, "lives"),
+    rich_presence_value("Humanoids", HumanoidsRemaining())
+)
+
+// --------------------------------------------------------
+// Leaderboards
+// --------------------------------------------------------
+
+leaderboard(
+    "High Score",
+    "Default settings (3 lives, 10k bonus)",
+    PlayerOneActive() && DefaultSettings(),
+    always_false(),
+    GameOver(),
+    Score()
+)
+
+leaderboard(
+    "First Life",
+    "Highest score on your very first ship",
+    PlayerOneActive() && DefaultSettings(),
+    always_false(),
+    GameState() != GameStartingOrPlayerExploding && PlayerOneLives() < prev(PlayerOneLives()),
+    Score()
+)
+
+leaderboard(
+    "No Dead Humanoids",
+    "Highest score before any humanoids are killed",
+    PlayerOneActive() && DefaultSettings(),
+    always_false(),
+    HumanoidsRemaining() == 9,
+    Score()
 )
