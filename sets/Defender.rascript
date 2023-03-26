@@ -52,25 +52,12 @@ AllHumanoidsRemaining = 0x0A
 
 function LandersRemaining() => byte(0xE312)
 function MutantsRemaining() => byte(0xE315)
+function BaiterSpawnTimer() => byte(0xE318)
 function BaitersRemaining() => byte(0xE319)
 
 // $E3C3: Player 1 Score (BCD)
 function ScoreX00000() => high4(0xE3C3)
-function Score0X0000() => low4(0xE3C3)
-function Score00X000() => high4(0xE3C4)
-function Score000X00() => low4(0xE3C4)
-function Score0000X0() => high4(0xE3C5)
-function Score00000X() => low4(0xE3C5)
-function Score() {
-    return (
-        ScoreX00000() * 100000
-        + Score0X0000() * 10000
-        + Score00X000() * 1000
-        + Score000X00() * 100
-        + Score0000X0() * 10
-        + Score00000X()
-    )
-}
+function Score() => bcd(tbyte_be(0xE3C3))
 
 function BonusScoreXX0000()             => byte(0xE3C6)         // $E3C6: [8-bit] Player 1 Next Life Interval (BCD)
 function BonusScore00XX00()             => byte(0xE3C7)         // $E3C7: [8-bit] Player 1 Next Life Interval (BCD)
@@ -120,6 +107,11 @@ function IsUsingDefaultSettings() {
 }
 
 function Progress(waveNumber) {
+    triggerWaveNumber = waveNumber
+    if (waveNumber != 1) {
+        triggerWaveNumber = waveNumber + 1
+    }
+
     start = once(PlayerOneActive() && DefaultSettings())
     
     cancel = never(GameOver())
@@ -127,8 +119,21 @@ function Progress(waveNumber) {
     return (
         start
         && cancel
+        && PlayerOneCurrentWave() == triggerWaveNumber
+        && ShowingWaveCompletedScreen()
+    )
+}
+
+function DeathlessProgressNoTrigger(waveNumber) {
+    start = once(PlayerOneActive() && DefaultSettings())
+    
+    cancel = disable_when(Dead(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+    
+    return (
+        start
+        && cancel
         && PlayerOneCurrentWave() == waveNumber
-        && trigger_when(ShowingWaveCompletedScreen())
+        && ShowingWaveCompletedScreen()
     )
 }
 
@@ -140,7 +145,7 @@ function DeathlessProgress(waveNumber) {
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == waveNumber
+        && PlayerOneCurrentWave() == waveNumber + 1
         && trigger_when(ShowingWaveCompletedScreen())
     )
 }
@@ -151,6 +156,7 @@ function DeathlessTime(time, showAlertTime) {
     
     cancel = (
         never(Dead())
+        && never(PlayerOneLives() == 0)
         && never(
             GameState() != WaveCompletedScreenOrHyperspace
             && GameState() != GameStartingOrPlayerExploding
@@ -190,23 +196,45 @@ function NoVerticalMovementProgress(waveNumber) {
     )
 }
 
-function HumanoidsRemainingProgress(waveNumber, neededHumanoids) {
+// This function has no trigger_when().
+function WaveOneHumanoidsRemainingProgress(neededHumanoids) {
     start = once(PlayerOneActive() && DefaultSettings())
     
-    cancel = disable_when(
-        HumanoidsRemaining() < neededHumanoids,
-        PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    )
+    cancel = never(HumanoidsRemaining() < neededHumanoids && PlayerOneCurrentWave() < 1)
     
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == waveNumber
+        && PlayerOneCurrentWave() == 1
+        && ShowingWaveCompletedScreen()
+        && HumanoidsRemaining() == neededHumanoids
+    )
+} 
+
+function HumanoidsRemainingProgress(waveNumber, neededHumanoids) {
+    triggerWaveNumber = 1
+    if (waveNumber != 1) {
+        triggerWaveNumber = waveNumber + 1
+    }
+
+    start = once(PlayerOneActive() && DefaultSettings())
+    
+    cancel = never(HumanoidsRemaining() < neededHumanoids && PlayerOneCurrentWave() <= waveNumber)
+    
+    return (
+        start
+        && cancel
+        && PlayerOneCurrentWave() == triggerWaveNumber
         && trigger_when(ShowingWaveCompletedScreen() && HumanoidsRemaining() >= neededHumanoids)
     )
 }
 
-function WithoutButtonProgress(waveNumber, buttonPressCondition) {
+function NoTriggerWithoutButtonProgress(waveNumber, buttonPressCondition) {
+    triggerWaveNumber = 1
+    if (waveNumber != 1) {
+        triggerWaveNumber = waveNumber + 1
+    }
+    
     start = once(PlayerOneActive() && DefaultSettings())
     
     cancel = disable_when(
@@ -217,12 +245,38 @@ function WithoutButtonProgress(waveNumber, buttonPressCondition) {
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == waveNumber
+        && PlayerOneCurrentWave() == triggerWaveNumber
+        && ShowingWaveCompletedScreen()
+    )
+}
+
+function WithoutButtonProgress(waveNumber, buttonPressCondition) {
+    triggerWaveNumber = 1
+    if (waveNumber != 1) {
+        triggerWaveNumber = waveNumber + 1
+    }
+
+    start = once(PlayerOneActive() && DefaultSettings())
+    
+    cancel = disable_when(
+        buttonPressCondition == 0x01,
+        PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
+    )
+    
+    return (
+        start
+        && cancel
+        && PlayerOneCurrentWave() == triggerWaveNumber
         && trigger_when(ShowingWaveCompletedScreen())
     )
 }
 
 function LimitedFireProgress(waveNumber, maxPressCount) {
+    triggerWaveNumber = 1
+    if (waveNumber != 1) {
+        triggerWaveNumber = waveNumber + 1
+    }
+
     start = once(PlayerOneActive() && DefaultSettings())
     
     cancel = disable_when(
@@ -236,7 +290,7 @@ function LimitedFireProgress(waveNumber, maxPressCount) {
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == waveNumber
+        && PlayerOneCurrentWave() == triggerWaveNumber
         && trigger_when(ShowingWaveCompletedScreen())
     )
 }
@@ -278,6 +332,18 @@ function DeathlessEarnedScore(score, showTriggerScore) {
     )
 }
 
+function DeathlessEarnedScoreNoTrigger(score) {
+    start = once(PlayerOneActive() && DefaultSettings())
+    
+    cancel = disable_when(Dead(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+    
+    return (
+        start
+        && cancel
+        && Score() >= score
+    )
+}
+
 function ReserveLives() {
     start = once(PlayerOneActive() && DefaultSettings())
     
@@ -300,21 +366,6 @@ function CatchHumanoid() {
     return start && cancel && CurrentSoundInstruction() == PlayerCaughtHumanoid
 }
 
-function HoldingHumanoids(count) {
-    start = once(PlayerOneActive() && DefaultSettings())
-    
-    cancel = never(GameOver()) && never(CurrentSoundInstruction() == HumanoidReturnedToGround)
-    
-    return (
-        start
-        && cancel
-        && repeated(
-            count, 
-            prev(CurrentSoundInstruction()) != PlayerCaughtHumanoid && CurrentSoundInstruction() == PlayerCaughtHumanoid
-        )
-    )
-}
-
 function ReturnHumanoidToGround() {
     start = once(PlayerOneActive())
     
@@ -326,21 +377,6 @@ function ReturnHumanoidToGround() {
         && cancel
         && once(CurrentSoundInstruction() == PlayerCaughtHumanoid)
         && CurrentSoundInstruction() == HumanoidReturnedToGround
-    )
-}
-
-function BaiterKill() {
-    start = once(PlayerOneActive() && DefaultSettings())
-    
-    cancel = never(GameOver()) && never(Dead()) && never(ShowingWaveCompletedScreen())
-    
-    return (
-        start
-        && cancel
-        && once(BaitersRemaining() >= 1)
-        && trigger_when(
-            BaitersRemaining() < prev(BaitersRemaining())
-        )
     )
 }
 
@@ -419,17 +455,17 @@ achievement("Clear Wave Six", "", 5, Progress(6))
 achievement("Clear Wave Seven", "", 5, Progress(7))
 achievement("Clear Wave Eight", "", 5, Progress(8))
 
-achievement("Clear Wave One on your first life", "", 5, DeathlessProgress(1))
+achievement("Clear Wave One on your first life", "", 5, DeathlessProgressNoTrigger(1))
 achievement("Clear Wave Two on your first life", "", 5, DeathlessProgress(2))
 achievement("Clear Wave Three on your first life", "", 5, DeathlessProgress(3))
 
-achievement("Clear Wave 1 with 10 humanoids remaining", "", 5, HumanoidsRemainingProgress(1, 10))
+achievement("Clear Wave 1 with 10 humanoids remaining", "", 5, WaveOneHumanoidsRemainingProgress(10))
 achievement("Clear Wave 2 with 10 humanoids remaining", "", 5, HumanoidsRemainingProgress(2, 10))
 achievement("Clear Wave 3 with 10 humanoids remaining", "", 5, HumanoidsRemainingProgress(3, 10))
 achievement("Clear Wave 4 with 9 humanoids remaining", "", 5, HumanoidsRemainingProgress(4, 9))
-achievement("Clear Wave 5 with 8 humanoids remaining", "", 5, HumanoidsRemainingProgress(5, 9))
+achievement("Clear Wave 5 with 9 humanoids remaining", "", 5, HumanoidsRemainingProgress(5, 9))
 
-achievement("Score 10,000 points", "", 5, EarnedScore(10000))
+achievement("Earn an extra life and smart bomb by scoring 10,000 points", "", 5, EarnedScore(10000))
 achievement("Score 200,000 points", "", 5, EarnedScore(200000))
 
 achievement("Hold more than 5 lives in reserve", "", 5, ReserveLives())
@@ -438,25 +474,20 @@ achievement("Catch a humanoid", "", 5, CatchHumanoid())
 
 achievement("Return a humanoid to the ground", "", 5, ReturnHumanoidToGround())
 
-achievement("Score 5000 points without dying", "", 5, DeathlessEarnedScore(5000, 0))
-achievement("Score 10,000 points without dying", "", 5, DeathlessEarnedScore(10000, 5000))
-achievement("Score 20,000 points without dying", "", 5, DeathlessEarnedScore(20000, 10000))
-achievement("Score 30,000 points without dying", "", 5, DeathlessEarnedScore(30000, 20000))
+achievement("On your first life, score 10,000 points without dying", "", 5, DeathlessEarnedScore(10000, 5000))
+achievement("On your first life, score 20,000 points without dying", "", 5, DeathlessEarnedScore(20000, 10000))
+achievement("On your first life, score 30,000 points without dying", "", 5, DeathlessEarnedScore(30000, 20000))
 
 achievement("Kill a Mutant", "", 5, MutantKill())
 achievement("Kill four mutants in one wave", "", 5, WaveMutantKills(4, 2))
 achievement("Kill fourteen mutants in one wave", "", 5, WaveMutantKills(14, 13))
 
-achievement("Kill a Baiter", "", 5, BaiterKill())
 achievement("Kill three baiters in one wave", "", 5, WaveBaiterKills(3, 1))
 achievement("Kill ten baiters in one wave", "", 5, WaveBaiterKills(10, 5))
 
 achievement("Space Invaders Tribute", "Clear a wave without pressing Up or Down", 5, NoVerticalMovementProgress(1))
 
-achievement("Hold 4 humanoids at once", "", 5, HoldingHumanoids(4))
-achievement("Hold 10 humanoids at once", "", 5, HoldingHumanoids(10))
-
-achievement("Reach Wave 2 without ever using a smart bomb", "", 5, WithoutButtonProgress(1, IsSmartBombButtonPressed()))
+achievement("Reach Wave 2 without ever using a smart bomb", "", 5, NoTriggerWithoutButtonProgress(1, IsSmartBombButtonPressed()))
 achievement("Reach Wave 3 without ever using a smart bomb", "", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
 achievement("Reach Wave 5 without ever using a smart bomb", "", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
 
@@ -486,6 +517,10 @@ livesLabels = {
     0x01: "life"
 }
 
+humanoidsLabels = {
+    0x01: "humanoid"
+}
+
 rich_presence_conditional_display(
     GameState() == BootChecksRunning || GameState() == Bootup,
     "Game Booting"
@@ -498,21 +533,23 @@ rich_presence_conditional_display(
 
 rich_presence_conditional_display(
     GameState() == GameStartingOrPlayerExploding,
-    "Wave {0} • {1} points • {2} {3} • {4} humanoids",
+    "Wave {0} • {1} points • {2} {3} • {4} {5}",
     rich_presence_value("Current Wave", PlayerOneCurrentWave()),
     rich_presence_value("Score", Score()), // TODO: rollovers?
     rich_presence_value("Lives", PlayerOneLives()),
     rich_presence_lookup("Lives Label", PlayerOneLives(), livesLabels, "lives"),
-    rich_presence_value("Humanoids", HumanoidsRemaining())
+    rich_presence_value("Humanoids", HumanoidsRemaining()),
+    rich_presence_lookup("Humanoids Label", HumanoidsRemaining(), humanoidsLabels, "humanoids")
 )
 
 rich_presence_display(
-    "Wave {0} • {1} points • {2} {3} • {4} humanoids",
+    "Wave {0} • {1} points • {2} {3} • {4} {5}",
     rich_presence_value("Current Wave", PlayerOneCurrentWave()),
     rich_presence_value("Score", Score()), // TODO: rollovers?
     rich_presence_value("Lives", PlayerOneLives() + 1), // Count the life currently in use
     rich_presence_lookup("Lives Label", PlayerOneLives() + 1, livesLabels, "lives"),
-    rich_presence_value("Humanoids", HumanoidsRemaining())
+    rich_presence_value("Humanoids", HumanoidsRemaining()),
+    rich_presence_lookup("Humanoids Label", HumanoidsRemaining(), humanoidsLabels, "humanoids")
 )
 
 // --------------------------------------------------------
@@ -533,7 +570,7 @@ leaderboard(
     "Highest score on your very first ship",
     PlayerOneActive() && DefaultSettings(),
     always_false(),
-    GameState() != GameStartingOrPlayerExploding && PlayerOneLives() < prev(PlayerOneLives()),
+    Dead(),
     Score()
 )
 
