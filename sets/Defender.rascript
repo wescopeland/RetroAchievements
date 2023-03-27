@@ -389,7 +389,7 @@ function HumanoidSurvival(targetWaveNumber) {
     )
     
     cancel = disable_when(
-        HumanoidsRemaining() == 0,
+        PlayerOneCurrentWave() > 1 && HumanoidsRemaining() == 0,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
     )
     
@@ -513,14 +513,7 @@ rich_presence_display(
 // Leaderboards
 // --------------------------------------------------------
 
-leaderboard(
-    "High Score",
-    "Default settings (3 lives, 10k bonus)",
-    PlayerOneActive() && DefaultSettings(),
-    always_false(),
-    GameOver(),
-    Score()
-)
+// High Score leaderboard is not supported by RAScript syntax
 
 leaderboard(
     "First Life",
