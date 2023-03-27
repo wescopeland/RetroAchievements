@@ -380,47 +380,6 @@ function ReturnHumanoidToGround() {
     )
 }
 
-function MutantKill() {
-    start = once(PlayerOneActive() && DefaultSettings())
-    
-    cancel = never(GameOver()) && never(Dead()) && never(ShowingWaveCompletedScreen())
-    
-    return (
-        start
-        && cancel
-        && once(MutantsRemaining() >= 1)
-        && trigger_when(
-            MutantsRemaining() < prev(MutantsRemaining())
-        )
-    )
-}
-
-function WaveBaiterKills(killCount, showTriggerCount) {
-    start = once(PlayerOneActive() && DefaultSettings())
-    
-    cancel = never(GameOver()) && never(Dead()) && never(ShowingWaveCompletedScreen())
-    
-    return (
-        start
-        && cancel
-        && repeated(showTriggerCount, BaitersRemaining() < prev(BaitersRemaining()))
-        && trigger_when(repeated(killCount, BaitersRemaining() < prev(BaitersRemaining())))
-    )
-}
-
-function WaveMutantKills(killCount, showTriggerCount) {
-    start = once(PlayerOneActive() && DefaultSettings())
-    
-    cancel = never(GameOver()) && never(Dead()) && never(ShowingWaveCompletedScreen())
-    
-    return (
-        start
-        && cancel
-        && repeated(showTriggerCount, MutantsRemaining() < prev(MutantsRemaining()))
-        && trigger_when(repeated(killCount, MutantsRemaining() < prev(MutantsRemaining())))
-    )
-}
-
 function HumanoidSurvival(targetWaveNumber) {
     start = once(
         PlayerOneActive() 
@@ -437,6 +396,7 @@ function HumanoidSurvival(targetWaveNumber) {
     return (
         start
         && cancel
+        && PlayerOneCurrentWave() == targetWaveNumber
         && trigger_when(
             ShowingWaveCompletedScreen() 
             && prev(PlayerOneCurrentWave()) == targetWaveNumber && PlayerOneCurrentWave() == (targetWaveNumber + 1)
@@ -466,7 +426,7 @@ achievement("Clear Wave 4 with 9 humanoids remaining", "", 5, HumanoidsRemaining
 achievement("Clear Wave 5 with 9 humanoids remaining", "", 5, HumanoidsRemainingProgress(5, 9))
 
 achievement("Earn an extra life and smart bomb by scoring 10,000 points", "", 5, EarnedScore(10000))
-achievement("Score 200,000 points", "", 5, EarnedScore(200000))
+achievement("Score 120,000 points", "", 100, EarnedScore(120000))
 
 achievement("Hold more than 5 lives in reserve", "", 5, ReserveLives())
 
@@ -478,29 +438,21 @@ achievement("On your first life, score 10,000 points without dying", "", 5, Deat
 achievement("On your first life, score 20,000 points without dying", "", 5, DeathlessEarnedScore(20000, 10000))
 achievement("On your first life, score 30,000 points without dying", "", 5, DeathlessEarnedScore(30000, 20000))
 
-achievement("Kill a Mutant", "", 5, MutantKill())
-achievement("Kill four mutants in one wave", "", 5, WaveMutantKills(4, 2))
-achievement("Kill fourteen mutants in one wave", "", 5, WaveMutantKills(14, 13))
-
-achievement("Kill three baiters in one wave", "", 5, WaveBaiterKills(3, 1))
-achievement("Kill ten baiters in one wave", "", 5, WaveBaiterKills(10, 5))
-
 achievement("Space Invaders Tribute", "Clear a wave without pressing Up or Down", 5, NoVerticalMovementProgress(1))
 
-achievement("Reach Wave 2 without ever using a smart bomb", "", 5, NoTriggerWithoutButtonProgress(1, IsSmartBombButtonPressed()))
-achievement("Reach Wave 3 without ever using a smart bomb", "", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
-achievement("Reach Wave 5 without ever using a smart bomb", "", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
+achievement("Clear Wave 1 without ever using a smart bomb", "", 5, NoTriggerWithoutButtonProgress(1, IsSmartBombButtonPressed()))
+achievement("Clear Wave 2 without ever using a smart bomb", "", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
+achievement("Clear Wave 4 without ever using a smart bomb", "", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
 
 achievement("Clear Wave 1 and have never used reverse", "", 5, WithoutButtonProgress(1, IsReverseButtonPressed()))
 achievement("Clear Wave 2 and have never used reverse", "", 5, WithoutButtonProgress(2, IsReverseButtonPressed()))
-achievement("Clear Wave 3 and have never used reverse", "", 5, WithoutButtonProgress(3, IsReverseButtonPressed()))
 
 achievement("Clear Wave 1 after pressing Fire 5 times or less", "", 5, LimitedFireProgress(1, 5))
 
 achievement("Clear Wave 2 with no baiters ever spawning", "", 5, NoBaiterProgress(2))
 
 achievement("Begin Wave 2 with one humanoid remaining, and ensure it survives until clearing Wave 2", "", 5, HumanoidSurvival(2))
-achievement("Begin Wave 3 with one humanoid remaining, and ensure it survives until clearing Wave 3", "", 5, HumanoidSurvival(3))
+achievement("Begin Wave 2 with one humanoid remaining, and ensure it survives until clearing Wave 3", "", 5, HumanoidSurvival(3))
 achievement("Begin Wave 2 with one humanoid remaining, and ensure it survives until clearing Wave 4", "", 5, HumanoidSurvival(4))
 
 achievement("Survive for longer than 1 minute on a life", "", 5, DeathlessTime(TimeSpan(1, 0, 0), TimeSpan(0, 30, 0)))
@@ -522,7 +474,12 @@ humanoidsLabels = {
 }
 
 rich_presence_conditional_display(
-    GameState() == BootChecksRunning || GameState() == Bootup,
+    GameState() == BootChecksRunning,
+    "Config Menu - RESTART THE GAME TO PLAY"
+)
+
+rich_presence_conditional_display(
+    GameState() == Bootup,
     "Game Booting"
 )
 
