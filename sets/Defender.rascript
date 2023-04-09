@@ -339,7 +339,11 @@ function EarnedScore(score) {
     
     cancel = never(GameOver())
     
-    return start && cancel && Score() >= score
+    anticheat = disable_when(
+        PlayerOneCurrentWave() == 1 && Score() > 20000
+    )
+    
+    return start && cancel && anticheat && Score() >= score
 }
 
 function DeathlessEarnedScore(score, showTriggerScore) {
@@ -427,62 +431,116 @@ function HumanoidSurvival(targetWaveNumber) {
     )
 }
 
-achievement("DEFAULT SETTINGS CHECK", "Lives = 3, Bonus Life = 10000, One Player Mode", 1, IsUsingDefaultSettings())
+function FreeSpaceSurveyor() {
+    start = once(
+        PlayerOneActive()
+        && DefaultSettings()
+        && PlayerOneCurrentWave() == 2
+        && HumanoidsRemaining() == 0
+    )
+    
+    cancel = never(GameOver())
+    
+    anticheat = disable_when(
+        PlayerOneCurrentWave() == 1 && Score() > 20000
+    )
+    
+    return (
+        start
+        && cancel
+        && anticheat
+        && trigger_when(
+            ShowingWaveCompletedScreen() && PlayerOneCurrentWave() == 5
+        )
+    )
+}
+
+function HellInSpace() {
+    start = once(
+        PlayerOneActive()
+        && DefaultSettings()
+        && PlayerOneCurrentWave() == 2
+        && HumanoidsRemaining() == 0
+    )
+    
+    cancel = never(GameOver()) && disable_when(
+        PlayerOneCurrentWave() >= 2 && IsSmartBombButtonPressed() == 1,
+        PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
+    )
+    
+    anticheat = disable_when(
+        PlayerOneCurrentWave() == 1 && Score() > 20000
+    )
+    
+    return (
+        start
+        && cancel
+        && anticheat
+        && trigger_when(
+            ShowingWaveCompletedScreen() && PlayerOneCurrentWave() == 5
+        )
+    )
+}
+
+
+achievement("DEFAULT SETTINGS CHECK", "Lives = 3, Bonus Life = 10000, One Player Mode. Reset the game once on bootup to begin playing.", 0, IsUsingDefaultSettings())
 
 achievement("First Flight", "Clear Wave One", 5, Progress(1))
 achievement("Skyward Sentry", "Clear Wave Two", 5, Progress(2))
 achievement("Star Patrol", "Clear Wave Three", 5, Progress(3))
-achievement("Aerial Adept", "Clear Wave Four", 5, Progress(4))
-achievement("Cosmic Captain", "Clear Wave Five", 5, Progress(5))
-achievement("Galactic Gatekeeper", "Clear Wave Six", 5, Progress(6))
-achievement("Stellar Sentinel", "Clear Wave Seven", 5, Progress(7))
-achievement("Celestial Champion", "Clear Wave Eight", 5, Progress(8))
+achievement("Aerial Adept", "Clear Wave Four", 10, Progress(4))
+achievement("Cosmic Captain", "Clear Wave Five", 10, Progress(5))
+achievement("Galactic Gatekeeper", "Clear Wave Six", 10, Progress(6))
+achievement("Stellar Sentinel", "Clear Wave Seven", 25, Progress(7))
+achievement("Celestial Champion", "Clear Wave Eight", 50, Progress(8))
 
 achievement("Flawless First Flight", "Clear Wave One on your first life", 5, DeathlessProgressNoTrigger(1))
-achievement("Flawless Skyward Sentry", "Clear Wave Two on your first life", 5, DeathlessProgress(2))
-achievement("Flawless Star Patrol", "Clear Wave Three on your first life", 5, DeathlessProgress(3))
-achievement("Flawless Aerial Adept", "Clear Wave Four on your first life", 5, DeathlessProgress(4))
-achievement("Flawless Cosmic Captain", "Clear Wave Five on your first life", 5, DeathlessProgress(5))
+achievement("Flawless Skyward Sentry", "Clear Wave Two on your first life", 10, DeathlessProgress(2))
+achievement("Flawless Star Patrol", "Clear Wave Three on your first life", 10, DeathlessProgress(3))
+achievement("Flawless Aerial Adept", "Clear Wave Four on your first life", 25, DeathlessProgress(4))
+achievement("Flawless Cosmic Captain", "Clear Wave Five on your first life", 25, DeathlessProgress(5))
 
 achievement("Full House I", "Clear Wave 1 with 10 humanoids remaining", 5, WaveOneHumanoidsRemainingProgress(10))
 achievement("Full House II", "Clear Wave 2 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(2, 10))
-achievement("Full House III", "Clear Wave 3 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(3, 10))
-achievement("Full House IV", "Clear Wave 4 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(4, 10))
-achievement("Full House V", "Clear Wave 5 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(5, 10))
+achievement("Full House III", "Clear Wave 3 with 10 humanoids remaining", 10, HumanoidsRemainingProgress(3, 10))
+achievement("Full House IV", "Clear Wave 4 with 10 humanoids remaining", 10, HumanoidsRemainingProgress(4, 10))
+achievement("Full House V", "Clear Wave 5 with 10 humanoids remaining", 25, HumanoidsRemainingProgress(5, 10))
 
 achievement("Score and Soar", "Earn an extra life and smart bomb by scoring 10,000 points", 5, EarnedScore(10000))
 
-achievement("Continuity Cache", "Hold more than 5 lives in reserve", 5, ReserveLives())
+achievement("Continuity Cache", "Hold more than 5 lives in reserve", 10, ReserveLives())
 
-achievement("Life Saver I", "Catch a humanoid", 5, CatchHumanoid())
-achievement("Life Saver II", "Return a humanoid to the ground", 5, ReturnHumanoidToGround())
+achievement("Life Saver I", "Catch a humanoid", 3, CatchHumanoid())
+achievement("Life Saver II", "Return a humanoid to the ground", 2, ReturnHumanoidToGround())
 
-achievement("Space Invaders Tribute", "Clear a wave without pressing Up or Down", 5, NoVerticalMovementProgress(1))
+achievement("Space Invaders Tribute", "Clear a wave without pressing Up or Down", 10, NoVerticalMovementProgress(1))
 
 achievement("No-Bomb Novice", "Clear Wave 1 without ever using a smart bomb", 5, NoTriggerWithoutButtonProgress(1, IsSmartBombButtonPressed()))
 achievement("No-Bomb Newcomer", "Clear Wave 2 without ever using a smart bomb", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
-achievement("No-Bomb Notable", "Clear Wave 3 without ever using a smart bomb", 5, WithoutButtonProgress(3, IsSmartBombButtonPressed()))
-achievement("No-Bomb Natural", "Clear Wave 4 without ever using a smart bomb", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
+achievement("No-Bomb Notable", "Clear Wave 3 without ever using a smart bomb", 10, WithoutButtonProgress(3, IsSmartBombButtonPressed()))
+achievement("No-Bomb Natural", "Clear Wave 4 without ever using a smart bomb", 10, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
 
 achievement("Straight Shooter I", "Clear Wave 1 without ever using reverse", 5, WithoutButtonProgress(1, IsReverseButtonPressed()))
 achievement("Straight Shooter II", "Clear Wave 2 without ever using reverse", 5, WithoutButtonProgress(2, IsReverseButtonPressed()))
 
-achievement("Minimalist Marksman", "Clear Wave 1 without pressing Fire more than 5 times", 5, LimitedFireProgress(1, 5))
+achievement("Minimalist Marksman", "Clear Wave 1 without pressing Fire more than 5 times", 10, LimitedFireProgress(1, 5))
 
-achievement("Baiter-Free Breeze", "Reach Wave 3 with no baiters ever spawning", 5, NoBaiterProgress(2))
+achievement("Baiter-Free Breeze", "Reach Wave 3 with no baiters ever spawning", 10, NoBaiterProgress(2))
 
 achievement("Edge of Extinction I", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 3", 5, HumanoidSurvival(2))
-achievement("Edge of Extinction II", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 4", 5, HumanoidSurvival(3))
-achievement("Edge of Extinction III", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 5", 5, HumanoidSurvival(4))
+achievement("Edge of Extinction II", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 4", 10, HumanoidSurvival(3))
+achievement("Edge of Extinction III", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 5", 10, HumanoidSurvival(4))
 
 achievement("One-Minute Warrior", "Survive for longer than 1 minute on your first life", 5, DeathlessTime(TimeSpan(1, 0, 0), TimeSpan(0, 30, 0)))
-achievement("Two-Minute Warrior", "Survive for longer than 2 minutes on your first life", 5, DeathlessTime(TimeSpan(2, 0, 0), TimeSpan(1, 30, 0)))
-achievement("Three-Minute Warrior", "Survive for longer than 3 minutes on your first life", 5, DeathlessTime(TimeSpan(3, 0, 0), TimeSpan(2, 30, 0)))
-achievement("Four-Minute Warrior", "Survive for longer than 4 minutes on your first life", 5, DeathlessTime(TimeSpan(4, 0, 0), TimeSpan(3, 30, 0)))
+achievement("Two-Minute Warrior", "Survive for longer than 2 minutes on your first life", 10, DeathlessTime(TimeSpan(2, 0, 0), TimeSpan(1, 30, 0)))
+achievement("Three-Minute Warrior", "Survive for longer than 3 minutes on your first life", 25, DeathlessTime(TimeSpan(3, 0, 0), TimeSpan(2, 30, 0)))
+achievement("Four-Minute Warrior", "Survive for longer than 4 minutes on your first life", 50, DeathlessTime(TimeSpan(4, 0, 0), TimeSpan(3, 30, 0)))
 
-achievement("Beat the Clock", "Reach Wave 4 within 2 minutes and 15 seconds", 5, ProgressTime(4, TimeSpan(2, 15, 0)))
+achievement("Beat the Clock", "Reach Wave 4 within 2 minutes and 15 seconds", 10, ProgressTime(4, TimeSpan(2, 15, 0)))
 
-achievement("Unstoppable Force", "Score 200,000 points", 100, EarnedScore(200000))
+achievement("Free Space Explorer", "Begin Wave 2 with no humanoids remaining, and reach Wave 5", 25, FreeSpaceSurveyor())
+achievement("Unstoppable Force", "Score 200,000 points", 50, EarnedScore(200000))
+achievement("Hell in Space", "Begin Wave 2 with no humanoids remaining, and reach Wave 5 without ever using a smart bomb", 100, HellInSpace())
 
 // --------------------------------------------------------
 // Rich Presence
