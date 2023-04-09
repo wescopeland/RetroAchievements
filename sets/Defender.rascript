@@ -2,6 +2,17 @@
 // #ID = 15020
 // https://retroachievements.org/game/15020
 
+function AttackWaveCompletedText1() => byte(0x7B50)
+function AttackWaveCompletedText2() => byte(0x7B53)
+function AttackWaveCompletedText3() => byte(0x7C50)
+function AttackWaveCompletedText4() => byte(0x7C51)
+function AttackWaveCompletedText5() => byte(0x7C52)
+function AttackWaveCompletedText6() => byte(0x7C53)
+function AttackWaveCompletedText7() => byte(0x7C54)
+function AttackWaveCompletedText8() => byte(0x7C55)
+function AttackWaveCompletedText9() => byte(0x7C56)
+Showing = 0x11
+
 function Credits() => byte(0xE237)
 function IsFireButtonPressed() => bit0(0xE27B)
 function isThrustButtonPressed() => bit1(0xE27B)
@@ -76,7 +87,19 @@ function PlanetSpaceSpawning() => GameState() == PlanetSpaceSpawning
 function PlayerOneActive() => CurrentPlayer() == PlayerOne
 function GameOver() => GameState() == MaybeGameOver
 function Dead() => GameState() == PlayerKilled
-function ShowingWaveCompletedScreen() => GameState() == WaveCompletedScreenOrHyperspace && LandersRemaining() == 0
+// function ShowingWaveCompletedScreen() => GameState() == WaveCompletedScreenOrHyperspace && LandersRemaining() == 0
+
+function ShowingWaveCompletedScreen() => (
+    AttackWaveCompletedText1() == Showing
+    && AttackWaveCompletedText2() == Showing
+    && AttackWaveCompletedText3() == Showing
+    && AttackWaveCompletedText4() == Showing
+    && AttackWaveCompletedText5() == Showing
+    && AttackWaveCompletedText6() == Showing
+    && AttackWaveCompletedText7() == Showing
+    && AttackWaveCompletedText8() == Showing
+    && AttackWaveCompletedText9() == Showing
+)
 
 // Bonuses are awarded every 10,000 points
 // Game starts with 3 lives and 3 smart bombs (same variable)
@@ -186,7 +209,7 @@ function NoVerticalMovementProgress(waveNumber) {
     cancel = disable_when(
         IsUpPressed() == 1 || IsDownPressed() == 1,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    )
+    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
@@ -224,8 +247,8 @@ function HumanoidsRemainingProgress(waveNumber, neededHumanoids) {
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == triggerWaveNumber
-        && trigger_when(ShowingWaveCompletedScreen() && HumanoidsRemaining() >= neededHumanoids)
+        && once(PlayerOneCurrentWave() == waveNumber)
+        && trigger_when(PlayerOneCurrentWave() == triggerWaveNumber && ShowingWaveCompletedScreen() && HumanoidsRemaining() >= neededHumanoids)
     )
 }
 
@@ -240,7 +263,7 @@ function NoTriggerWithoutButtonProgress(waveNumber, buttonPressCondition) {
     cancel = disable_when(
         buttonPressCondition == 0x01,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    )
+    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
@@ -261,7 +284,7 @@ function WithoutButtonProgress(waveNumber, buttonPressCondition) {
     cancel = disable_when(
         buttonPressCondition == 0x01,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    )
+    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
@@ -285,7 +308,7 @@ function LimitedFireProgress(waveNumber, maxPressCount) {
             IsFireButtonPressed() == 1 && prev(IsFireButtonPressed()) != 1
         ),
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    )
+    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
@@ -406,60 +429,60 @@ function HumanoidSurvival(targetWaveNumber) {
 
 achievement("DEFAULT SETTINGS CHECK", "Lives = 3, Bonus Life = 10000, One Player Mode", 1, IsUsingDefaultSettings())
 
-achievement("Clear Wave One", "", 5, Progress(1))
-achievement("Clear Wave Two", "", 5, Progress(2))
-achievement("Clear Wave Three", "", 5, Progress(3))
-achievement("Clear Wave Four", "", 5, Progress(4))
-achievement("Clear Wave Five", "", 5, Progress(5))
-achievement("Clear Wave Six", "", 5, Progress(6))
-achievement("Clear Wave Seven", "", 5, Progress(7))
-achievement("Clear Wave Eight", "", 5, Progress(8))
+achievement("First Flight", "Clear Wave One", 5, Progress(1))
+achievement("Skyward Sentry", "Clear Wave Two", 5, Progress(2))
+achievement("Star Patrol", "Clear Wave Three", 5, Progress(3))
+achievement("Aerial Adept", "Clear Wave Four", 5, Progress(4))
+achievement("Cosmic Captain", "Clear Wave Five", 5, Progress(5))
+achievement("Galactic Gatekeeper", "Clear Wave Six", 5, Progress(6))
+achievement("Stellar Sentinel", "Clear Wave Seven", 5, Progress(7))
+achievement("Celestial Champion", "Clear Wave Eight", 5, Progress(8))
 
-achievement("Clear Wave One on your first life", "", 5, DeathlessProgressNoTrigger(1))
-achievement("Clear Wave Two on your first life", "", 5, DeathlessProgress(2))
-achievement("Clear Wave Three on your first life", "", 5, DeathlessProgress(3))
+achievement("Flawless First Flight", "Clear Wave One on your first life", 5, DeathlessProgressNoTrigger(1))
+achievement("Flawless Skyward Sentry", "Clear Wave Two on your first life", 5, DeathlessProgress(2))
+achievement("Flawless Star Patrol", "Clear Wave Three on your first life", 5, DeathlessProgress(3))
+achievement("Flawless Aerial Adept", "Clear Wave Four on your first life", 5, DeathlessProgress(4))
+achievement("Flawless Cosmic Captain", "Clear Wave Five on your first life", 5, DeathlessProgress(5))
 
-achievement("Clear Wave 1 with 10 humanoids remaining", "", 5, WaveOneHumanoidsRemainingProgress(10))
-achievement("Clear Wave 2 with 10 humanoids remaining", "", 5, HumanoidsRemainingProgress(2, 10))
-achievement("Clear Wave 3 with 10 humanoids remaining", "", 5, HumanoidsRemainingProgress(3, 10))
-achievement("Clear Wave 4 with 9 humanoids remaining", "", 5, HumanoidsRemainingProgress(4, 9))
-achievement("Clear Wave 5 with 9 humanoids remaining", "", 5, HumanoidsRemainingProgress(5, 9))
+achievement("Full House I", "Clear Wave 1 with 10 humanoids remaining", 5, WaveOneHumanoidsRemainingProgress(10))
+achievement("Full House II", "Clear Wave 2 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(2, 10))
+achievement("Full House III", "Clear Wave 3 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(3, 10))
+achievement("Full House IV", "Clear Wave 4 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(4, 10))
+achievement("Full House V", "Clear Wave 5 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(5, 10))
 
-achievement("Earn an extra life and smart bomb by scoring 10,000 points", "", 5, EarnedScore(10000))
-achievement("Score 120,000 points", "", 100, EarnedScore(120000))
+achievement("Score and Soar", "Earn an extra life and smart bomb by scoring 10,000 points", 5, EarnedScore(10000))
 
-achievement("Hold more than 5 lives in reserve", "", 5, ReserveLives())
+achievement("Continuity Cache", "Hold more than 5 lives in reserve", 5, ReserveLives())
 
-achievement("Catch a humanoid", "", 5, CatchHumanoid())
-
-achievement("Return a humanoid to the ground", "", 5, ReturnHumanoidToGround())
-
-achievement("On your first life, score 10,000 points without dying", "", 5, DeathlessEarnedScore(10000, 5000))
-achievement("On your first life, score 20,000 points without dying", "", 5, DeathlessEarnedScore(20000, 10000))
-achievement("On your first life, score 30,000 points without dying", "", 5, DeathlessEarnedScore(30000, 20000))
+achievement("Life Saver I", "Catch a humanoid", 5, CatchHumanoid())
+achievement("Life Saver II", "Return a humanoid to the ground", 5, ReturnHumanoidToGround())
 
 achievement("Space Invaders Tribute", "Clear a wave without pressing Up or Down", 5, NoVerticalMovementProgress(1))
 
-achievement("Clear Wave 1 without ever using a smart bomb", "", 5, NoTriggerWithoutButtonProgress(1, IsSmartBombButtonPressed()))
-achievement("Clear Wave 2 without ever using a smart bomb", "", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
-achievement("Clear Wave 4 without ever using a smart bomb", "", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
+achievement("No-Bomb Novice", "Clear Wave 1 without ever using a smart bomb", 5, NoTriggerWithoutButtonProgress(1, IsSmartBombButtonPressed()))
+achievement("No-Bomb Newcomer", "Clear Wave 2 without ever using a smart bomb", 5, WithoutButtonProgress(2, IsSmartBombButtonPressed()))
+achievement("No-Bomb Notable", "Clear Wave 3 without ever using a smart bomb", 5, WithoutButtonProgress(3, IsSmartBombButtonPressed()))
+achievement("No-Bomb Natural", "Clear Wave 4 without ever using a smart bomb", 5, WithoutButtonProgress(4, IsSmartBombButtonPressed()))
 
-achievement("Clear Wave 1 and have never used reverse", "", 5, WithoutButtonProgress(1, IsReverseButtonPressed()))
-achievement("Clear Wave 2 and have never used reverse", "", 5, WithoutButtonProgress(2, IsReverseButtonPressed()))
+achievement("Straight Shooter I", "Clear Wave 1 without ever using reverse", 5, WithoutButtonProgress(1, IsReverseButtonPressed()))
+achievement("Straight Shooter II", "Clear Wave 2 without ever using reverse", 5, WithoutButtonProgress(2, IsReverseButtonPressed()))
 
-achievement("Clear Wave 1 after pressing Fire 5 times or less", "", 5, LimitedFireProgress(1, 5))
+achievement("Minimalist Marksman", "Clear Wave 1 without pressing Fire more than 5 times", 5, LimitedFireProgress(1, 5))
 
-achievement("Clear Wave 2 with no baiters ever spawning", "", 5, NoBaiterProgress(2))
+achievement("Baiter-Free Breeze", "Reach Wave 3 with no baiters ever spawning", 5, NoBaiterProgress(2))
 
-achievement("Begin Wave 2 with one humanoid remaining, and ensure it survives until clearing Wave 2", "", 5, HumanoidSurvival(2))
-achievement("Begin Wave 2 with one humanoid remaining, and ensure it survives until clearing Wave 3", "", 5, HumanoidSurvival(3))
-achievement("Begin Wave 2 with one humanoid remaining, and ensure it survives until clearing Wave 4", "", 5, HumanoidSurvival(4))
+achievement("Edge of Extinction I", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 3", 5, HumanoidSurvival(2))
+achievement("Edge of Extinction II", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 4", 5, HumanoidSurvival(3))
+achievement("Edge of Extinction III", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 5", 5, HumanoidSurvival(4))
 
-achievement("Survive for longer than 1 minute on a life", "", 5, DeathlessTime(TimeSpan(1, 0, 0), TimeSpan(0, 30, 0)))
-achievement("Survive for longer than 2 minutes on a life", "", 5, DeathlessTime(TimeSpan(2, 0, 0), TimeSpan(1, 30, 0)))
-achievement("Survive for longer than 3 minutes on a life", "", 5, DeathlessTime(TimeSpan(3, 0, 0), TimeSpan(2, 30, 0)))
+achievement("One-Minute Warrior", "Survive for longer than 1 minute on your first life", 5, DeathlessTime(TimeSpan(1, 0, 0), TimeSpan(0, 30, 0)))
+achievement("Two-Minute Warrior", "Survive for longer than 2 minutes on your first life", 5, DeathlessTime(TimeSpan(2, 0, 0), TimeSpan(1, 30, 0)))
+achievement("Three-Minute Warrior", "Survive for longer than 3 minutes on your first life", 5, DeathlessTime(TimeSpan(3, 0, 0), TimeSpan(2, 30, 0)))
+achievement("Four-Minute Warrior", "Survive for longer than 4 minutes on your first life", 5, DeathlessTime(TimeSpan(4, 0, 0), TimeSpan(3, 30, 0)))
 
-achievement("Reach Wave 4 within 2 minutes and 15 seconds", "", 5, ProgressTime(4, TimeSpan(2, 15, 0)))
+achievement("Beat the Clock", "Reach Wave 4 within 2 minutes and 15 seconds", 5, ProgressTime(4, TimeSpan(2, 15, 0)))
+
+achievement("Unstoppable Force", "Score 200,000 points", 100, EarnedScore(200000))
 
 // --------------------------------------------------------
 // Rich Presence
@@ -489,6 +512,11 @@ rich_presence_conditional_display(
 )
 
 rich_presence_conditional_display(
+    GameOver(),
+    "Game Over"
+)
+
+rich_presence_conditional_display(
     GameState() == GameStartingOrPlayerExploding,
     "Wave {0} • {1} points • {2} {3} • {4} {5}",
     rich_presence_value("Current Wave", PlayerOneCurrentWave()),
@@ -514,6 +542,7 @@ rich_presence_display(
 // --------------------------------------------------------
 
 // High Score leaderboard is not supported by RAScript syntax
+// This is due to the way rollovers are being counted
 
 leaderboard(
     "First Life",
@@ -526,9 +555,18 @@ leaderboard(
 
 leaderboard(
     "No Dead Humanoids",
-    "Highest score before any humanoids are killed",
+    "Highest score before any humanoid losses",
     PlayerOneActive() && DefaultSettings(),
     always_false(),
-    HumanoidsRemaining() == 9,
+    prev(HumanoidsRemaining()) == 10 && HumanoidsRemaining() < 10,
+    Score()
+)
+
+leaderboard(
+    "No Smart Bombs",
+    "Highest score before any smart bomb use",
+    PlayerOneActive() && DefaultSettings(),
+    always_false(),
+    IsSmartBombButtonPressed() == 1,
     Score()
 )
