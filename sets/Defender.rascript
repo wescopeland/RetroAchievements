@@ -13,6 +13,7 @@ function AttackWaveCompletedText8() => byte(0x7C55)
 function AttackWaveCompletedText9() => byte(0x7C56)
 Showing = 0x11
 
+// NOTE: These are unused - they cause RATools to blow up and dump all the achievement logic.
 function AttackWaveCompletedTextCondensed2() => word(0x7C50)
 function AttackWaveCompletedTextCondensed3() => tbyte(0x7C54)
 
