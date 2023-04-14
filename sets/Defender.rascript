@@ -13,6 +13,9 @@ function AttackWaveCompletedText8() => byte(0x7C55)
 function AttackWaveCompletedText9() => byte(0x7C56)
 Showing = 0x11
 
+function AttackWaveCompletedTextCondensed2() => word(0x7C50)
+function AttackWaveCompletedTextCondensed3() => tbyte(0x7C54)
+
 function Credits() => byte(0xE237)
 function IsFireButtonPressed() => bit0(0xE27B)
 function isThrustButtonPressed() => bit1(0xE27B)
@@ -168,8 +171,8 @@ function DeathlessProgress(waveNumber) {
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == waveNumber + 1
-        && trigger_when(ShowingWaveCompletedScreen())
+        && once(PlayerOneCurrentWave() == waveNumber && prev(PlayerOneCurrentWave()) == waveNumber - 1)
+        && trigger_when(PlayerOneCurrentWave() == waveNumber + 1 && ShowingWaveCompletedScreen())
     )
 }
 
