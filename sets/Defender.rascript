@@ -209,7 +209,7 @@ function NoVerticalMovementProgress(waveNumber) {
     cancel = disable_when(
         IsUpPressed() == 1 || IsDownPressed() == 1,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+    ) && disable_when(GameOver(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
@@ -263,7 +263,7 @@ function NoTriggerWithoutButtonProgress(waveNumber, buttonPressCondition) {
     cancel = disable_when(
         buttonPressCondition == 0x01,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+    ) && disable_when(GameOver(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
@@ -284,13 +284,13 @@ function WithoutButtonProgress(waveNumber, buttonPressCondition) {
     cancel = disable_when(
         buttonPressCondition == 0x01,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+    ) && disable_when(GameOver(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == triggerWaveNumber
-        && trigger_when(ShowingWaveCompletedScreen())
+        && once(PlayerOneCurrentWave() == waveNumber)
+        && trigger_when(PlayerOneCurrentWave() == triggerWaveNumber && ShowingWaveCompletedScreen())
     )
 }
 
@@ -304,11 +304,11 @@ function LimitedFireProgress(waveNumber, maxPressCount) {
     
     cancel = disable_when(
         repeated(
-            maxPressCount,
+            maxPressCount + 1,
             IsFireButtonPressed() == 1 && prev(IsFireButtonPressed()) != 1
         ),
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    ) && disable_when(PlayerOneLives() == 0, PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+    ) && disable_when(GameOver(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
     
     return (
         start
@@ -407,6 +407,29 @@ function ReturnHumanoidToGround() {
     )
 }
 
+function FirstHumanoidSurvival() {
+    start = once(
+        PlayerOneActive()
+        && DefaultSettings()
+        && PlayerOneCurrentWave() == 1
+        && HumanoidsRemaining() == 1
+    )
+    
+    cancel = disable_when(
+        PlayerOneCurrentWave() >= 1 && HumanoidsRemaining() == 0,
+        PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
+    )
+    
+    return (
+        start
+        && cancel
+        && trigger_when(
+            ShowingWaveCompletedScreen()
+            && prev(PlayerOneCurrentWave()) == 2 && PlayerOneCurrentWave() == 3
+        )
+    )
+}
+
 function HumanoidSurvival(targetWaveNumber) {
     start = once(
         PlayerOneActive() 
@@ -423,7 +446,7 @@ function HumanoidSurvival(targetWaveNumber) {
     return (
         start
         && cancel
-        && PlayerOneCurrentWave() == targetWaveNumber
+        && once(PlayerOneCurrentWave() == targetWaveNumber)
         && trigger_when(
             ShowingWaveCompletedScreen() 
             && prev(PlayerOneCurrentWave()) == targetWaveNumber && PlayerOneCurrentWave() == (targetWaveNumber + 1)
@@ -527,7 +550,7 @@ achievement("Minimalist Marksman", "Clear Wave 1 without pressing Fire more than
 
 achievement("Baiter-Free Breeze", "Reach Wave 3 with no baiters ever spawning", 10, NoBaiterProgress(2))
 
-achievement("Edge of Extinction I", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 3", 5, HumanoidSurvival(2))
+achievement("Edge of Extinction I", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 3", 5, FirstHumanoidSurvival())
 achievement("Edge of Extinction II", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 4", 10, HumanoidSurvival(3))
 achievement("Edge of Extinction III", "Begin Wave 2 with one humanoid remaining, and ensure it survives until reaching Wave 5", 10, HumanoidSurvival(4))
 
@@ -616,7 +639,7 @@ leaderboard(
     "Highest score before any humanoid losses",
     PlayerOneActive() && DefaultSettings(),
     always_false(),
-    prev(HumanoidsRemaining()) == 10 && HumanoidsRemaining() < 10,
+    (prev(HumanoidsRemaining()) == 10 && HumanoidsRemaining() < 10) || GameOver(),
     Score()
 )
 
@@ -625,6 +648,6 @@ leaderboard(
     "Highest score before any smart bomb use",
     PlayerOneActive() && DefaultSettings(),
     always_false(),
-    IsSmartBombButtonPressed() == 1,
+    IsSmartBombButtonPressed() == 1 || GameOver(),
     Score()
 )
