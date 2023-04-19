@@ -2,6 +2,9 @@
 // #ID = 15020
 // https://retroachievements.org/game/15020
 
+// CHANGELOG:
+// Apr 18 2023 - Fixed non-trigger issues with Edge of Extinction I, Free Space Explorer, Hell in Space
+
 function AttackWaveCompletedText1() => byte(0x7B50)
 function AttackWaveCompletedText2() => byte(0x7B53)
 function AttackWaveCompletedText3() => byte(0x7C50)
@@ -420,9 +423,10 @@ function FirstHumanoidSurvival() {
     )
     
     cancel = disable_when(
-        PlayerOneCurrentWave() >= 1 && HumanoidsRemaining() == 0,
+        PlayerOneCurrentWave() >= 2 && HumanoidsRemaining() != 1,
         PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    )
+    ) && never(GameOver()) && never(HumanoidsRemaining() > 1)
+    && never(PlayerOneCurrentWave() == 1 && GameState() == PlanetSpaceSpawning)
     
     return (
         start
@@ -459,23 +463,15 @@ function HumanoidSurvival(targetWaveNumber) {
 }
 
 function FreeSpaceSurveyor() {
-    start = once(
-        PlayerOneActive()
-        && DefaultSettings()
-        && PlayerOneCurrentWave() == 2
-        && HumanoidsRemaining() == 0
-    )
+    start = once(PlayerOneActive() && DefaultSettings())
+        && once(ShowingWaveCompletedScreen() && PlayerOneCurrentWave() == 2 && prev(PlayerOneCurrentWave()) == 1 && HumanoidsRemaining() == 0)
     
-    cancel = never(GameOver())
-    
-    anticheat = disable_when(
-        PlayerOneCurrentWave() == 1 && Score() > 20000
-    )
+    cancel = disable_when(GameOver(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+        && never(PlayerOneCurrentWave() == 1)
     
     return (
         start
         && cancel
-        && anticheat
         && trigger_when(
             ShowingWaveCompletedScreen() && PlayerOneCurrentWave() == 5
         )
@@ -483,26 +479,18 @@ function FreeSpaceSurveyor() {
 }
 
 function HellInSpace() {
-    start = once(
-        PlayerOneActive()
-        && DefaultSettings()
-        && PlayerOneCurrentWave() == 2
-        && HumanoidsRemaining() == 0
-    )
+    start = once(PlayerOneActive() && DefaultSettings())
+        && once(ShowingWaveCompletedScreen() && PlayerOneCurrentWave() == 2 && prev(PlayerOneCurrentWave()) == 1 && HumanoidsRemaining() == 0)
     
-    cancel = never(GameOver()) && disable_when(
-        PlayerOneCurrentWave() >= 2 && IsSmartBombButtonPressed() == 1,
-        PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
-    )
-    
-    anticheat = disable_when(
-        PlayerOneCurrentWave() == 1 && Score() > 20000
+    cancel = disable_when(GameOver(), PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0)
+        && never(PlayerOneCurrentWave() == 1) && disable_when(
+            PlayerOneCurrentWave() >= 2 && IsSmartBombButtonPressed() == 1,
+            PlayerOneLives() == 3 && prev(PlayerOneLives()) == 0
     )
     
     return (
         start
         && cancel
-        && anticheat
         && trigger_when(
             ShowingWaveCompletedScreen() && PlayerOneCurrentWave() == 5
         )
