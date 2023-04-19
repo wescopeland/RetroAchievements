@@ -3,6 +3,7 @@
 // https://retroachievements.org/game/15020
 
 // CHANGELOG:
+// Apr 19 2023 - Fixed non-trigger issues with Full House V
 // Apr 18 2023 - Fixed non-trigger issues with Edge of Extinction I, Free Space Explorer, Hell in Space
 
 function AttackWaveCompletedText1() => byte(0x7B50)
@@ -256,6 +257,20 @@ function HumanoidsRemainingProgress(waveNumber, neededHumanoids) {
         && cancel
         && once(PlayerOneCurrentWave() == waveNumber)
         && trigger_when(PlayerOneCurrentWave() == triggerWaveNumber && ShowingWaveCompletedScreen() && HumanoidsRemaining() >= neededHumanoids)
+    )
+}
+
+function WaveFiveHumanoidsRemainingProgress() {
+    triggerWaveNumber = 6
+    
+    start = once(PlayerOneActive() && DefaultSettings()) && once(PlayerOneCurrentWave() == 5)
+    
+    cancel = disable_when(PlayerOneCurrentWave() == 5 && HumanoidsRemaining() == 9)
+    
+    return (
+        start
+        && cancel
+        && trigger_when(PlayerOneCurrentWave() == triggerWaveNumber && ShowingWaveCompletedScreen() && HumanoidsRemaining() == 10)
     )
 }
 
@@ -519,7 +534,7 @@ achievement("Full House I", "Clear Wave 1 with 10 humanoids remaining", 5, WaveO
 achievement("Full House II", "Clear Wave 2 with 10 humanoids remaining", 5, HumanoidsRemainingProgress(2, 10))
 achievement("Full House III", "Clear Wave 3 with 10 humanoids remaining", 10, HumanoidsRemainingProgress(3, 10))
 achievement("Full House IV", "Clear Wave 4 with 10 humanoids remaining", 10, HumanoidsRemainingProgress(4, 10))
-achievement("Full House V", "Clear Wave 5 with 10 humanoids remaining", 25, HumanoidsRemainingProgress(5, 10))
+achievement("Full House V", "Clear Wave 5 with 10 humanoids remaining", 25, WaveFiveHumanoidsRemainingProgress())
 
 achievement("Score and Soar", "Earn an extra life and smart bomb by scoring 10,000 points", 5, EarnedScore(10000))
 
