@@ -224,16 +224,7 @@ leaderboard(
     GameState() == GamePlaying && prev(GameState()) != GamePlaying && IsTwoPlayerGame() == 0 && PlayerOneCurrentScore() == 0 && CurrentWave() == 1,
     always_false(),
     prev(GameState()) == 3 && GameState() != 3,
-    max_of(
-        never(IsGamePlaying() == 255) && measured(always_false()),
-        measured(PlayerOneCurrentScore()),
-        measured(1 * 1000000 + PlayerOneCurrentScore(), repeated(1, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(2 * 1000000 + PlayerOneCurrentScore(), repeated(2, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(3 * 1000000 + PlayerOneCurrentScore(), repeated(3, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(4 * 1000000 + PlayerOneCurrentScore(), repeated(4, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(5 * 1000000 + PlayerOneCurrentScore(), repeated(5, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(6 * 1000000 + PlayerOneCurrentScore(), repeated(6, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits())))
-    )
+    PlayerOneCurrentScore()
 )
 
 leaderboard(
@@ -242,14 +233,5 @@ leaderboard(
     GameState() == GamePlaying && prev(GameState()) != GamePlaying && IsTwoPlayerGame() == 0 && PlayerOneCurrentScore() == 0 && CurrentWave() == 1,
     always_false(),
     TotalLivesRemaining() == prev(TotalLivesRemaining()) - 1,
-    max_of(
-        never(IsGamePlaying() == 255) && measured(always_false()),
-        measured(PlayerOneCurrentScore()),
-        measured(1 * 1000000 + PlayerOneCurrentScore(), repeated(1, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(2 * 1000000 + PlayerOneCurrentScore(), repeated(2, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(3 * 1000000 + PlayerOneCurrentScore(), repeated(3, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(4 * 1000000 + PlayerOneCurrentScore(), repeated(4, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(5 * 1000000 + PlayerOneCurrentScore(), repeated(5, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits()))),
-        measured(6 * 1000000 + PlayerOneCurrentScore(), repeated(6, PlayerOneScoreRolloverDigits() < prev(PlayerOneScoreRolloverDigits())))
-    )
+    PlayerOneCurrentScore()
 )
