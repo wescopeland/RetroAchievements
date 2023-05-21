@@ -221,7 +221,7 @@ rich_presence_display(
 leaderboard(
     "High Score",
     "Single player, any settings",
-    GameState() == GamePlaying && prev(GameState()) != GamePlaying && IsTwoPlayerGame() == 0,
+    GameState() == GamePlaying && prev(GameState()) != GamePlaying && IsTwoPlayerGame() == 0 && PlayerOneCurrentScore() == 0 && CurrentWave() == 1,
     always_false(),
     prev(GameState()) == 3 && GameState() != 3,
     max_of(
@@ -239,7 +239,7 @@ leaderboard(
 leaderboard(
     "First Life",
     "Highest score on your very first life",
-    GameState() == GamePlaying && prev(GameState()) != GamePlaying && IsTwoPlayerGame() == 0,
+    GameState() == GamePlaying && prev(GameState()) != GamePlaying && IsTwoPlayerGame() == 0 && PlayerOneCurrentScore() == 0 && CurrentWave() == 1,
     always_false(),
     TotalLivesRemaining() == prev(TotalLivesRemaining()) - 1,
     max_of(
