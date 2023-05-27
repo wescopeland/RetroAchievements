@@ -27,6 +27,7 @@ _MEM_GAMEMODE =      0x29FC + 1   // (B gamemode) + 1
 _MEM_STAGE =         0x2E54 + 1   // (B stage) + 1
 _MEM_ENTITYI =       0x306A       // (B entityI)
 
+
 // Memory -------------------------------------------------------------------------------------------------------------------------
 function TotalLivesLeft() => byte(_MEM_LIVES)
 function TotalETanksLeft() => byte(_MEM_ETANKS)
@@ -178,6 +179,13 @@ function IsUsingOnlyAllowedModifiers() {
         && IsBurstChaserEnabled() == 0 // TODO: This setting may actually be okay
 }
 
+function IsBossKilled(bossDeadHealth = 0) {
+    return
+        (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
+        && (once(IsPlayerLocked() == 0 && prev(IsPlayerLocked()) == 1))
+        && once(BossHealth() < MAX_HEALTH && prev(BossHealth()) == MAX_HEALTH)
+        && (prev(BossActive()) != 0) // prevents a bug where the boss pointer points at Mega Man's health
+}
 
 // Achievement Functions ----------------------------------------------------------------------------------------------------------
 function BossKill(bossKey, bossDeadHealth = 0) {
@@ -190,11 +198,7 @@ function BossKill(bossKey, bossDeadHealth = 0) {
         && IsUsingOnlyAllowedModifiers()
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
         && CurrentCheckpoint() == CHECKPOINT_END
-        && trigger_when(
-            (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
-            && (once(IsPlayerLocked() == 0 && prev(IsPlayerLocked()) == 1))
-            && once(BossHealth() < MAX_HEALTH && prev(BossHealth()) == MAX_HEALTH)
-        )
+        && trigger_when(IsBossKilled(bossDeadHealth))
 }
 
 function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0) {
@@ -212,11 +216,7 @@ function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0
         && CurrentCharacter() == requiredCharacter
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
         && CurrentCheckpoint() == CHECKPOINT_END
-        && trigger_when(
-            (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
-            && (once(IsPlayerLocked() == 0 && prev(IsPlayerLocked()) == 1))
-            && once(BossHealth() < MAX_HEALTH && prev(BossHealth()) == MAX_HEALTH)
-        )
+        && trigger_when(IsBossKilled(bossDeadHealth))
 }
 
 function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0) {
@@ -230,20 +230,17 @@ function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0) {
         start
         && cancel
         && IsUsingOnlyAllowedModifiers()
+        && CurrentCharacter() == requiredCharacter
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
         && CurrentCheckpoint() == CHECKPOINT_END
-        && trigger_when(
-            (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
-            && (once(IsPlayerLocked() == 0 && prev(IsPlayerLocked()) == 1))
-            && once(BossHealth() < MAX_HEALTH && prev(BossHealth()) == MAX_HEALTH)
-        )
+        && trigger_when(IsBossKilled(bossDeadHealth))
 }
 
 function BossDoorDamageless(bossKey, requiredCharacter) {
     start = 
         once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_LEVEL_INTRO)
         || once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN)
-        || once(CurrentHealth() == MAX_HEALTH && prev(CurrentHealth()) == 0 && CurrentCheckpoint() == CHECKPOINT_NONE)
+        || once(CanonicalGameState() == STATE_LEVEL && CurrentHealth() == MAX_HEALTH && prev(CurrentHealth()) == 0 && CurrentCheckpoint() == CHECKPOINT_NONE)
 
     cancel = 
         never(IsDemoPlaying() == 1) 
@@ -535,6 +532,7 @@ rich_presence_conditional_display(
     rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A)))
 )
 
+// FIXME: It seems this can show "Getting Dr. Wily's weapon"
 rich_presence_conditional_display(
     CanonicalGameState() == STATE_WEAPON_GET,
     "{0} • {1} • {2}/8 • {3} {4} • Getting {5}'s weapon",
