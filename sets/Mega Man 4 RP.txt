@@ -1,0 +1,77 @@
+Lookup:FinalLevels
+0x8=Dr. Cossack's Castle I
+0x9=Dr. Cossack's Castle II
+0x0a=Dr. Cossack's Castle III
+0x0b=Dr. Cossack's Castle IV
+0x0c=Dr Wily's Fortress I
+0x0d=Dr Wily's Fortress II
+0x0e=Dr Wily's Fortress III
+0x0f=Dr Wily's Fortress IV
+
+Lookup:BossName
+0x0=Bright Man
+0x1=Toad Man
+0x2=Drill Man
+0x3=Pharaoh Man
+0x4=Ring Man
+0x5=Dust Man
+0x6=Dive Man
+0x7=Skull Man
+0x8=Mothraya
+0x9=Square Machine
+0xa=Cockroach Twin
+0xb=Cossack Catcher
+0xc=Metall Daddy
+0xd=Tako Trash
+0xe=Wily Machine 4
+0xf=Wily Capsule
+
+Lookup:Weapon
+0x0=Mega Buster
+0x1=Rush Coil
+0x2=Rush Jet
+0x3=Rush Marine
+0x4=Rain Flush
+0x5=Wire Adapter
+0x6=Balloon Adapter
+0x7=Dive Missle
+0x8=Ring Boomerang
+0x9=Drill Bomb
+0xa=Dust Crush
+0xb=Pharaoh Shot
+0xc=Flash Stopper
+0xd=Skull Barrier
+
+Format:Lives
+FormatType=VALUE
+
+Format:Tanks
+FormatType=VALUE
+
+Display:
+?0xh22=0_0xh28>=25?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=1_0xh28>=26?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=2_0xh28>=21?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=3_0xh28>=31?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=4_0xh28>=23?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=5_0xh28>=22?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=6_0xh28>=23?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=7_0xh28>=25?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=8_0xh28>=17?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=9_0xh28>=15?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=10_0xh28>=15?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=11_0xh28>=18?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=12_0xh28>=19?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=13_0xh28>=20?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=14_0xh28>=5_0xhac!=255?Mega Man fights every Boss again in Boss Rush. 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=14_0xh28>=5_0xhac=255?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=15_0xh28>=6?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22>=0_0xh22<=7?Mega Man walk trough @BossName(0xh22)'s Stage. 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22>=8_0xh22<=15?Mega Man walk trough @FinalLevels(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xu20=0_0xh22=16?Mega Man choose his Opponent.
+?0xu20=12_0xh22=16?Mega Man manage his Items.
+?0xh22=19?Player looks the Intro Sequence
+?0xh22=20?Player looks the Credits. Congratulations!
+Player starts the Game.
+
+//RP by xTr4ceur
