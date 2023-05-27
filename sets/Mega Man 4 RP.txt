@@ -19,7 +19,7 @@ Lookup:BossName
 0x7=Skull Man
 0x8=Mothraya
 0x9=Square Machine
-0xa=the Cockroach Twins
+0xa=Cockroach Twin
 0xb=the Cossack Catcher
 0xc=Metall Daddy
 0xd=Tako Trash
