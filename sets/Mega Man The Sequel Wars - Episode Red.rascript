@@ -1,31 +1,36 @@
 // ~Homebrew~ Mega Man: The Sequel Wars - Episode Red
 // #ID = 24453
 
-// TODO: All addresses should come from a dictionary for the version rather than being hardcoded.
 // TODO: Mega Man and Man are synonymous
 // TODO: Make sure boss no hit & boss no special achievements work during boss rush
+// TODO: change boss conditional check from checkpoint to stage number
+// TODO: use room number for priming boss achievements
+// TODO: make sure necessary achievements are protected against Free Play mode
 
 // Memory Symbols -----------------------------------------------------------------------------------------------------------------
-_MEM_LIVES =         0x01A1 - 1   // (D lives) - 1
-_MEM_ETANKS =        0x01A0 + 1   // (D etanks) + 1
-_MEM_PSX =           0x0388       // (B psx)
-_MEM_MODIFIERS_A =   0x1D4C       // (B modifiers)
-_MEM_MODIFIERS_B =   0x1D4C + 1   // (B modifiers) + 1
-_MEM_BOSSACTIVE =    0x2650 + 1   // (B bossactive) + 1
-_MEM_DEMOROUTINE =   0x2604       // (B demoroutine)
-_MEM_FIREPRESSED =   0x2625 - 1   // (B firepressed) - 1
-_MEM_DISPHEALTH =    0x26DE       // (B disphealth)
-_MEM_DIFFICULTY =    0x26ED - 1   // (B difficulty) - 1
-_MEM_CHECKPOINT =    0x2878 + 1   // (B checkpoint) + 1
-_MEM_PAUSED =        0x287A       // (B paused)
-_MEM_WEAPON =        0x287C + 1   // (B weapon) + 1
-_MEM_CHARACTER =     0x287E + 1   // (B character) + 1
-_MEM_PREVLOCK =      0x28A5 - 1   // (B prevlock) - 1
-_MEM_WEPUNLOCKED_A = 0x2698 + 2   // (B wepunlocked) + 2
-_MEM_WEPUNLOCKED_B = 0x2698 + 3   // (B wepunlocked) + 3
-_MEM_GAMEMODE =      0x29FC + 1   // (B gamemode) + 1
-_MEM_STAGE =         0x2E54 + 1   // (B stage) + 1
-_MEM_ENTITYI =       0x306A       // (B entityI)
+_MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
+_MEM_ETANKS                = 0x01A0 + 1    // (D etanks) + 1
+_MEM_PSX                   = 0x0388        // (B psx)
+_MEM_MODIFIERS_A           = 0x1D4C        // (B modifiers)
+_MEM_MODIFIERS_B           = 0x1D4C + 1    // (B modifiers) + 1
+_MEM_BOSSACTIVE            = 0x2650 + 1    // (B bossactive) + 1
+_MEM_DEMOROUTINE           = 0x2604        // (B demoroutine)
+_MEM_FIREPRESSED           = 0x2625 - 1    // (B firepressed) - 1
+_MEM_CASTLEPROG            = 0x268B - 1    // (B castleprog) - 1
+_MEM_DISPHEALTH            = 0x26DE        // (B disphealth)
+_MEM_DIFFICULTY            = 0x26ED - 1    // (B difficulty) - 1
+_MEM_CHECKPOINT            = 0x2878 + 1    // (B checkpoint) + 1
+_MEM_PAUSED                = 0x287A        // (B paused)
+_MEM_WEAPON                = 0x287C + 1    // (B weapon) + 1
+_MEM_CHARACTER             = 0x287E + 1    // (B character) + 1
+_MEM_PREVLOCK              = 0x28A5 - 1    // (B prevlock) - 1
+_MEM_WEPUNLOCKED_A         = 0x2698 + 2    // (B wepunlocked) + 2
+_MEM_WEPUNLOCKED_B         = 0x2698 + 3    // (B wepunlocked) + 3
+_MEM_GAMEMODE              = 0x29FC + 1    // (B gamemode) + 1
+_MEM_HIGHESTVDPSPRITEINDEX = 0x2A02        // (B highestVDPSpriteIndex)
+_MEM_STAGE                 = 0x2E54 + 1    // (B stage) + 1
+_MEM_ENTITYI               = 0x306A        // (B entityI)
+_MEM_CURSCREEN             = 0x6C84        // (B curscreen)
 
 
 // Memory -------------------------------------------------------------------------------------------------------------------------
@@ -41,6 +46,7 @@ function IsInfiniteLivesEnabled() => bit2(_MEM_MODIFIERS_B)
 function BossActive() => byte(_MEM_BOSSACTIVE)
 function IsDemoPlaying() => byte(_MEM_DEMOROUTINE)
 function IsFirePressed() => byte(_MEM_FIREPRESSED)
+function CastleStagesBeaten() => byte(_MEM_CASTLEPROG)
 function CurrentHealth() => byte(_MEM_DISPHEALTH)
 
 function CurrentDifficulty() => byte(_MEM_DIFFICULTY)
@@ -110,8 +116,13 @@ STATE_MM4_SETTINGS = 0x14
 STATE_MM4_INTRO_CUTSCENE = 0x15
 STATE_FILE_SELECT = 0x16
 STATE_CREDITS = 0x18
+STATE_FREE_PLAY_MENU = 0x19
 STATE_ENDING_ONE = 0x1A
 STATE_ENDING_TWO = 0x1B
+
+function HighestVDPSpriteIndex() => byte(_MEM_HIGHESTVDPSPRITEINDEX)
+WILY_MACHINE_FORM_ONE = 0x28
+WILY_MACHINE_FORM_TWO = 0x34
 
 function CurrentStage() => byte(_MEM_STAGE)
 STAGE_ADDRESS_MAP = {
@@ -133,6 +144,10 @@ STAGE_ADDRESS_MAP = {
     "Wily4": 0x0F
 }
 
+function CurrentScreen() => byte(_MEM_CURSCREEN)
+SCREEN_WILY_MACHINE_BATTLE = 0x19
+SCREEN_BOSS_RUSH_MAIN = 0x1D
+
 
 // Utils --------------------------------------------------------------------------------------------------------------------------
 BOSS_ACTIVE_WILY_CAPSULE = 0x0A
@@ -144,13 +159,15 @@ WILY_FOUR = 0x0F
 
 function PlayerDead() => CurrentHealth() == 0
 
-function IsPlayerTouchingBossEntranceDoor() {
+function IsPlayerTouchingBossEntranceDoor(requiredCheckpoint = 0x02) {
+    // 0x02: CHECKPOINT_END
+
     // Make sure the player isn't touching the entrance door for the boss corridor.
     // Probably won't be the case if they're on checkpoint 2 for at least 240 frames first.
     return 
         BossActive() == 0
         && CurrentXPosition() >= 0xF9
-        && once(repeated(240, CurrentCheckpoint() == CHECKPOINT_END))
+        && once(repeated(240, CurrentCheckpoint() == requiredCheckpoint))
 }
 
 function BossHealth() {
@@ -179,17 +196,30 @@ function IsUsingOnlyAllowedModifiers() {
         && IsBurstChaserEnabled() == 0 // TODO: This setting may actually be okay
 }
 
-function IsBossKilled(bossDeadHealth = 0) {
+function IsBossKilled(bossDeadHealth = 0, bossLifeBarCount = 1) {
+    wilyMachineHack = always_true()
+    if (bossLifeBarCount == 2) {
+        wilyMachineHack = once(HighestVDPSpriteIndex() == WILY_MACHINE_FORM_TWO)
+    }
+
     return
-        (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
+        wilyMachineHack
+        && (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
         && (once(IsPlayerLocked() == 0 && prev(IsPlayerLocked()) == 1))
         && once(BossHealth() < MAX_HEALTH && prev(BossHealth()) == MAX_HEALTH)
         && (prev(BossActive()) != 0) // prevents a bug where the boss pointer points at Mega Man's health
 }
 
 // Achievement Functions ----------------------------------------------------------------------------------------------------------
-function BossKill(bossKey, bossDeadHealth = 0) {
-    start = once(IsPlayerTouchingBossEntranceDoor())
+function BossKill(bossKey, bossDeadHealth = 0, bossLifeBarCount = 1, requiredCheckpoint = 0x02) {
+    // 0x02: CHECKPOINT_END
+
+    if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
+        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN && CurrentScreen() == SCREEN_WILY_MACHINE_BATTLE)
+    } else {
+        start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
+    }
+
     cancel = never(PlayerDead())
 
     return
@@ -197,12 +227,18 @@ function BossKill(bossKey, bossDeadHealth = 0) {
         && cancel
         && IsUsingOnlyAllowedModifiers()
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
-        && CurrentCheckpoint() == CHECKPOINT_END
-        && trigger_when(IsBossKilled(bossDeadHealth))
+        && CurrentCheckpoint() == requiredCheckpoint
+        && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0) {
-    start = once(IsPlayerTouchingBossEntranceDoor())
+function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0, bossLifeBarCount = 1, requiredCheckpoint = 0x02) {
+    // 0x02: CHECKPOINT_END
+
+    if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
+        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN && CurrentScreen() == SCREEN_WILY_MACHINE_BATTLE)
+    } else {
+        start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
+    }
 
     cancel = 
         never(PlayerDead()) 
@@ -215,12 +251,18 @@ function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0
         && IsUsingOnlyAllowedModifiers()
         && CurrentCharacter() == requiredCharacter
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
-        && CurrentCheckpoint() == CHECKPOINT_END
-        && trigger_when(IsBossKilled(bossDeadHealth))
+        && CurrentCheckpoint() == requiredCheckpoint
+        && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0) {
-    start = once(IsPlayerTouchingBossEntranceDoor())
+function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0, bossLifeBarCount = 1, requiredCheckpoint = 0x02) {
+    // 0x02: CHECKPOINT_END
+
+    if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
+        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN && CurrentScreen() == SCREEN_WILY_MACHINE_BATTLE)
+    } else {
+        start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
+    }
 
     cancel = 
         never(PlayerDead())
@@ -232,11 +274,13 @@ function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0) {
         && IsUsingOnlyAllowedModifiers()
         && CurrentCharacter() == requiredCharacter
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
-        && CurrentCheckpoint() == CHECKPOINT_END
-        && trigger_when(IsBossKilled(bossDeadHealth))
+        && CurrentCheckpoint() == requiredCheckpoint
+        && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-function BossDoorDamageless(bossKey, requiredCharacter) {
+function BossDoorDamageless(bossKey, requiredCharacter, requiredCheckpoint = 0x02) {
+    // 0x02: CHECKPOINT_END
+
     start = 
         once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_LEVEL_INTRO)
         || once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN)
@@ -252,7 +296,7 @@ function BossDoorDamageless(bossKey, requiredCharacter) {
         && IsUsingOnlyAllowedModifiers()
         && CurrentCharacter() == requiredCharacter
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
-        && trigger_when(CurrentCheckpoint() == CHECKPOINT_END)
+        && trigger_when(CurrentCheckpoint() == requiredCheckpoint)
 }
 
 
@@ -296,6 +340,29 @@ achievement("M Mothraya No Special Weapons", "As Mega Man, defeat Mothraya with 
 achievement("M Square Machine No Special Weapons", "As Mega Man, defeat the Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Cossack2", CHAR_MEGAMAN))
 achievement("M Cockroach Twins No Special Weapons", "As Mega Man, defeat the Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Cossack3", CHAR_MEGAMAN))
 achievement("M Cossack Catcher No Special Weapons", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Cossack4", CHAR_MEGAMAN, bossDeadHealth = 0x02))
+
+achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill("Wily1"))
+achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill("Wily2"))
+achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill("Wily3", requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
+achievement("Wily Capsule", "Defeat Wily Capsule", 5, BossKill("Wily4", requiredCheckpoint = CHECKPOINT_NONE))
+
+achievement("M Wily 1 Stage No Hit", "As Mega Man, reach Wily 1's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily1", CHAR_MEGAMAN))
+achievement("M Wily 2 Stage No Hit", "As Mega Man, reach Wily 2's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily2", CHAR_MEGAMAN))
+
+// NOTE: This is the Boss Rush damageless achievement, it pops as soon as finishing the last boss and the capsule to the Wily Machine appears
+achievement("M Wily 3 Stage No Hit", "As Mega Man, reach Wily 3's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily3", CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH))
+
+// pointless
+// achievement("M Wily 4 Stage No Hit", "As Mega Man, reach Wily 4's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily4", CHAR_MEGAMAN))
+
+achievement("M Metall Daddy No Hit", "As Mega Man, defeat Metall Daddy without taking damage", 5, BossKillDamageless("Wily1", CHAR_MEGAMAN))
+achievement("M Tako Trash No Hit", "As Mega Man, defeat Tako Trash without taking damage", 5, BossKillDamageless("Wily2", CHAR_MEGAMAN))
+achievement("M Wily Machine 4 No Hit", "As Mega Man, defeat Wily Machine 4 without taking damage", 5, BossKillDamageless("Wily3", CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
+achievement("M Wily Capsule No Hit", "As Mega Man, defeat Wily Capsule without taking damage", 5, BossKillDamageless("Wily4", CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_NONE))
+
+achievement("M Metall Daddy No Special Weapons", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Wily1", CHAR_MEGAMAN))
+achievement("M Tako Trash No Special Weapons", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Wily2", CHAR_MEGAMAN))
+achievement("M Wily Machine No Special Weapons", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Wily3", CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
 
 // -- all 3 chars?
 // Reach Toad Man's boss doors without taking damage or dying
@@ -386,16 +453,15 @@ checkpointLabels = {
     0x01: "Halfway through"
 }
 
-// @see CurrentStage()
 doctorVillainLabels = {
-    0x08: "Cossack",
-    0x09: "Cossack",
-    0x0A: "Cossack",
-    0x0B: "Cossack",
-    0x0C: "Wily",
-    0x0D: "Wily",
-    0x0E: "Wily",
-    0x0F: "Wily"
+    0x00: "Cossack",
+    0x01: "Cossack",
+    0x02: "Cossack",
+    0x03: "Cossack",
+    0x04: "Wily",
+    0x05: "Wily",
+    0x06: "Wily",
+    0x07: "Wily"
 }
 
 // @see CurrentStage()
@@ -419,6 +485,7 @@ rich_presence_conditional_display(CanonicalGameState() == STATE_MM4_INTRO_CUTSCE
 rich_presence_conditional_display(CanonicalGameState() == STATE_MM4_TITLE_SCREEN, "On the Mega Man 4 title screen")
 rich_presence_conditional_display(CanonicalGameState() == STATE_ENTER_PASSWORD_SCREEN, "Entering a password")
 rich_presence_conditional_display(CanonicalGameState() == STATE_MM4_SETTINGS, "Adjusting the Mega Man 4 game settings")
+rich_presence_conditional_display(CanonicalGameState() == STATE_FREE_PLAY_MENU, "On the Free Play menu")
 
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_ENDING_ONE || CanonicalGameState() == STATE_ENDING_TWO),
@@ -549,7 +616,7 @@ rich_presence_conditional_display(
     "{0} • {1} • Preparing to enter a Dr. {2} stage",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
-    rich_presence_lookup("Villain Name", CurrentStage(), doctorVillainLabels, "Cossack")
+    rich_presence_lookup("Villain Name", CastleStagesBeaten(), doctorVillainLabels, "Cossack")
 )
 
 rich_presence_display("Playing Mega Man 4")
