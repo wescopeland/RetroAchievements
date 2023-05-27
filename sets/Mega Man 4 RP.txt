@@ -3,10 +3,10 @@ Lookup:FinalLevels
 0x9=Dr. Cossack's Castle II
 0x0a=Dr. Cossack's Castle III
 0x0b=Dr. Cossack's Castle IV
-0x0c=Dr Wily's Fortress I
-0x0d=Dr Wily's Fortress II
-0x0e=Dr Wily's Fortress III
-0x0f=Dr Wily's Fortress IV
+0x0c=Dr. Wily's Fortress I
+0x0d=Dr. Wily's Fortress II
+0x0e=Dr. Wily's Fortress III
+0x0f=Dr. Wily's Fortress IV
 
 Lookup:BossName
 0x0=Bright Man
@@ -19,8 +19,8 @@ Lookup:BossName
 0x7=Skull Man
 0x8=Mothraya
 0x9=Square Machine
-0xa=Cockroach Twin
-0xb=Cossack Catcher
+0xa=the Cockroach Twins
+0xb=the Cossack Catcher
 0xc=Metall Daddy
 0xd=Tako Trash
 0xe=Wily Machine 4
@@ -34,10 +34,10 @@ Lookup:Weapon
 0x4=Rain Flush
 0x5=Wire Adapter
 0x6=Balloon Adapter
-0x7=Dive Missle
+0x7=Dive Missile
 0x8=Ring Boomerang
 0x9=Drill Bomb
-0xa=Dust Crush
+0xa=Dust Crusher
 0xb=Pharaoh Shot
 0xc=Flash Stopper
 0xd=Skull Barrier
@@ -49,29 +49,30 @@ Format:Tanks
 FormatType=VALUE
 
 Display:
-?0xh22=0_0xh28>=25?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=1_0xh28>=26?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=2_0xh28>=21?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=3_0xh28>=31?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=4_0xh28>=23?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=5_0xh28>=22?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=6_0xh28>=23?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=7_0xh28>=25?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=8_0xh28>=17?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=9_0xh28>=15?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=10_0xh28>=15?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=11_0xh28>=18?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=12_0xh28>=19?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=13_0xh28>=20?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=14_0xh28>=5_0xhac!=255?Mega Man fights every Boss again in Boss Rush. 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=14_0xh28>=5_0xhac=255?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22=15_0xh28>=6?Mega Man fights against @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22>=0_0xh22<=7?Mega Man walk trough @BossName(0xh22)'s Stage. 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xh22>=8_0xh22<=15?Mega Man walk trough @FinalLevels(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
-?0xu20=0_0xh22=16?Mega Man choose his Opponent.
-?0xu20=12_0xh22=16?Mega Man manage his Items.
-?0xh22=19?Player looks the Intro Sequence
-?0xh22=20?Player looks the Credits. Congratulations!
-Player starts the Game.
+?0xh22=0_0xh28>=25?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=1_0xh28>=26?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=2_0xh28>=21?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=3_0xh28>=31?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=4_0xh28>=23?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=5_0xh28>=22?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=6_0xh28>=23?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=7_0xh28>=25?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=8_0xh28>=17?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=9_0xh28>=15?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=10_0xh28>=15?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=11_0xh28>=18?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=12_0xh28>=19?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=13_0xh28>=20?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=14_0xh28>=5_0xhac!=255?Mega Man is fighting every boss again in the Boss Rush. 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=14_0xh28>=5_0xhac=255?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22=15_0xh28>=6?Mega Man is fighting @BossName(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22>=0_0xh22<=7?Mega Man is running through @BossName(0xh22)'s Stage. 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xh22>=8_0xh22<=15?Mega Man is running through @FinalLevels(0xh22). 🔫:@Weapon(0xha0) | 🚶:@Lives(0xha1) | @Tanks(0xha2)/9 E-Tanks
+?0xu20=0_0xh22=16?Mega Man is on the Stage Select screen.
+?0xu20=12_0xh22=16?Mega Man is managing his items.
+?0xh22=19?Watching the intro
+?0xh22=20?Watching the credits. Congratulations!
+Starting the game.
 
-//RP by xTr4ceur
+// RP by xTr4ceur
+// Slight adjustments by WCopeland
