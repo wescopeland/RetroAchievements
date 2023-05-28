@@ -6,6 +6,8 @@
 // TODO: change boss conditional check from checkpoint to stage number
 // TODO: use room number for priming boss achievements
 // TODO: make sure necessary achievements are protected against Free Play mode
+// TODO: RP- identify the boss name during the Boss Rush based on their room number
+// TODO: v1.0 support?
 
 // Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
@@ -145,8 +147,47 @@ STAGE_ADDRESS_MAP = {
 }
 
 function CurrentScreen() => byte(_MEM_CURSCREEN)
-SCREEN_WILY_MACHINE_BATTLE = 0x19
-SCREEN_BOSS_RUSH_MAIN = 0x1D
+SCREEN_COSSACK2_BOSS_CORRIDOR = 0x07
+SCREEN_COSSACK2_BOSS_ROOM = 0x08
+SCREEN_WILY2_BOSS_CORRIDOR = 0x0A
+SCREEN_WILY2_BOSS_ROOM = 0x0B
+SCREEN_WILY1_BOSS_CORRIDOR = 0x0B
+SCREEN_COSSACK1_BOSS_CORRIDOR = 0x0B
+SCREEN_WILY2_BOSS_ROOM = 0x0C
+SCREEN_COSSACK1_BOSS_ROOM = 0x0C
+SCREEN_COSSACK3_BOSS_CORRIDOR = 0x0D
+SCREEN_COSSACK3_BOSS_ROOM = 0x0E
+SCREEN_DUST_MAN_BOSS_CORRIDOR = 0x11
+SCREEN_DUST_MAN_BOSS_ROOM = 0x12
+SCREEN_WILY4_BEFORE_BOSS_ROOM = 0x13
+SCREEN_WILY4_BOSS_ROOM = 0x14
+SCREEN_BRIGHT_MAN_BOSS_CORRIDOR = 0x15
+SCREEN_BRIGHT_MAN_BOSS_ROOM = 0x16
+SCREEN_BOSS_RUSH_SKULL_MAN = 0x18
+SCREEN_WILY3_WILY_MACHINE_ROOM = 0x19
+SCREEN_BOSS_RUSH_RING_MAN = 0x1B
+SCREEN_BOSS_RUSH_PHARAOH_MAN = 0x1C
+SCREEN_BOSS_RUSH_MAIN_ROOM = 0x1D
+SCREEN_DRILL_MAN_BOSS_CORRIDOR = 0x1E
+SCREEN_DRILL_MAN_BOSS_ROOM = 0x1F
+SCREEN_BOSS_RUSH_DUST_MAN = 0x1F
+SCREEN_BOSS_RUSH_DIVE_MAN = 0x20
+SCREEN_BOSS_RUSH_TOAD_MAN = 0x21
+SCREEN_BOSS_RUSH_DRILL_MAN = 0x22
+SCREEN_BOSS_RUSH_BRIGHT_MAN = 0x23
+SCREEN_SKULL_MAN_BOSS_CORRIDOR = 0x30
+SCREEN_SKULL_MAN_BOSS_ROOM = 0x31
+SCREEN_DIVE_MAN_BOSS_CORRIDOR = 0x53
+SCREEN_DIVE_MAN_BOSS_ROOM = 0x54
+SCREEN_COSSACK4_BOSS_CORRIDOR = 0x68
+SCREEN_COSSACK4_BOSS_ROOM = 0x69
+SCREEN_RING_MAN_BOSS_CORRIDOR = 0x8F
+SCREEN_RING_MAN_BOSS_ROOM = 0x90
+SCREEN_PHARAOH_MAN_BOSS_CORRIDOR = 0xB6
+SCREEN_PHARAOH_MAN_BOSS_ROOM = 0xB7
+SCREEN_TOAD_MAN_BOSS_CORRIDOR = 0xD2
+SCREEN_TOAD_MAN_BOSS_ROOM = 0xD3
+// TODO: add the missing screens, tie them to progression
 
 
 // Utils --------------------------------------------------------------------------------------------------------------------------
@@ -215,7 +256,7 @@ function BossKill(bossKey, bossDeadHealth = 0, bossLifeBarCount = 1, requiredChe
     // 0x02: CHECKPOINT_END
 
     if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
-        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN && CurrentScreen() == SCREEN_WILY_MACHINE_BATTLE)
+        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN_ROOM && CurrentScreen() == SCREEN_WILY3_WILY_MACHINE_ROOM)
     } else {
         start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
     }
@@ -235,7 +276,7 @@ function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0
     // 0x02: CHECKPOINT_END
 
     if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
-        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN && CurrentScreen() == SCREEN_WILY_MACHINE_BATTLE)
+        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN_ROOM && CurrentScreen() == SCREEN_WILY3_WILY_MACHINE_ROOM)
     } else {
         start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
     }
@@ -259,7 +300,7 @@ function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0, boss
     // 0x02: CHECKPOINT_END
 
     if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
-        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN && CurrentScreen() == SCREEN_WILY_MACHINE_BATTLE)
+        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN_ROOM && CurrentScreen() == SCREEN_WILY3_WILY_MACHINE_ROOM)
     } else {
         start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
     }
