@@ -88,6 +88,8 @@ CHAR_MAN = 0x03
 
 function IsPlayerLocked() => byte(_MEM_PREVLOCK)
 
+function WeaponsEarnedA() => byte(_MEM_WEPUNLOCKED_A)
+function WeaponsEarnedB() => byte(_MEM_WEPUNLOCKED_B)
 WEAPONS_EARNED = [
     bit1(_MEM_WEPUNLOCKED_A), // Skull Man
     bit2(_MEM_WEPUNLOCKED_A), // Drill Man
@@ -279,6 +281,15 @@ function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
 
     return condition
 }
+
+function RequireNewFileWithoutPasswords() {
+    return 
+        disable_when(
+            CanonicalGameState() == STATE_MM4_TITLE_SCREEN && WeaponsEarnedA() != 0 && WeaponsEarnedB() != 0,
+            CanonicalGameState() == STATE_FILE_SELECT
+        )
+        && disable_when(CanonicalGameState() == STATE_MM4_SETTINGS && prev(CanonicalGameState()) == STATE_ENTER_PASSWORD_SCREEN)
+}
 // #endregion Utils
 
 // #region Achievement Functions ----------------------------------------------------------------------------------------------------------
@@ -286,7 +297,9 @@ function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
 // @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
-function BossKill(screensMap = {}, bossDeadHealth = 0, bossLifeBarCount = 1) {
+// @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+function BossKill(screensMap = {}, bossDeadHealth = 0, bossLifeBarCount = 1, requiredDifficulty = 0x01, requiredCharacters = 0x00) {
     start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
     cancel = never(PlayerDead())
 
@@ -294,6 +307,8 @@ function BossKill(screensMap = {}, bossDeadHealth = 0, bossLifeBarCount = 1) {
         start
         && cancel
         && IsUsingOnlyAllowedModifiers()
+        && IsUsingRequiredCharacters(requiredCharacters)
+        && CurrentDifficulty() >= requiredDifficulty
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
@@ -451,7 +466,13 @@ achievement("Cossack Catcher Damageless", "Defeat the Cossack Catcher without ta
 achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(BOSS_SCREENS["WILY1"]))
 achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(BOSS_SCREENS["WILY2"]))
 achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(BOSS_SCREENS["WILY3"], bossLifeBarCount = 2))
-achievement("Wily Capsule", "Defeat Wily Capsule", 5, BossKill(BOSS_SCREENS["WILY4"])) // game clear achievement!
+
+achievement("Mega Man Normal Clear", "As Mega Man, beat the game on Normal or greater without the use of passwords", 10, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresMegaManOrMan, requiredDifficulty = DIFFICULTY_MEDIUM))
+achievement("Mega Man Hard Clear", "As Mega Man, beat the game on Hard without the use of passwords", 25, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresMegaManOrMan, requiredDifficulty = DIFFICULTY_HARD))
+achievement("Proto Man Normal Clear", "As Proto Man, beat the game on Normal or greater without the use of passwords", 10, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresProtoMan, requiredDifficulty = DIFFICULTY_MEDIUM))
+achievement("Proto Man Hard Clear", "As Proto Man, beat the game on Hard without the use of passwords", 25, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresProtoMan, requiredDifficulty = DIFFICULTY_HARD))
+achievement("Roll Normal Clear", "As Roll, beat the game on Normal or greater without the use of passwords", 10, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresRoll, requiredDifficulty = DIFFICULTY_MEDIUM))
+achievement("Roll Hard Clear", "As Roll, beat the game on Hard without the use of passwords", 25, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresRoll, requiredDifficulty = DIFFICULTY_HARD))
 
 achievement("Wily 1 Stage Damageless", "Reach Wily 1's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily1", RequiresAnyCharacter))
 achievement("Wily 2 Stage Damageless", "Reach Wily 2's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily2", RequiresAnyCharacter))
@@ -474,7 +495,7 @@ achievement("Wily Machine 4 Damageless", "Defeat Wily Machine 4 without taking d
 achievement("Wily Capsule Damageless", "Defeat Wily Capsule without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY4"], RequiresAnyCharacter))
 
 // TODO: all 3 chars, boss rush, one life, no special weapons
-// TODO: finish normal or greater, finish hard (block passwords, check MM2 PC Engine rules) 
+// TODO: basic weapon whole game
 // TODO: no continues
 // TODO: no deaths
 // TODO: 60 minutes or less in one sitting
