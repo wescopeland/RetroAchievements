@@ -32,6 +32,10 @@ _MEM_HIGHESTVDPSPRITEINDEX = 0x2A02        // (B highestVDPSpriteIndex)
 _MEM_STAGE                 = 0x2E54 + 1    // (B stage) + 1
 _MEM_ENTITYI               = 0x306A        // (B entityI)
 _MEM_CURSCREEN             = 0x6C84        // (B curscreen)
+
+// Anything marked as unsafe did not come from the symbols file. These need to be checked on every patch.
+_UNSAFE_MEM_BOSSRUSHDEADA  = 0x2852
+_UNSAFE_MEM_BOSSRUSHDEADB  = 0x2853
 // #endregion
 
 // #region Memory -------------------------------------------------------------------------------------------------------------------------
@@ -54,6 +58,9 @@ function CurrentDifficulty() => byte(_MEM_DIFFICULTY)
 DIFFICULTY_EASY = 0x00
 DIFFICULTY_MEDIUM = 0x01
 DIFFICULTY_HARD = 0x02
+
+function BossRushEnemiesKilledA() => byte(_UNSAFE_MEM_BOSSRUSHDEADA)
+function BossRushEnemiesKilledB() => byte(_UNSAFE_MEM_BOSSRUSHDEADB)
 
 function CurrentCheckpoint() => byte(_MEM_CHECKPOINT)
 CHECKPOINT_NONE = 0x00
@@ -148,6 +155,7 @@ STAGE_ADDRESS_MAP = {
 }
 
 function CurrentScreen() => byte(_MEM_CURSCREEN)
+SCREEN_BOSS_RUSH_ROOM = 0x1E
 // #endregion Memory
 
 // #region Utils --------------------------------------------------------------------------------------------------------------------------
@@ -332,6 +340,30 @@ function BossKillNoSpecialWeapons(screensMap = {}, requiredCharacters = 0x00, bo
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
+function BossRushNoSpecialWeapons(requiredCharacters = 0x00) {
+    start =
+        once(
+            CanonicalGameState() == STATE_LEVEL
+            && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"]
+            && CurrentCheckpoint() == CHECKPOINT_END // CHECKPOINT_END is the boss rush room
+            && BossRushEnemiesKilledA() == 0
+            && BossRushEnemiesKilledB() == 0
+            && CurrentScreen() == SCREEN_BOSS_RUSH_ROOM
+        )
+
+    cancel =
+        never(PlayerDead())
+        && never(IsShootingSpecialWeapon())
+        && never(TotalETanksLeft() < prev(TotalETanksLeft()))
+
+    return
+        start
+        && cancel
+        && IsUsingOnlyAllowedModifiers()
+        && IsUsingRequiredCharacters(requiredCharacters)
+        && trigger_when(BossRushEnemiesKilledA() == 0xFE && BossRushEnemiesKilledB() == 0x01)
+}
+
 // @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
@@ -493,6 +525,10 @@ achievement("Metall Daddy Damageless", "Defeat Metall Daddy without taking damag
 achievement("Tako Trash Damageless", "Defeat Tako Trash without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY2"], RequiresAnyCharacter))
 achievement("Wily Machine 4 Damageless", "Defeat Wily Machine 4 without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY3"], RequiresAnyCharacter, bossLifeBarCount = 2))
 achievement("Wily Capsule Damageless", "Defeat Wily Capsule without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY4"], RequiresAnyCharacter))
+
+achievement("M No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the M. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaManOrMan))
+achievement("P No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan))
+achievement("R No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll))
 
 // TODO: all 3 chars, boss rush, one life, no special weapons
 // TODO: basic weapon whole game
