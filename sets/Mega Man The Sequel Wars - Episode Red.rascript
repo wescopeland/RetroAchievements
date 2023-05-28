@@ -3,13 +3,11 @@
 
 // TODO: Mega Man and Man are synonymous
 // TODO: Make sure boss no hit & boss no special achievements work during boss rush
-// TODO: change boss conditional check from checkpoint to stage number
-// TODO: use room number for priming boss achievements
 // TODO: make sure necessary achievements are protected against Free Play mode
 // TODO: RP- identify the boss name during the Boss Rush based on their room number
 // TODO: v1.0 support?
 
-// Memory Symbols -----------------------------------------------------------------------------------------------------------------
+// #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
 _MEM_ETANKS                = 0x01A0 + 1    // (D etanks) + 1
 _MEM_PSX                   = 0x0388        // (B psx)
@@ -33,9 +31,9 @@ _MEM_HIGHESTVDPSPRITEINDEX = 0x2A02        // (B highestVDPSpriteIndex)
 _MEM_STAGE                 = 0x2E54 + 1    // (B stage) + 1
 _MEM_ENTITYI               = 0x306A        // (B entityI)
 _MEM_CURSCREEN             = 0x6C84        // (B curscreen)
+// #endregion
 
-
-// Memory -------------------------------------------------------------------------------------------------------------------------
+// #region Memory -------------------------------------------------------------------------------------------------------------------------
 function TotalLivesLeft() => byte(_MEM_LIVES)
 function TotalETanksLeft() => byte(_MEM_ETANKS)
 function CurrentXPosition() => byte(_MEM_PSX)
@@ -147,56 +145,34 @@ STAGE_ADDRESS_MAP = {
 }
 
 function CurrentScreen() => byte(_MEM_CURSCREEN)
-SCREEN_COSSACK2_BOSS_CORRIDOR = 0x07
-SCREEN_COSSACK2_BOSS_ROOM = 0x08
-SCREEN_WILY2_BOSS_CORRIDOR = 0x0A
-SCREEN_WILY2_BOSS_ROOM = 0x0B
-SCREEN_WILY1_BOSS_CORRIDOR = 0x0B
-SCREEN_COSSACK1_BOSS_CORRIDOR = 0x0B
-SCREEN_WILY2_BOSS_ROOM = 0x0C
-SCREEN_COSSACK1_BOSS_ROOM = 0x0C
-SCREEN_COSSACK3_BOSS_CORRIDOR = 0x0D
-SCREEN_COSSACK3_BOSS_ROOM = 0x0E
-SCREEN_DUST_MAN_BOSS_CORRIDOR = 0x11
-SCREEN_DUST_MAN_BOSS_ROOM = 0x12
-SCREEN_WILY4_BEFORE_BOSS_ROOM = 0x13
-SCREEN_WILY4_BOSS_ROOM = 0x14
-SCREEN_BRIGHT_MAN_BOSS_CORRIDOR = 0x15
-SCREEN_BRIGHT_MAN_BOSS_ROOM = 0x16
-SCREEN_BOSS_RUSH_SKULL_MAN = 0x18
-SCREEN_WILY3_WILY_MACHINE_ROOM = 0x19
-SCREEN_BOSS_RUSH_RING_MAN = 0x1B
-SCREEN_BOSS_RUSH_PHARAOH_MAN = 0x1C
-SCREEN_BOSS_RUSH_MAIN_ROOM = 0x1D
-SCREEN_DRILL_MAN_BOSS_CORRIDOR = 0x1E
-SCREEN_DRILL_MAN_BOSS_ROOM = 0x1F
-SCREEN_BOSS_RUSH_DUST_MAN = 0x1F
-SCREEN_BOSS_RUSH_DIVE_MAN = 0x20
-SCREEN_BOSS_RUSH_TOAD_MAN = 0x21
-SCREEN_BOSS_RUSH_DRILL_MAN = 0x22
-SCREEN_BOSS_RUSH_BRIGHT_MAN = 0x23
-SCREEN_SKULL_MAN_BOSS_CORRIDOR = 0x30
-SCREEN_SKULL_MAN_BOSS_ROOM = 0x31
-SCREEN_DIVE_MAN_BOSS_CORRIDOR = 0x53
-SCREEN_DIVE_MAN_BOSS_ROOM = 0x54
-SCREEN_COSSACK4_BOSS_CORRIDOR = 0x68
-SCREEN_COSSACK4_BOSS_ROOM = 0x69
-SCREEN_RING_MAN_BOSS_CORRIDOR = 0x8F
-SCREEN_RING_MAN_BOSS_ROOM = 0x90
-SCREEN_PHARAOH_MAN_BOSS_CORRIDOR = 0xB6
-SCREEN_PHARAOH_MAN_BOSS_ROOM = 0xB7
-SCREEN_TOAD_MAN_BOSS_CORRIDOR = 0xD2
-SCREEN_TOAD_MAN_BOSS_ROOM = 0xD3
-// TODO: add the missing screens, tie them to progression
+// #endregion Memory
 
+// #region Utils --------------------------------------------------------------------------------------------------------------------------
+BOSS_ACTIVE_WILY_CAPSULE = 0x0A // @see BossActive()
+COSSACK_ONE = 0x08 // @see CurrentStage()
+MAX_HEALTH = 0x1C // @see BossHealth() and CurrentHealth()
+WILY_THREE = 0x0E // @see CurrentStage()
+WILY_FOUR = 0x0F // @see CurrentStage()
 
-// Utils --------------------------------------------------------------------------------------------------------------------------
-BOSS_ACTIVE_WILY_CAPSULE = 0x0A
-BOSS_CORRIDOR_RIGHT_DOOR_POS = 0xFA
-COSSACK_ONE = 0x08
-MAX_HEALTH = 0x1C
-WILY_THREE = 0x0E
-WILY_FOUR = 0x0F
+// @see _MEM_CURSCREEN
+BOSS_SCREENS = {
+    "TOAD_MAN": {"previous": [0xD2, 0x1D], "current": [0xD3, 0x21]},
+    "BRIGHT_MAN": {"previous": [0x15, 0x1D], "current": [0x16, 0x23]},
+    "PHARAOH_MAN": {"previous": [0xB6, 0x1D], "current": [0xB7, 0x1C]},
+    "RING_MAN": {"previous": [0x8F, 0x1D], "current": [0x90, 0x1B]},
+    "DUST_MAN": {"previous": [0x11, 0x1D], "current": [0x12, 0x1F]},
+    "SKULL_MAN": {"previous": [0x30, 0x1D], "current": [0x31, 0x18]},
+    "DIVE_MAN": {"previous": [0x53, 0x1D], "current": [0x54, 0x20]},
+    "DRILL_MAN": {"previous": [0x1E, 0x1D], "current": [0x1F, 0x22]},
+    "COSSACK1": {"previous": [0x0B], "current": [0x0C]},
+    "COSSACK2": {"previous": [0x07], "current": [0x08]},
+    "COSSACK3": {"previous": [0x0D], "current": [0x0E]},
+    "COSSACK4": {"previous": [0x68], "current": [0x69]},
+    "WILY1": {"previous": [0x0B], "current": [0x0C]},
+    "WILY2": {"previous": [0x0A], "current": [0x0C]},
+    "WILY3": {"previous": [0x1D], "current": [0x19]},
+    "WILY4": {"previous": [0x13], "current": [0x14]}
+}
 
 function PlayerDead() => CurrentHealth() == 0
 
@@ -251,35 +227,58 @@ function IsBossKilled(bossDeadHealth = 0, bossLifeBarCount = 1) {
         && (prev(BossActive()) != 0) // prevents a bug where the boss pointer points at Mega Man's health
 }
 
-// Achievement Functions ----------------------------------------------------------------------------------------------------------
-function BossKill(bossKey, bossDeadHealth = 0, bossLifeBarCount = 1, requiredCheckpoint = 0x02) {
-    // 0x02: CHECKPOINT_END
+function HasTransitionedBetweenScreens(previousScreens = [], currentScreens = []) {
+    condition = always_true()
+    
+    iterator = 0
+    for previousScreen in previousScreens {
+        if (iterator == 0) {
+            condition =
+                once(prev(CurrentScreen()) == previousScreens[0] && CurrentScreen() == currentScreens[0])
+        }
 
-    if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
-        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN_ROOM && CurrentScreen() == SCREEN_WILY3_WILY_MACHINE_ROOM)
-    } else {
-        start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
+        if (iterator == 1) {
+            condition =
+                once(prev(CurrentScreen()) == previousScreens[0] && CurrentScreen() == currentScreens[0])
+                || once(prev(CurrentScreen()) == previousScreens[1] && CurrentScreen() == currentScreens[1])
+        }
+
+        if (iterator == 2) {
+            condition =
+                once(prev(CurrentScreen()) == previousScreens[0] && CurrentScreen() == currentScreens[0])
+                || once(prev(CurrentScreen()) == previousScreens[1] && CurrentScreen() == currentScreens[1])
+                || once(prev(CurrentScreen()) == previousScreens[2] && CurrentScreen() == currentScreens[2])
+        }
+            
+        iterator = iterator + 1
     }
 
+    return condition
+}
+// #endregion Utils
+
+// #region Achievement Functions ----------------------------------------------------------------------------------------------------------
+
+// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
+// @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
+function BossKill(screensMap = {}, bossDeadHealth = 0, bossLifeBarCount = 1) {
+    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
     cancel = never(PlayerDead())
 
     return
         start
         && cancel
         && IsUsingOnlyAllowedModifiers()
-        && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
-        && CurrentCheckpoint() == requiredCheckpoint
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0, bossLifeBarCount = 1, requiredCheckpoint = 0x02) {
-    // 0x02: CHECKPOINT_END
-
-    if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
-        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN_ROOM && CurrentScreen() == SCREEN_WILY3_WILY_MACHINE_ROOM)
-    } else {
-        start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
-    }
+// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param requiredCharacter {0x00: CHAR_MEGAMAN} - Which character is required to unlock this achievement
+// @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
+// @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
+function BossKillNoSpecialWeapons(screensMap = {}, requiredCharacter = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
 
     cancel = 
         never(PlayerDead()) 
@@ -291,19 +290,15 @@ function BossKillNoSpecialWeapons(bossKey, requiredCharacter, bossDeadHealth = 0
         && cancel
         && IsUsingOnlyAllowedModifiers()
         && CurrentCharacter() == requiredCharacter
-        && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
-        && CurrentCheckpoint() == requiredCheckpoint
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0, bossLifeBarCount = 1, requiredCheckpoint = 0x02) {
-    // 0x02: CHECKPOINT_END
-
-    if (requiredCheckpoint == CHECKPOINT_FINISHED_BOSS_RUSH) {
-        start = once(prev(CurrentScreen()) == SCREEN_BOSS_RUSH_MAIN_ROOM && CurrentScreen() == SCREEN_WILY3_WILY_MACHINE_ROOM)
-    } else {
-        start = once(IsPlayerTouchingBossEntranceDoor(requiredCheckpoint))
-    }
+// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param requiredCharacter {0x00: CHAR_MEGAMAN} - Which character is required to unlock this achievement
+// @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
+// @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
+function BossKillDamageless(screensMap = {}, requiredCharacter = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
 
     cancel = 
         never(PlayerDead())
@@ -314,14 +309,13 @@ function BossKillDamageless(bossKey, requiredCharacter, bossDeadHealth = 0, boss
         && cancel
         && IsUsingOnlyAllowedModifiers()
         && CurrentCharacter() == requiredCharacter
-        && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
-        && CurrentCheckpoint() == requiredCheckpoint
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-function BossDoorDamageless(bossKey, requiredCharacter, requiredCheckpoint = 0x02) {
-    // 0x02: CHECKPOINT_END
-
+// @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
+// @param requiredCharacter {0x00: CHAR_MEGAMAN} - Which character is required to unlock this achievement
+// @param requiredCheckpoint {0x02: CHECKPOINT_END} - Make sure the player has reached the correct stage checkpoint
+function BossDoorDamageless(bossKey = "Toad", requiredCharacter = 0x00, requiredCheckpoint = 0x02) {
     start = 
         once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_LEVEL_INTRO)
         || once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN)
@@ -339,53 +333,53 @@ function BossDoorDamageless(bossKey, requiredCharacter, requiredCheckpoint = 0x0
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
         && trigger_when(CurrentCheckpoint() == requiredCheckpoint)
 }
+// #endregion Achievement Functions
 
-
-// Achievements -------------------------------------------------------------------------------------------------------------------
+// #region Achievements -------------------------------------------------------------------------------------------------------------------
 
 // TODO: some kind of invalid settings detected icon that persists?
 // maybe show this icon on the modifiers screen for MM4
 
-achievement("Rain Flush", "Defeat Toad Man", 5, BossKill("Toad"))
-achievement("Flash Stopper", "Defeat Bright Man", 5, BossKill("Bright"))
-achievement("Pharaoh Shot", "Defeat Pharaoh Man", 5, BossKill("Pharaoh"))
-achievement("Ring Boomerang", "Defeat Ring Man", 5, BossKill("Ring"))
-achievement("Dust Crusher", "Defeat Dust Man", 5, BossKill("Dust"))
-achievement("Skull Barrier", "Defeat Skull Man", 5, BossKill("Skull"))
-achievement("Dive Missile", "Defeat Dive Man", 5, BossKill("Dive"))
-achievement("Drill Bombs", "Defeat Drill Man", 5, BossKill("Drill"))
+achievement("Rain Flush", "Defeat Toad Man", 5, BossKill(BOSS_SCREENS["TOAD_MAN"]))
+achievement("Flash Stopper", "Defeat Bright Man", 5, BossKill(BOSS_SCREENS["BRIGHT_MAN"]))
+achievement("Pharaoh Shot", "Defeat Pharaoh Man", 5, BossKill(BOSS_SCREENS["PHARAOH_MAN"]))
+achievement("Ring Boomerang", "Defeat Ring Man", 5, BossKill(BOSS_SCREENS["RING_MAN"]))
+achievement("Dust Crusher", "Defeat Dust Man", 5, BossKill(BOSS_SCREENS["DUST_MAN"]))
+achievement("Skull Barrier", "Defeat Skull Man", 5, BossKill(BOSS_SCREENS["SKULL_MAN"]))
+achievement("Dive Missile", "Defeat Dive Man", 5, BossKill(BOSS_SCREENS["DIVE_MAN"]))
+achievement("Drill Bombs", "Defeat Drill Man", 5, BossKill(BOSS_SCREENS["DRILL_MAN"]))
 
 achievement("M Toad Man Stage No Hit", "As Mega Man, reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Toad", CHAR_MEGAMAN))
 achievement("P Toad Man Stage No Hit", "As Proto Man, reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Toad", CHAR_PROTOMAN))
 achievement("R Toad Man Stage No Hit", "As Roll, reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Toad", CHAR_ROLL))
 
-achievement("M Toad Man No Special Weapons", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Toad", CHAR_MEGAMAN))
-achievement("M Toad Man Boss No Hit", "As Mega Man, defeat Toad Man in his stage without taking damage", 5, BossKillDamageless("Toad", CHAR_MEGAMAN))
+achievement("M Toad Man No Special Weapons", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], CHAR_MEGAMAN))
+achievement("M Toad Man Boss No Hit", "As Mega Man, defeat Toad Man in his stage without taking damage", 5, BossKillDamageless(BOSS_SCREENS["TOAD_MAN"], CHAR_MEGAMAN))
 
-achievement("Mothraya", "Defeat Mothraya", 5, BossKill("Cossack1"))
-achievement("Square Machine", "Defeat the Square Machine", 5, BossKill("Cossack2"))
-achievement("Cockroach Twins", "Defeat the Cockroach Twins", 5, BossKill("Cossack3"))
-achievement("Cossack Catcher", "Defeat the Cossack Catcher", 5, BossKill("Cossack4", bossDeadHealth = 0x02))
+achievement("Mothraya", "Defeat Mothraya", 5, BossKill(BOSS_SCREENS["COSSACK1"]))
+achievement("Square Machine", "Defeat the Square Machine", 5, BossKill(BOSS_SCREENS["COSSACK2"]))
+achievement("Cockroach Twins", "Defeat the Cockroach Twins", 5, BossKill(BOSS_SCREENS["COSSACK3"]))
+achievement("Cossack Catcher", "Defeat the Cossack Catcher", 5, BossKill(BOSS_SCREENS["COSSACK4"], bossDeadHealth = 0x02))
 
 achievement("M Cossack 1 Stage No Hit", "As Mega Man, reach Cossack 1's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack1", CHAR_MEGAMAN))
 achievement("M Cossack 2 Stage No Hit", "As Mega Man, reach Cossack 2's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack2", CHAR_MEGAMAN))
 achievement("M Cossack 3 Stage No Hit", "As Mega Man, reach Cossack 3's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack3", CHAR_MEGAMAN))
 achievement("M Cossack 4 Stage No Hit", "As Mega Man, reach Cossack 4's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack4", CHAR_MEGAMAN))
 
-achievement("M Mothraya No Hit", "As Mega Man, defeat Mothraya without taking damage", 5, BossKillDamageless("Cossack1", CHAR_MEGAMAN))
-achievement("M Square Machine No Hit", "As Mega Man, defeat the Square Machine without taking damage", 5, BossKillDamageless("Cossack2", CHAR_MEGAMAN))
-achievement("M Cockroach Twins No Hit", "As Mega Man, defeat the Cockroach Twins without taking damage", 5, BossKillDamageless("Cossack3", CHAR_MEGAMAN))
-achievement("M Cossack Catcher No Hit", "As Mega Man, defeat the Cossack Catcher without taking damage", 5, BossKillDamageless("Cossack4", CHAR_MEGAMAN))
+achievement("M Mothraya No Hit", "As Mega Man, defeat Mothraya without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK1"], CHAR_MEGAMAN))
+achievement("M Square Machine No Hit", "As Mega Man, defeat the Square Machine without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK2"], CHAR_MEGAMAN))
+achievement("M Cockroach Twins No Hit", "As Mega Man, defeat the Cockroach Twins without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK3"], CHAR_MEGAMAN))
+achievement("M Cossack Catcher No Hit", "As Mega Man, defeat the Cossack Catcher without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK4"], CHAR_MEGAMAN))
 
-achievement("M Mothraya No Special Weapons", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Cossack1", CHAR_MEGAMAN))
-achievement("M Square Machine No Special Weapons", "As Mega Man, defeat the Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Cossack2", CHAR_MEGAMAN))
-achievement("M Cockroach Twins No Special Weapons", "As Mega Man, defeat the Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Cossack3", CHAR_MEGAMAN))
-achievement("M Cossack Catcher No Special Weapons", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Cossack4", CHAR_MEGAMAN, bossDeadHealth = 0x02))
+achievement("M Mothraya No Special Weapons", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK1"], CHAR_MEGAMAN))
+achievement("M Square Machine No Special Weapons", "As Mega Man, defeat the Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], CHAR_MEGAMAN))
+achievement("M Cockroach Twins No Special Weapons", "As Mega Man, defeat the Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], CHAR_MEGAMAN))
+achievement("M Cossack Catcher No Special Weapons", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK4"], CHAR_MEGAMAN, bossDeadHealth = 0x02))
 
-achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill("Wily1"))
-achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill("Wily2"))
-achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill("Wily3", requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
-achievement("Wily Capsule", "Defeat Wily Capsule", 5, BossKill("Wily4", requiredCheckpoint = CHECKPOINT_NONE))
+achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(BOSS_SCREENS["WILY1"]))
+achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(BOSS_SCREENS["WILY2"]))
+achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(BOSS_SCREENS["WILY3"], bossLifeBarCount = 2))
+achievement("Wily Capsule", "Defeat Wily Capsule", 5, BossKill(BOSS_SCREENS["WILY4"]))
 
 achievement("M Wily 1 Stage No Hit", "As Mega Man, reach Wily 1's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily1", CHAR_MEGAMAN))
 achievement("M Wily 2 Stage No Hit", "As Mega Man, reach Wily 2's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily2", CHAR_MEGAMAN))
@@ -396,14 +390,14 @@ achievement("M Wily 3 Stage No Hit", "As Mega Man, reach Wily 3's boss doors wit
 // pointless
 // achievement("M Wily 4 Stage No Hit", "As Mega Man, reach Wily 4's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily4", CHAR_MEGAMAN))
 
-achievement("M Metall Daddy No Hit", "As Mega Man, defeat Metall Daddy without taking damage", 5, BossKillDamageless("Wily1", CHAR_MEGAMAN))
-achievement("M Tako Trash No Hit", "As Mega Man, defeat Tako Trash without taking damage", 5, BossKillDamageless("Wily2", CHAR_MEGAMAN))
-achievement("M Wily Machine 4 No Hit", "As Mega Man, defeat Wily Machine 4 without taking damage", 5, BossKillDamageless("Wily3", CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
-achievement("M Wily Capsule No Hit", "As Mega Man, defeat Wily Capsule without taking damage", 5, BossKillDamageless("Wily4", CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_NONE))
+achievement("M Metall Daddy No Hit", "As Mega Man, defeat Metall Daddy without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY1"], CHAR_MEGAMAN))
+achievement("M Tako Trash No Hit", "As Mega Man, defeat Tako Trash without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY2"], CHAR_MEGAMAN))
+achievement("M Wily Machine 4 No Hit", "As Mega Man, defeat Wily Machine 4 without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY3"], CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
+achievement("M Wily Capsule No Hit", "As Mega Man, defeat Wily Capsule without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY4"], CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_NONE))
 
-achievement("M Metall Daddy No Special Weapons", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Wily1", CHAR_MEGAMAN))
-achievement("M Tako Trash No Special Weapons", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Wily2", CHAR_MEGAMAN))
-achievement("M Wily Machine No Special Weapons", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons("Wily3", CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
+achievement("M Metall Daddy No Special Weapons", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], CHAR_MEGAMAN))
+achievement("M Tako Trash No Special Weapons", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], CHAR_MEGAMAN))
+achievement("M Wily Machine No Special Weapons", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], CHAR_MEGAMAN, requiredCheckpoint = CHECKPOINT_FINISHED_BOSS_RUSH, bossLifeBarCount = 2))
 
 // -- all 3 chars?
 // Reach Toad Man's boss doors without taking damage or dying
@@ -414,9 +408,9 @@ achievement("M Wily Machine No Special Weapons", "As Mega Man, defeat Wily Machi
 // Reach Skull Man's boss doors without taking damage or dying
 // Reach Dive Man's boss doors without taking damage or dying
 // Reach Drill Man's boss doors without taking damage or dying
+// #endregion Achievements
 
-
-// Rich Presence ------------------------------------------------------------------------------------------------------------------
+// #region Rich Presence ------------------------------------------------------------------------------------------------------------------
 livesLabels = {
     0x01: "life"
 }
@@ -661,3 +655,4 @@ rich_presence_conditional_display(
 )
 
 rich_presence_display("Playing Mega Man 4")
+// #endregion Rich Presence
