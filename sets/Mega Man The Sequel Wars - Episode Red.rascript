@@ -4,7 +4,6 @@
 // TODO: Mega Man and Man are synonymous
 // TODO: Make sure boss no hit & boss no special achievements work during boss rush
 // TODO: make sure necessary achievements are protected against Free Play mode
-// TODO: RP- identify the boss name during the Boss Rush based on their room number
 // TODO: v1.0 support?
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
@@ -564,8 +563,37 @@ rich_presence_conditional_display(
     rich_presence_lookup("Stage", CurrentStage(), stageLabels, "a bad guy")
 )
 
+bossRushEnemyLabels = {
+    0x21: "Toad Man",
+    0x23: "Bright Man",
+    0x1C: "Pharaoh Man",
+    0x1B: "Ring Man",
+    0x1F: "Dust Man",
+    0x18: "Skull Man",
+    0x20: "Dive Man",
+    0x22: "Drill Man"
+}
+bossRushEnemyRooms = [0x21, 0x23, 0x1C, 0x1B, 0x1F, 0x18, 0x20, 0x22]
 rich_presence_conditional_display(
-    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == WILY_THREE && (CurrentCheckpoint() == CHECKPOINT_END),
+    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == WILY_THREE
+    && CurrentStage() == WILY_THREE 
+    && (CurrentCheckpoint() == CHECKPOINT_END)
+    && any_of(bossRushEnemyRooms, r => CurrentScreen() == r),
+
+    "{0} • {1} • {2}/8 • {3} {4} • Fighting {5} in the Boss Rush",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives"),
+    rich_presence_lookup("Boss Rush Enemy Label", CurrentScreen(), bossRushEnemyLabels, "a bad guy")
+)
+
+rich_presence_conditional_display(
+    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() == WILY_THREE 
+    && (CurrentCheckpoint() == CHECKPOINT_END),
+
     "{0} • {1} • {2}/8 • {3} {4} • In the Boss Rush of Dr. Wily's third stage",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
