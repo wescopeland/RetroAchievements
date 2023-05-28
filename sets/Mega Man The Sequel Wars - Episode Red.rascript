@@ -2,11 +2,11 @@
 // #ID = 24453
 
 // TODO: no banned settings achievement
-// TODO: Mega Man and Man are synonymous
 // TODO: Make sure boss no hit & boss no special achievements work during boss rush
 // TODO: make sure necessary achievements are protected against Free Play mode
 // TODO: v1.0 support?
 // TODO: be sure to mark missables
+// TODO: subset
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
@@ -340,6 +340,7 @@ function BossKillNoSpecialWeapons(screensMap = {}, requiredCharacters = 0x00, bo
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 function BossRushNoSpecialWeapons(requiredCharacters = 0x00) {
     start =
         once(
@@ -403,6 +404,28 @@ function BossDoorDamageless(bossKey = "Toad", requiredCharacters = 0x00, require
         && IsUsingRequiredCharacters(requiredCharacters)
         && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
         && trigger_when(CurrentCheckpoint() == requiredCheckpoint)
+}
+
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+// @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
+function GameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
+    return
+        RequireNewFileWithoutPasswords()
+        && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = requiredCharacters, requiredDifficulty = requiredDifficulty)
+}
+
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+// @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
+function ContinuelessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
+    cancel = disable_when(CanonicalGameState() == STATE_GAME_OVER)
+    return cancel && GameClear(requiredCharacters, requiredDifficulty)
+}
+
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+// @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
+function DeathlessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
+    cancel = disable_when(CanonicalGameState() == STATE_LEVEL && TotalLivesLeft() < prev(TotalLivesLeft()))
+    return cancel && GameClear(requiredCharacters, requiredDifficulty)
 }
 // #endregion Achievement Functions
 
@@ -499,12 +522,12 @@ achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(BOSS_SCREENS["WIL
 achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(BOSS_SCREENS["WILY2"]))
 achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(BOSS_SCREENS["WILY3"], bossLifeBarCount = 2))
 
-achievement("Mega Man Normal Clear", "As Mega Man, beat the game on Normal or greater without the use of passwords", 10, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresMegaManOrMan, requiredDifficulty = DIFFICULTY_MEDIUM))
-achievement("Mega Man Hard Clear", "As Mega Man, beat the game on Hard without the use of passwords", 25, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresMegaManOrMan, requiredDifficulty = DIFFICULTY_HARD))
-achievement("Proto Man Normal Clear", "As Proto Man, beat the game on Normal or greater without the use of passwords", 10, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresProtoMan, requiredDifficulty = DIFFICULTY_MEDIUM))
-achievement("Proto Man Hard Clear", "As Proto Man, beat the game on Hard without the use of passwords", 25, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresProtoMan, requiredDifficulty = DIFFICULTY_HARD))
-achievement("Roll Normal Clear", "As Roll, beat the game on Normal or greater without the use of passwords", 10, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresRoll, requiredDifficulty = DIFFICULTY_MEDIUM))
-achievement("Roll Hard Clear", "As Roll, beat the game on Hard without the use of passwords", 25, RequireNewFileWithoutPasswords() && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = RequiresRoll, requiredDifficulty = DIFFICULTY_HARD))
+achievement("Mega Man Normal Clear", "As Mega Man, beat the game on Normal or greater without the use of passwords", 10, GameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
+achievement("Mega Man Hard Clear", "As Mega Man, beat the game on Hard without the use of passwords", 25, GameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Proto Man Normal Clear", "As Proto Man, beat the game on Normal or greater without the use of passwords", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
+achievement("Proto Man Hard Clear", "As Proto Man, beat the game on Hard without the use of passwords", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Roll Normal Clear", "As Roll, beat the game on Normal or greater without the use of passwords", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM))
+achievement("Roll Hard Clear", "As Roll, beat the game on Hard without the use of passwords", 25, GameClear(RequiresRoll, DIFFICULTY_HARD))
 
 achievement("Wily 1 Stage Damageless", "Reach Wily 1's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily1", RequiresAnyCharacter))
 achievement("Wily 2 Stage Damageless", "Reach Wily 2's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily2", RequiresAnyCharacter))
@@ -530,10 +553,18 @@ achievement("M No Time for Refills", "Without dying, defeat all 8 Robot Masters 
 achievement("P No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan))
 achievement("R No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll))
 
-// TODO: all 3 chars, boss rush, one life, no special weapons
-// TODO: basic weapon whole game
-// TODO: no continues
-// TODO: no deaths
+achievement("Mega Man Normal No Continues Clear", "As Mega Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
+achievement("Mega Man Hard No Continues Clear", "As Mega Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Proto Man Normal No Continues Clear", "As Proto Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
+achievement("Proto Man Hard No Continues Clear", "As Proto Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Roll Normal No Continues Clear", "As Roll, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM))
+achievement("Roll Hard No Continues Clear", "As Roll, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD))
+
+achievement("Immortal Mega Man", "As Mega Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Immortal Proto Man", "As Proto Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Immortal Roll", "As Roll, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD))
+
+// TODO: get the bonus items
 // TODO: 60 minutes or less in one sitting
 // TODO: character leaderboards
 
