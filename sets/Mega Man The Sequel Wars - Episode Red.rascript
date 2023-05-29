@@ -1,21 +1,28 @@
 // ~Homebrew~ Mega Man: The Sequel Wars - Episode Red
 // #ID = 24453
 
-// TODO: no banned settings achievement // "default settings check"
 // TODO: Make sure boss no hit & boss no special achievements work during boss rush
 // TODO: be sure to mark missables
 // TODO: be sure to credit users for achievement ideas
 // TODO: link the RAScript in the code notes. explain the meaning of Symbol.
+// TODO: achievement order
+// TODO: better achievement names
+// TODO: better achievement descriptions [specify settings similar to Mega Man 2 PCE]
+// TODO: subset
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
 _MEM_ETANKS                = 0x01A0 + 1    // (D etanks) + 1
+_MEM_PSY                   = 0x0384        // (B psy)
 _MEM_PSX                   = 0x0388        // (B psx)
 _MEM_MODIFIERS_A           = 0x1D4C        // (B modifiers)
 _MEM_MODIFIERS_B           = 0x1D4C + 1    // (B modifiers) + 1
+_MEM_TIMER                 = 0x2562 + 1    // (B timer) + 1
 _MEM_BOSSACTIVE            = 0x2650 + 1    // (B bossactive) + 1
 _MEM_DEMOROUTINE           = 0x2604        // (B demoroutine)
 _MEM_FIREPRESSED           = 0x2625 - 1    // (B firepressed) - 1
+_MEM_JUMPPRESSED           = 0x262B - 1    // (B jumppressed) - 1
+_MEM_FREEPLAY              = 0x2677 - 1    // (B freeplay) - 1
 _MEM_CASTLEPROG            = 0x268B - 1    // (B castleprog) - 1
 _MEM_DISPHEALTH            = 0x26DE        // (B disphealth)
 _MEM_DIFFICULTY            = 0x26ED - 1    // (B difficulty) - 1
@@ -33,6 +40,7 @@ _MEM_ENTITYI               = 0x306A        // (B entityI)
 _MEM_CURSCREEN             = 0x6C84        // (B curscreen)
 
 // Anything marked as unsafe did not come from the symbols file. These need to be checked on every patch.
+_UNSAFE_MEM_COLMODE        = 0x0364        // (B colmode) - not sure if this is right
 _UNSAFE_MEM_BOSSRUSHDEADA  = 0x2852
 _UNSAFE_MEM_BOSSRUSHDEADB  = 0x2853
 _UNSAFE_MEM_SCREENDARKNESS = 0x2E1A
@@ -40,8 +48,10 @@ _UNSAFE_MEM_QUICKSANDTIMER = 0x2E25
 // #endregion
 
 // #region Memory -------------------------------------------------------------------------------------------------------------------------
+function IsSliding() => byte(_UNSAFE_MEM_COLMODE)
 function TotalLivesLeft() => byte(_MEM_LIVES)
 function TotalETanksLeft() => byte(_MEM_ETANKS)
+function CurrentYPosition() => byte(_MEM_PSY)
 function CurrentXPosition() => byte(_MEM_PSX)
 function IsBurstChaserEnabled() => bit2(_MEM_MODIFIERS_A)
 function IsDoubleJumpEnabled() => bit3(_MEM_MODIFIERS_A)
@@ -52,6 +62,9 @@ function IsInfiniteLivesEnabled() => bit2(_MEM_MODIFIERS_B)
 function BossActive() => byte(_MEM_BOSSACTIVE)
 function IsDemoPlaying() => byte(_MEM_DEMOROUTINE)
 function IsFirePressed() => byte(_MEM_FIREPRESSED)
+function IsJumpPressed() => byte(_MEM_JUMPPRESSED)
+function IsFreePlayEnabled() => byte(_MEM_FREEPLAY)
+function Timer() => byte(_MEM_TIMER)
 function CastleStagesBeaten() => byte(_MEM_CASTLEPROG)
 function CurrentHealth() => byte(_MEM_DISPHEALTH)
 
@@ -187,7 +200,7 @@ BOSS_SCREENS = {
     "COSSACK3": {"previous": [0x0D], "current": [0x0E]},
     "COSSACK4": {"previous": [0x68], "current": [0x69]},
     "WILY1": {"previous": [0x0B], "current": [0x0C]},
-    "WILY2": {"previous": [0x0A], "current": [0x0C]},
+    "WILY2": {"previous": [0x0A], "current": [0x0B]},
     "WILY3": {"previous": [0x1D], "current": [0x19]},
     "WILY4": {"previous": [0x13], "current": [0x14]}
 }
@@ -210,22 +223,37 @@ function BossHealth() {
     return byte(_MEM_ENTITYI + BossActivePointer + 4)
 }
 
+function IsJumping() {
+    return IsJumpPressed() == 1 && CurrentYPosition() < prev(CurrentYPosition())
+}
+
+function IsShootingAnyWeapon() {
+    return IsFirePressed() == 1 && IsPauseMenuOpen() == 0
+}
+
 function IsShootingSpecialWeapon() {
     return
-        IsFirePressed() == 1
-        && IsPauseMenuOpen() == 0
+        IsShootingAnyWeapon()
         && CurrentEquippedWeapon() != EQUIPPED_BUSTER
         && CurrentEquippedWeapon() != EQUIPPED_RCOIL
         && CurrentEquippedWeapon() != EQUIPPED_RJET
         && CurrentEquippedWeapon() != EQUIPPED_RMARINE
 }
 
+// @param requiredWeapon {0x00: EQUIPPED_BUSTER} - What weapon is required for this function to return falsy
+function IsShootingWrongWeapon(requiredWeapon = 0x00) {
+    return IsShootingAnyWeapon() && CurrentEquippedWeapon() != requiredWeapon
+}
+
+MustBeDisabled = 0
+Optional = 1
+MustBeEnabled = 2
 // @param minimumDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty must be set to at least this level.
 // @param allowInfiniteAmmo {0 or 1}
 // @param allowInfiniteLives {0 or 1}
 // @param allowAirSliding {0 or 1}
 // @param allowDoubleJump {0 or 1}
-// @param allowFullArsenal {0 or 1}
+// @param allowFullArsenal {0, 1, or 2}
 // @param allowBurstChaser {0 or 1}
 function IsUsingOnlyAllowedModifiers(
     minimumDifficulty = 0x01,
@@ -236,6 +264,13 @@ function IsUsingOnlyAllowedModifiers(
     allowFullArsenal = 0,
     allowBurstChaser = 0
 ) {
+    fullArsenalClause = always_true()
+    if (allowFullArsenal == MustBeDisabled) {
+        fullArsenalClause = IsFullArsenalEnabled() == 0
+    } else if (allowFullArsenal == MustBeEnabled) {
+        fullArsenalClause = IsFullArsenalEnabled() == 1
+    }
+
     // By using `<=` on many of these conditions, 0 means the setting
     // must be enabled, and 1 means the setting can be enabled or disabled
     // and the achievement will still unlock.
@@ -245,7 +280,7 @@ function IsUsingOnlyAllowedModifiers(
         && IsInfiniteLivesEnabled() <= allowInfiniteLives
         && IsAirSlidingEnabled() <= allowAirSliding
         && IsDoubleJumpEnabled() <= allowDoubleJump
-        && IsFullArsenalEnabled() <= allowFullArsenal
+        && fullArsenalClause
         && IsBurstChaserEnabled() <= allowBurstChaser
 }
 
@@ -320,17 +355,121 @@ function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
     return condition
 }
 
+function RequireWithoutPasswords() {
+    return disable_when(CanonicalGameState() == STATE_MM4_SETTINGS && prev(CanonicalGameState()) == STATE_ENTER_PASSWORD_SCREEN)
+}
+
 function RequireNewFileWithoutPasswords() {
     return 
         disable_when(
             CanonicalGameState() == STATE_MM4_TITLE_SCREEN && WeaponsEarnedA() != 0 && WeaponsEarnedB() != 0,
             CanonicalGameState() == STATE_FILE_SELECT
         )
-        && disable_when(CanonicalGameState() == STATE_MM4_SETTINGS && prev(CanonicalGameState()) == STATE_ENTER_PASSWORD_SCREEN)
+        && RequireWithoutPasswords()
+}
+
+function FreePlayChallengeReset() {
+    return 
+        (CanonicalGameState() != STATE_LEVEL && CanonicalGameState() != STATE_PAUSE_MENU_OPEN)
+        || TotalLivesLeft() < prev(TotalLivesLeft())
+        || CanonicalGameState() == STATE_FREE_PLAY_MENU
 }
 // #endregion Utils
 
 // #region Achievement Functions ----------------------------------------------------------------------------------------------------------
+
+// no sliding
+// no damage
+// no e-tanks
+// full arsenal
+// specific weapon only
+
+// @param primeStage {STAGE_ADDRESS_MAP} - What stage this challenge lives on
+// @param primeCheckpoint {0x02: CHECKPOINT_END} - On what checkpoint to prime the achievement icon
+// @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
+// @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
+// @param allowFullArsenal {0 or 1} - Is full arsenal allowed while killing this boss
+// @param allowJumping {0 or 1} - Is jumping allowed while killing this boss
+// @param allowSliding {0 or 1} - Is sliding allowed while killing this boss
+// @param allowDamage {0 or 1} - Can the player receive any damage while killing this boss
+// @param allowETanks {0 or 1} - Can the player use E-Tanks while killing this boss
+// @param onlySpecificWeapon {0x00: EQUIPPED_BUSTER} - Are there any weapon restrictions while killing this boss // @see EQUIPPED_*
+function FreePlayBossKill(
+    primeStage = "Toad",
+    primeCheckpoint = 0x02,
+    bossDeadHealth = 0,
+    bossLifeBarCount = 1,
+    allowFullArsenal = 0,
+    allowJumping = 1,
+    allowSliding = 1,
+    allowDamage = 1,
+    allowETanks = 1,
+    onlySpecificWeapon = 0
+) {
+    allowJumpingClause = always_true()
+    if (allowJumping == 0) {
+        allowJumpingClause = disable_when(
+            CanonicalGameState() == STATE_LEVEL && IsJumping(),
+            FreePlayChallengeReset()
+        )
+    }
+
+    allowSlidingClause = always_true()
+    if (allowSliding == 0) {
+        allowSlidingClause = disable_when(
+            CanonicalGameState() == STATE_LEVEL && IsSliding() == 1,
+            FreePlayChallengeReset()
+        )
+    }
+
+    allowDamageClause = always_true()
+    if (allowDamage == 0) {
+        allowDamageClause = disable_when(
+            CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
+            FreePlayChallengeReset()
+        )
+    }
+
+    allowETanksClause = always_true()
+    if (allowETanks == 0) {
+        allowETanksClause = disable_when(
+            TotalETanksLeft() < prev(TotalETanksLeft()),
+            FreePlayChallengeReset()
+        )
+    }
+
+    onlySpecificWeaponClause = always_true()
+    if (onlySpecificWeapon != 0) {
+        onlySpecificWeaponClause = disable_when(
+            IsShootingWrongWeapon(onlySpecificWeapon),
+            FreePlayChallengeReset()
+        )
+    }
+
+    cancel =
+        never(PlayerDead() && CanonicalGameState() != STATE_FREE_PLAY_MENU && CanonicalGameState() != STATE_MM4_SETTINGS) 
+        && never(CanonicalGameState() == STATE_LEVEL && IsFreePlayEnabled() == 0)
+        && allowJumpingClause
+        && allowSlidingClause
+        && allowDamageClause
+        && allowETanksClause
+        && onlySpecificWeaponClause
+
+    return
+        CurrentStage() == STAGE_ADDRESS_MAP[primeStage]
+        && CurrentCheckpoint() == primeCheckpoint
+        && cancel
+        && IsUsingOnlyAllowedModifiers(
+            minimumDifficulty = DIFFICULTY_MEDIUM,
+            allowInfiniteAmmo = 0,
+            allowInfiniteLives = 0,
+            allowAirSliding = 0,
+            allowDoubleJump = 0,
+            allowFullArsenal = allowFullArsenal,
+            allowBurstChaser = 0
+        )
+        && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
+}
 
 // @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
@@ -375,6 +514,18 @@ function BossKill(
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
+function WilyMachine4WireKill() {
+    start = HasTransitionedBetweenScreens(BOSS_SCREENS["WILY3"]["previous"], BOSS_SCREENS["WILY3"]["current"])
+    cancel = never(PlayerDead()) && never(CanonicalGameState() != STATE_LEVEL && CanonicalGameState() != STATE_PAUSE_MENU_OPEN)
+
+    return
+        start
+        && cancel
+        && IsUsingOnlyAllowedModifiers()
+        && IsBossKilled(bossDeadHealth = 0, bossLifeBarCount = 2)
+        && CurrentEquippedWeapon() == EQUIPPED_WIRE
+}
+
 // @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
@@ -385,6 +536,26 @@ function BossKillNoSpecialWeapons(screensMap = {}, requiredCharacters = 0x00, bo
     cancel = 
         never(PlayerDead()) 
         && never(IsShootingSpecialWeapon())
+        && never(TotalETanksLeft() < prev(TotalETanksLeft()))
+
+    return
+        start
+        && cancel
+        && IsUsingOnlyAllowedModifiers()
+        && IsUsingRequiredCharacters(requiredCharacters)
+        && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
+}
+
+// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+// @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
+// @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
+function BossKillNoWeapons(screensMap = {}, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
+
+    cancel = 
+        never(PlayerDead()) 
+        && never(IsShootingAnyWeapon())
         && never(TotalETanksLeft() < prev(TotalETanksLeft()))
 
     return
@@ -461,6 +632,33 @@ function BossDoorDamageless(bossKey = "Toad", requiredCharacters = 0x00, require
         && trigger_when(CurrentCheckpoint() == requiredCheckpoint)
 }
 
+function BrightManStageLightsAlwaysOn() {
+    start =
+        once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_LEVEL_INTRO)
+        || once(CanonicalGameState() == STATE_LEVEL && CurrentHealth() == MAX_HEALTH && prev(CurrentHealth()) == 0 && CurrentCheckpoint() == CHECKPOINT_NONE)
+
+    cancel =
+        never(IsDemoPlaying() == 1)
+        && never(Timer() == 0x02 && prev(Timer()) == 0x00)
+
+    return
+        start
+        && cancel
+        && IsUsingOnlyAllowedModifiers()
+        && CurrentStage() == STAGE_ADDRESS_MAP["Bright"]
+        && trigger_when(CurrentCheckpoint() == CHECKPOINT_END)
+}
+
+function RobotMastersClear() {
+    // When all weapons are earned, Dr. Cossack appears on the stage select screen.
+    return
+        RequireWithoutPasswords()
+        && IsUsingOnlyAllowedModifiers()
+        && CanonicalGameState() == STATE_STAGE_SELECT
+        && WeaponsEarnedA() == 0xFE // All earned
+        && WeaponsEarnedB() == 0x01 // All earned
+}
+
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
 function GameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
@@ -510,12 +708,47 @@ function PharaohManTurnOffLights() {
         && prev(ScreenDarkness()) == 0x01
         && ScreenDarkness() == 0x02 // it ultimately ticks up to 0x07
 }
+
+function DefaultSettingsCheck() {
+    start = once(CanonicalGameState() == STATE_MM4_SETTINGS)
+
+    cancel = 
+        never(!IsUsingOnlyAllowedModifiers()) 
+        && never(CanonicalGameState() != STATE_MM4_SETTINGS && CanonicalGameState() != STATE_STAGE_SELECT)
+
+    return
+        start
+        && cancel
+        && trigger_when(prev(CanonicalGameState()) == STATE_MM4_SETTINGS && CanonicalGameState() == STATE_STAGE_SELECT)
+}
+
+function RingManEddie() {
+    return
+        IsUsingOnlyAllowedModifiers()
+        && CanonicalGameState() == STATE_LEVEL
+        && CurrentStage() == STAGE_ADDRESS_MAP["Ring"]
+        && (prev(CurrentScreen()) == 0x46 && CurrentScreen() == 0x26) // climb the ladder at the checkpoint
+}
+
+function NineLives() {
+    return
+        IsUsingOnlyAllowedModifiers()
+        && (prev(TotalLivesLeft()) == 8 && TotalLivesLeft() == 9)
+}
+
+function NineETanks() {
+    return
+        IsUsingOnlyAllowedModifiers()
+        && (prev(TotalETanksLeft()) == 8 && TotalETanksLeft() == 9)
+}
 // #endregion Achievement Functions
 
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
 
 // TODO: some kind of invalid settings detected icon that persists?
 // maybe show this icon on the modifiers screen for MM4
+
+achievement("DEFAULT SETTINGS CHECK", "TODO: describe the default settings here", 0, DefaultSettingsCheck())
 
 achievement("Rain Flush", "Defeat Toad Man", 5, BossKill(BOSS_SCREENS["TOAD_MAN"]))
 achievement("Flash Stopper", "Defeat Bright Man", 5, BossKill(BOSS_SCREENS["BRIGHT_MAN"]))
@@ -636,6 +869,7 @@ achievement("M No Time for Refills", "Without dying, defeat all 8 Robot Masters 
 achievement("P No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan))
 achievement("R No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll))
 
+// FIXME: These should clearly state the no password & new file requirements
 achievement("Mega Man Normal No Continues Clear [m]", "As Mega Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
 achievement("Mega Man Hard No Continues Clear [m]", "As Mega Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
 achievement("Proto Man Normal No Continues Clear [m]", "As Proto Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
@@ -643,12 +877,13 @@ achievement("Proto Man Hard No Continues Clear [m]", "As Proto Man, beat the gam
 achievement("Roll Normal No Continues Clear [m]", "As Roll, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM))
 achievement("Roll Hard No Continues Clear [m]", "As Roll, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD))
 
+// FIXME: These should clearly state the no password & new file requirements
 achievement("Immortal Mega Man [m]", "As Mega Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
 achievement("Immortal Proto Man [m]", "As Proto Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
 achievement("Immortal Roll [m]", "As Roll, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD))
 
-achievement("Balloon Adaptor", "Acquire the Balloon Adaptor", 5, GetWeapon("Balloon"))
-achievement("Wire Adaptor", "Acquire the Wire Adaptor", 5, GetWeapon("Wire"))
+achievement("Balloon Adaptor [m]", "Acquire the Balloon Adaptor on N's stage", 5, GetWeapon("Balloon"))
+achievement("Wire Adaptor [m]", "Acquire the Wire Adaptor on N's stage", 5, GetWeapon("Wire"))
 
 // Idea credit: Lion Sum
 achievement("Harden Quicksand", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 1, PharaohManHardenQuicksand())
@@ -674,39 +909,74 @@ achievement(
     )
 )
 
-// TODO: Team Challenge! Beat Dive Man without destroying any missiles (Fox in Yellow Socks)
-// TODO: No Rain, No Gain - Deliver the last shot with Rain Flush while Drill man is under the ground (Fox in Yellow Socks)
-// TODO: Team Challenge! Ring Man stage: No Death, No E-tanks, Pharaoh Shot only (Fox in Yellow Socks)
-// TODO: Team Challenge! Drill Man stage: MM6 Power Adaptor Only, No Death, No E-Tanks (Fox in Yellow Socks)
-// TODO: Team Challenge! Toad Man stage: MM6 Power Adaptor only, No death, No E-tanks (Fox in Yellow Socks)
+// Idea credit: JackelZXA
+achievement("Find Eddie on Ring Man's stage", "Find Eddie on Ring Man's stage", 1, RingManEddie())
+
+achievement("Unlock Dr. Cossack's stages", "Unlock Dr. Cossack's stages by defeating all eight Robot Masters [No Passwords]", 10, RobotMastersClear())
+achievement("Collect 9 Lives", "Collect 9 Lives", 5, NineLives())
+achievement("Collect 9 E-Tanks", "Collect 9 E-Tanks", 5, NineETanks())
+
+achievement("Bright Man No Dim Lights", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn())
+
+// Idea credit: JackelZXA
+achievement("Tako Trash Shield Only", "As Proto Man, defeat Tako Trash using only the shield [No E-Tanks]", 5, BossKillNoWeapons(BOSS_SCREENS["WILY2"], RequiresProtoMan))
+
+// Idea: Fox in Yellow Socks
+achievement("Wily Machine 4 Wire Kill", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill())
+
+// Idea: Fox in Yellow Socks
+achievement(
+    "DTC 1 Bright Man",
+    "[FREE PLAY MODE: Bright, Checkpoint 2] Defeat Bright Man damageless using only Rain Flush",
+    25,
+    FreePlayBossKill("Bright", CHECKPOINT_END, allowDamage = 0, onlySpecificWeapon = EQUIPPED_RFLUSH)
+)
+
+// Idea: Fox in Yellow Socks
+achievement(
+    "DTC 2 Mothraya",
+    "[FREE PLAY MODE: Cossack 1, Checkpoint 2] Defeat Mothraya damageless without jumping and with Full Arsenal enabled",
+    25,
+    FreePlayBossKill("Cossack1", CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled)
+)
+
+// Idea: Fox in Yellow Socks
+// Solution: G.Attack + Blind spot on leftmost spot of screen
+achievement(
+    "DTC 4 Cossack Catcher",
+    "[FREE PLAY MODE: Cossack 4, Checkpoint 2] Defeat Cossack Catcher damageless without jumping, without sliding, and with Full Arsenal enabled",
+    25,
+    FreePlayBossKill("Cossack4", CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowFullArsenal = MustBeEnabled)
+)
+
+// Idea: Fox in Yellow Socks
+// Solution: Ring Man weapon + Balloon item
+achievement(
+    "DTC 5 Metall Daddy",
+    "[FREE PLAY MODE: Wily 1, Checkpoint 2] Defeat Metall Daddy damageless and without sliding",
+    25,
+    FreePlayBossKill("Wily1", CHECKPOINT_END, allowSliding = 0, allowDamage = 0)
+)
+
+// Idea: JackelZXA, Fox in Yellow Socks // PUT THIS IN A SUBSET
+// SUBSET achievement("R Wily Capsule Broom Only", "As Roll, defeat Wily Capsule with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY4"], RequiresRoll))
+// TODO: SUBSET!! 3 mr.perfect achievements
+
 // TODO: Team Challenge! Wily Capsule: No Jumping + MM4 Arsenal (Fox in Yellow Socks)
-// TODO: Team Challenge! Metall Daddy: No Sliding + No Damage + MM4 Arsenal (Fox in Yellow Socks)
 // TODO: Team Challenge! Cossack Catcher: No Jumping + No Sliding + No Damage + Full Arsenal (Fox in Yellow Socks)
 // TODO: Team Challenge! Cockroach Twins: No jumping + No E-tanks + MM4 Arsenal (Fox in Yellow Socks)
 // TODO: Team Challenge! Mothraya: No jumping + No Damage + Full Arsenal (Fox in Yellow Socks)
 // TODO: Team Challenge! Bright Man: No Damage + Rain Flush Only (Fox in Yellow Socks)
-// TODO: Find Ring Man's Eddy (JackelZXA)
-// TODO: Defeat Tako Trash with Proto man only using the shield (JackelZXA)
-// TODO: Beat Dive Man with Rush Marine (Fox in Yellow Socks)
-// TODO: Beat Wily Machine with Wire Adaptor (Fox in Yellow Socks)
-// TODO: Beat Wily Capsule stage (and Wily) with only Roll's broom (Broom of Doom) (JackelZXA / Fox in Yellow Socks)
+// TODO: Team Challenge! Beat Dive Man with Rush Marine (Fox in Yellow Socks)
+// TODO: Team Challenge! Ring Man stage: No Death, No E-tanks, Pharaoh Shot only (Fox in Yellow Socks)
+// TODO: Team Challenge! Drill Man stage: MM6 Power Adaptor Only, No Death, No E-Tanks (Fox in Yellow Socks)
+// TODO: Team Challenge! Toad Man stage: MM6 Power Adaptor only, No death, No E-tanks (Fox in Yellow Socks)
 // TODO: Use Flash Stopper to skip a snail miniboss on Toad Man's stage (frijoles / FlashbackYT)
 // TODO: During the first autoscrollers in Cossack Stage 3, do the Wire easter egg
 // TODO: Use Drill Bomb on Tako Trash and walk straight into him
 // TODO: After beating Wily Machine 4, use Rain Flush while Wily is escaping (FlashbackYT)
 // TODO: Reach any of the Robot Master boss doors without attacking or dying on the stage (prime on midpoint)
 // TODO: With any character, clear the game in one hour or less (You're Quick, Man) [m]
-// TODO: Beat the 8 robot masters and unlock Dr. Cossack stages - block passwords
-// TODO: Get to Bright Man without turning the lights off
-// TODO: Get the E-tank and 1-Up in Bright Man's stage without falling down ?
-// TODO: Find the hidden E-Tank in Dr. Cossack 1
-// TODO: Get the E-tank in Cossack 3
-// TODO: Collect both E-Tanks in Skull Man's stage
-// TODO: Collect the E-Tank in Drill Man's stage
-// TODO: Collect the E-Tank in Cossack 2
-// TODO: Collect both E-Tanks in Cossack 4
-// TODO: Collect 9 E-Tanks
-// TODO: Collect 9 lives
 
 // TODO: character leaderboards
 
