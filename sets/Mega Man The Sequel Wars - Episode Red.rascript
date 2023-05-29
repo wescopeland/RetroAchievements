@@ -3,10 +3,9 @@
 
 // TODO: no banned settings achievement
 // TODO: Make sure boss no hit & boss no special achievements work during boss rush
-// TODO: make sure necessary achievements are protected against Free Play mode
-// TODO: v1.0 support?
 // TODO: be sure to mark missables
-// TODO: subset
+// TODO: be sure to credit users for achievement ideas
+// TODO: link the RAScript in the code notes. explain the meaning of Symbol.
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
@@ -97,16 +96,21 @@ function IsPlayerLocked() => byte(_MEM_PREVLOCK)
 
 function WeaponsEarnedA() => byte(_MEM_WEPUNLOCKED_A)
 function WeaponsEarnedB() => byte(_MEM_WEPUNLOCKED_B)
-WEAPONS_EARNED = [
-    bit1(_MEM_WEPUNLOCKED_A), // Skull Man
-    bit2(_MEM_WEPUNLOCKED_A), // Drill Man
-    bit3(_MEM_WEPUNLOCKED_A), // Toad Man
-    bit4(_MEM_WEPUNLOCKED_A), // Dust Man
-    bit5(_MEM_WEPUNLOCKED_A), // Ring Man
-    bit6(_MEM_WEPUNLOCKED_A), // Dive Man
-    bit7(_MEM_WEPUNLOCKED_A), // Pharaoh Man
-    bit0(_MEM_WEPUNLOCKED_B)  // Bright Man
-]
+WEAPONS_ADDRESS_MAP = {
+    "Skull": bit1(_MEM_WEPUNLOCKED_A),
+    "Drill": bit2(_MEM_WEPUNLOCKED_A),
+    "Toad": bit3(_MEM_WEPUNLOCKED_A),
+    "Dust": bit4(_MEM_WEPUNLOCKED_A),
+    "Ring": bit5(_MEM_WEPUNLOCKED_A),
+    "Dive": bit6(_MEM_WEPUNLOCKED_A),
+    "Pharaoh": bit7(_MEM_WEPUNLOCKED_A),
+    "Bright": bit0(_MEM_WEPUNLOCKED_B),
+    "Coil": bit1(_MEM_WEPUNLOCKED_B),
+    "Jet": bit2(_MEM_WEPUNLOCKED_B),
+    "Marine": bit3(_MEM_WEPUNLOCKED_B),
+    "Balloon": bit4(_MEM_WEPUNLOCKED_B),
+    "Wire": bit5(_MEM_WEPUNLOCKED_B)
+}
 
 function CanonicalGameState() => byte(_MEM_GAMEMODE)
 STATE_LEVEL = 0x00
@@ -427,6 +431,15 @@ function DeathlessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01
     cancel = disable_when(CanonicalGameState() == STATE_LEVEL && TotalLivesLeft() < prev(TotalLivesLeft()))
     return cancel && GameClear(requiredCharacters, requiredDifficulty)
 }
+
+// @param weaponKey - The weapon we'll be checking the player's inventory for to trigger the unlock (see: WEAPON_ADDRESS_MAP)
+function GetWeapon(weaponKey = "Toad") {
+    return
+        IsUsingOnlyAllowedModifiers()
+        && CanonicalGameState() == STATE_LEVEL
+        && WEAPONS_ADDRESS_MAP[weaponKey] == 1
+        && prev(WEAPONS_ADDRESS_MAP[weaponKey]) == 0
+}
 // #endregion Achievement Functions
 
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
@@ -553,19 +566,61 @@ achievement("M No Time for Refills", "Without dying, defeat all 8 Robot Masters 
 achievement("P No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan))
 achievement("R No Time for Refills", "Without dying, defeat all 8 Robot Masters in the boss rush using only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll))
 
-achievement("Mega Man Normal No Continues Clear", "As Mega Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
-achievement("Mega Man Hard No Continues Clear", "As Mega Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
-achievement("Proto Man Normal No Continues Clear", "As Proto Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
-achievement("Proto Man Hard No Continues Clear", "As Proto Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
-achievement("Roll Normal No Continues Clear", "As Roll, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM))
-achievement("Roll Hard No Continues Clear", "As Roll, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD))
+achievement("Mega Man Normal No Continues Clear [m]", "As Mega Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
+achievement("Mega Man Hard No Continues Clear [m]", "As Mega Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Proto Man Normal No Continues Clear [m]", "As Proto Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
+achievement("Proto Man Hard No Continues Clear [m]", "As Proto Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Roll Normal No Continues Clear [m]", "As Roll, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM))
+achievement("Roll Hard No Continues Clear [m]", "As Roll, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD))
 
-achievement("Immortal Mega Man", "As Mega Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
-achievement("Immortal Proto Man", "As Proto Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
-achievement("Immortal Roll", "As Roll, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD))
+achievement("Immortal Mega Man [m]", "As Mega Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Immortal Proto Man [m]", "As Proto Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Immortal Roll [m]", "As Roll, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD))
 
-// TODO: get the bonus items
-// TODO: 60 minutes or less in one sitting
+achievement("Balloon Adaptor", "Acquire the Balloon Adaptor", 5, GetWeapon("Balloon"))
+achievement("Wire Adaptor", "Acquire the Wire Adaptor", 5, GetWeapon("Wire"))
+
+// TODO: Turn off the lights in Pharaoh Man's stage with Rain Flush (Lion Sum)
+// TODO: Harden the quicksand in Pharaoh Man's stage with Rain Flush (Lion Sum)
+// TODO: Team Challenge! Beat Dive Man without destroying any missiles (Fox in Yellow Socks)
+// TODO: No Rain, No Gain - Deliver the lats shot with Rain Flush while Drill man is under the ground (Fox in Yellow Socks)
+// TODO: Team Challenge! Ring Man stage: No Death, No E-tanks, Pharaoh Shot only (Fox in Yellow Socks)
+// TODO: Team Challenge! Drill Man stage: MM6 Power Adaptor Only, No Death, No E-Tanks (Fox in Yellow Socks)
+// TODO: Team Challenge! Toad Man stage: MM6 Power Adaptor only, No death, No E-tanks (Fox in Yellow Socks)
+// TODO: Team Challenge! Wily Capsule: No Jumping + MM4 Arsenal (Fox in Yellow Socks)
+// TODO: Team Challenge! Metall Daddy: No Sliding + No Damage + MM4 Arsenal (Fox in Yellow Socks)
+// TODO: Team Challenge! Cossack Catcher: No Jumping + No Sliding + No Damage + Full Arsenal (Fox in Yellow Socks)
+// TODO: Team Challenge! Cockroach Twins: No jumping + No E-tanks + MM4 Arsenal (Fox in Yellow Socks)
+// TODO: Team Challenge! Mothraya: No jumping + No Damage + Full Arsenal (Fox in Yellow Socks)
+// TODO: Team Challenge! Bright Man: No Damage + Rain Flush Only (Fox in Yellow Socks)
+// TODO: What is a man? (Beat the game as man - allow everything) (Fox in Yellow Socks)
+// TODO: Find Ring Man's Eddy (JackelZXA)
+// TODO: Defeat Tako Trash with Proto man only using the shield (JackelZXA)
+// TODO: Beat Dive Man with Rush Marine (Fox in Yellow Socks)
+// TODO: Beat Wily Machine with Wire Adaptor (Fox in Yellow Socks)
+// TODO: Beat Wily Capsule stage (and Wily) with only Roll's broom (Broom of Doom) (JackelZXA / Fox in Yellow Socks)
+// TODO: Use Flash Stopper to skip a snail miniboss on Toad Man's stage (frijoles / FlashbackYT)
+// TODO: During the first autoscrollers in Cossack Stage 3, do the Wire easter egg
+// TODO: Use Drill Bomb on Tako Trash and walk straight into him
+// TODO: After beating Wily Machine 4, use Rain Flush while Wily is escaping (FlashbackYT)
+// TODO: Reach any of the Robot Master boss doors without attacking or dying on the stage (prime on midpoint)
+// TODO: With any character, clear the game in one hour or less (You're Quick, Man) [M]
+// TODO: Defeat a Moby miniboss without taking damage (Dive) (FlashbackYT)
+// TODO: Defeat a Spring King miniboss without taking any damage (Ring) (FlashbackYT)
+// TODO: Defeat a Hippo miniboss without taking any damage (Ring) (FlashbackYT)
+// TODO: Defeat a Snail miniboss without taking any damage (Toad) (FlashbackYT)
+// TODO: Beat the 8 robot masters and unlock Dr. Cossack stages
+// TODO: Get to Bright Man without turning the lights off
+// TODO: Get the E-tank and 1-Up in Bright Man's stage without falling down ?
+// TODO: Find the hidden E-Tank in Dr. Cossack 1
+// TODO: Get the E-tank in Cossack 3
+// TODO: Collect both E-Tanks in Skull Man's stage
+// TODO: Collect the E-Tank in Drill Man's stage
+// TODO: Collect the E-Tank in Cossack 2
+// TODO: Collect both E-Tanks in Cossack 4
+// TODO: Collect 9 E-Tanks
+// TODO: Collect 9 lives
+
 // TODO: character leaderboards
 
 // #endregion Achievements
