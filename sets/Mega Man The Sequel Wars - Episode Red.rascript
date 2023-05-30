@@ -9,12 +9,15 @@
 // TODO: better achievement names
 // TODO: better achievement descriptions [specify settings similar to Mega Man 2 PCE]
 // TODO: subset
+// TODO: make sure total points is a nice number ending in 5 or 0
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
 _MEM_ETANKS                = 0x01A0 + 1    // (D etanks) + 1
 _MEM_PSY                   = 0x0384        // (B psy)
 _MEM_PSX                   = 0x0388        // (B psx)
+_MEM_PSX_B                 = 0x0388 + 1    // (B psx)
+_MEM_DISPAMMO              = 0x14B8        // (B dispammo)
 _MEM_MODIFIERS_A           = 0x1D4C        // (B modifiers)
 _MEM_MODIFIERS_B           = 0x1D4C + 1    // (B modifiers) + 1
 _MEM_TIMER                 = 0x2562 + 1    // (B timer) + 1
@@ -45,6 +48,8 @@ _UNSAFE_MEM_BOSSRUSHDEADA  = 0x2852
 _UNSAFE_MEM_BOSSRUSHDEADB  = 0x2853
 _UNSAFE_MEM_SCREENDARKNESS = 0x2E1A
 _UNSAFE_MEM_QUICKSANDTIMER = 0x2E25
+_UNSAFE_MEM_ESCAPEPODYPOS  = 0x31E8
+_UNSAFE_MEM_TAKOTRASHHBOX  = 0x31EC
 // #endregion
 
 // #region Memory -------------------------------------------------------------------------------------------------------------------------
@@ -53,6 +58,8 @@ function TotalLivesLeft() => byte(_MEM_LIVES)
 function TotalETanksLeft() => byte(_MEM_ETANKS)
 function CurrentYPosition() => byte(_MEM_PSY)
 function CurrentXPosition() => byte(_MEM_PSX)
+function CurrentXPositionB() => byte(_MEM_PSX_B)
+function CurrentWeaponAmmo() => byte(_MEM_DISPAMMO)
 function IsBurstChaserEnabled() => bit2(_MEM_MODIFIERS_A)
 function IsDoubleJumpEnabled() => bit3(_MEM_MODIFIERS_A)
 function IsAirSlidingEnabled() => bit4(_MEM_MODIFIERS_A)
@@ -99,6 +106,7 @@ EQUIPPED_RJET = 0x0A
 EQUIPPED_RMARINE = 0x0B
 EQUIPPED_BALLOON = 0x0C
 EQUIPPED_WIRE = 0x0D
+EQUIPPED_MM6_POWERADAPTOR = 0x24
 EQUIPPED_EXITSTAGE = 0x27
 
 function CurrentCharacter() => byte(_MEM_CHARACTER)
@@ -144,6 +152,7 @@ STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN = 0x0E
 STATE_MM4_SETTINGS = 0x14
 STATE_MM4_INTRO_CUTSCENE = 0x15
 STATE_FILE_SELECT = 0x16
+STATE_WIRE_EASTER_EGG = 0x17
 STATE_CREDITS = 0x18
 STATE_FREE_PLAY_MENU = 0x19
 STATE_ENDING_ONE = 0x1A
@@ -176,6 +185,8 @@ STAGE_ADDRESS_MAP = {
 
 function ScreenDarkness() => byte(_UNSAFE_MEM_SCREENDARKNESS)
 function QuicksandTimer() => byte(_UNSAFE_MEM_QUICKSANDTIMER)
+function WilyBossesHitboxState() => byte(_UNSAFE_MEM_TAKOTRASHHBOX)
+function WilyEscapePodYPosition() => byte(_UNSAFE_MEM_ESCAPEPODYPOS)
 
 function CurrentScreen() => byte(_MEM_CURSCREEN)
 SCREEN_BOSS_RUSH_ROOM = 0x1E
@@ -378,11 +389,117 @@ function FreePlayChallengeReset() {
 
 // #region Achievement Functions ----------------------------------------------------------------------------------------------------------
 
-// no sliding
-// no damage
-// no e-tanks
-// full arsenal
-// specific weapon only
+function TakoTrashHitboxHidingSpot() {
+    return
+        CanonicalGameState() == STATE_LEVEL
+        && CurrentStage() == STAGE_ADDRESS_MAP["Wily2"]
+        && CurrentCheckpoint() == CHECKPOINT_END
+        && WilyBossesHitboxState() == 0x02 // destroyed
+        && CurrentXPosition() >= 0x06
+        && CurrentXPositionB() == 0x0c
+}
+
+function WilyUmbrellaEasterEgg() {
+    return
+        CanonicalGameState() == STATE_LEVEL
+        && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"]
+        && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH
+        && WilyEscapePodYPosition() != 0x00
+        && WilyBossesHitboxState() == 0x03 // umbrella enabled
+}
+
+function WireEasterEgg() {
+    return CanonicalGameState() == STATE_WIRE_EASTER_EGG && prev(CanonicalGameState()) == STATE_LEVEL
+}
+
+// @param primeStage {STAGE_ADDRESS_MAP} - What stage this challenge lives on
+// @param onlySpecificWeapon {0x00: EQUIPPED_BUSTER} - Are there any weapon restrictions while killing this boss // @see EQUIPPED_*
+// @param allowETanks {0 or 1} - Can the player use E-Tanks while killing this boss
+// @param allowFullArsenal {0 or 1} - Is full arsenal allowed while killing this boss
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+// @param allowSliding {0 or 1} - Is sliding allowed while killing this boss
+function FreePlayStageClear(
+    primeStage = "Toad",
+    onlySpecificWeapon = 0,
+    allowETanks = 0,
+    allowFullArsenal = 0,
+    requiredCharacters = 0x00,
+    allowSliding = 1
+) {
+    allowETanksClause = always_true()
+    if (allowETanks == 0) {
+        allowETanksClause = disable_when(
+            TotalETanksLeft() < prev(TotalETanksLeft()),
+            FreePlayChallengeReset()
+        )
+    }
+
+    onlySpecificWeaponClause = always_true()
+    if (onlySpecificWeapon != 0) {
+        onlySpecificWeaponClause = disable_when(
+            IsShootingWrongWeapon(onlySpecificWeapon),
+            FreePlayChallengeReset()
+        )
+    }
+
+    allowSlidingClause = always_true()
+    if (allowSliding == 0) {
+        allowSlidingClause = disable_when(
+            CanonicalGameState() == STATE_LEVEL && IsSliding() == 1,
+            FreePlayChallengeReset()
+        )
+    }
+
+    cancel =
+        never(PlayerDead() && CanonicalGameState() != STATE_FREE_PLAY_MENU && CanonicalGameState() != STATE_MM4_SETTINGS) 
+        && never(CanonicalGameState() == STATE_LEVEL && IsFreePlayEnabled() == 0)
+        && never(CurrentStage() != STAGE_ADDRESS_MAP[primeStage])
+        && allowETanksClause
+        && onlySpecificWeaponClause
+        && allowSlidingClause
+
+    return
+        once(CurrentStage() == STAGE_ADDRESS_MAP[primeStage])
+        && once(CurrentCheckpoint() == CHECKPOINT_NONE)
+        && cancel
+        && IsUsingOnlyAllowedModifiers(
+            minimumDifficulty = DIFFICULTY_MEDIUM,
+            allowInfiniteAmmo = 0,
+            allowInfiniteLives = 0,
+            allowAirSliding = 0,
+            allowDoubleJump = 0,
+            allowFullArsenal = allowFullArsenal,
+            allowBurstChaser = 0
+        )
+        && IsUsingRequiredCharacters(requiredCharacters)
+        && trigger_when(CurrentCheckpoint() == CHECKPOINT_END)
+}
+
+function DiveManMarineChallenge() {
+    cancel =
+        never(PlayerDead() && CanonicalGameState() != STATE_FREE_PLAY_MENU && CanonicalGameState() != STATE_MM4_SETTINGS)
+        && never(CanonicalGameState() == STATE_LEVEL && IsFreePlayEnabled() == 0)
+        && disable_when(
+            CurrentHealth() < prev(CurrentHealth())
+            && CurrentEquippedWeapon() == EQUIPPED_RMARINE
+            && CurrentWeaponAmmo() < MAX_HEALTH,
+            CanonicalGameState() == STATE_FREE_PLAY_MENU
+        )
+        && disable_when(
+            IsShootingAnyWeapon() 
+            && CurrentEquippedWeapon() == EQUIPPED_RMARINE 
+            && CurrentScreen() == BOSS_SCREENS["DIVE_MAN"]["previous"][0],
+            CanonicalGameState() == STATE_FREE_PLAY_MENU
+        )
+    
+    return
+        CurrentStage() == STAGE_ADDRESS_MAP["Dive"]
+        && CurrentCheckpoint() == CHECKPOINT_END
+        && cancel
+        && IsUsingOnlyAllowedModifiers()
+        && IsUsingRequiredCharacters(RequiresMegaManOrMan)
+        && trigger_when(CurrentEquippedWeapon() == EQUIPPED_RMARINE && CurrentWeaponAmmo() == 0)
+}
 
 // @param primeStage {STAGE_ADDRESS_MAP} - What stage this challenge lives on
 // @param primeCheckpoint {0x02: CHECKPOINT_END} - On what checkpoint to prime the achievement icon
@@ -407,9 +524,15 @@ function FreePlayBossKill(
     onlySpecificWeapon = 0
 ) {
     allowJumpingClause = always_true()
-    if (allowJumping == 0) {
+    if (allowJumping == 0 && primeStage != "Wily4") {
         allowJumpingClause = disable_when(
             CanonicalGameState() == STATE_LEVEL && IsJumping(),
+            FreePlayChallengeReset()
+        )
+    } else if (allowJumping == 0 && primeStage == "Wily4") {
+        allowJumpingClause = disable_when(
+            // unfortunately, the player has to traverse the level and must jump at least once before the boss
+            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == 0x14 && IsJumping(),
             FreePlayChallengeReset()
         )
     }
@@ -441,7 +564,7 @@ function FreePlayBossKill(
     onlySpecificWeaponClause = always_true()
     if (onlySpecificWeapon != 0) {
         onlySpecificWeaponClause = disable_when(
-            IsShootingWrongWeapon(onlySpecificWeapon),
+            BossActive() != 0x00 && IsShootingWrongWeapon(onlySpecificWeapon),
             FreePlayChallengeReset()
         )
     }
@@ -934,16 +1057,33 @@ achievement(
 
 // Idea: Fox in Yellow Socks
 achievement(
-    "DTC 2 Mothraya",
+    "DTC 2 Dive Man",
+    "[FREE PLAY MODE: Dive, Checkpoint 2] Start the fight against Dive Man with full Rush Marine ammo and spend all that ammo without taking damage",
+    25,
+    DiveManMarineChallenge()
+)
+
+// Idea: Fox in Yellow Socks
+achievement(
+    "DTC 3 Mothraya",
     "[FREE PLAY MODE: Cossack 1, Checkpoint 2] Defeat Mothraya damageless without jumping and with Full Arsenal enabled",
     25,
     FreePlayBossKill("Cossack1", CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled)
 )
 
 // Idea: Fox in Yellow Socks
+// solution: D.Missile
+achievement(
+    "DTC 4 Cockroach Twins",
+    "[FREE PLAY MODE: Cossack 3, Checkpoint 2] Defeat the Cockroach Twins without jumping and without E-Tanks",
+    10,
+    FreePlayBossKill("Cossack3", CHECKPOINT_END, allowJumping = 0, allowETanks = 0)
+)
+
+// Idea: Fox in Yellow Socks
 // Solution: G.Attack + Blind spot on leftmost spot of screen
 achievement(
-    "DTC 4 Cossack Catcher",
+    "DTC 5 Cossack Catcher",
     "[FREE PLAY MODE: Cossack 4, Checkpoint 2] Defeat Cossack Catcher damageless without jumping, without sliding, and with Full Arsenal enabled",
     25,
     FreePlayBossKill("Cossack4", CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowFullArsenal = MustBeEnabled)
@@ -952,31 +1092,57 @@ achievement(
 // Idea: Fox in Yellow Socks
 // Solution: Ring Man weapon + Balloon item
 achievement(
-    "DTC 5 Metall Daddy",
+    "DTC 6 Metall Daddy",
     "[FREE PLAY MODE: Wily 1, Checkpoint 2] Defeat Metall Daddy damageless and without sliding",
     25,
     FreePlayBossKill("Wily1", CHECKPOINT_END, allowSliding = 0, allowDamage = 0)
+)
+
+// Idea: Fox in Yellow Socks
+// Solution: Stand near the middle and slide
+achievement(
+    "DTC 7 Wily Capsule",
+    "[FREE PLAY MODE: Wily 4, Checkpoint 1] Defeat Wily Capsule without jumping",
+    25,
+    FreePlayBossKill("Wily4", CHECKPOINT_NONE, allowJumping = 0)
+)
+
+// Idea: Fox in Yellow Socks
+// solution: farm health from respawning enemies
+achievement(
+    "DTC 8 Toad Man's Stage",
+    "[FREE PLAY MODE: Toad, Checkpoint 0] With Full Arsenal enabled, reach Toad Man's boss doors without dying, without E-Tanks, and only using the Mega Man 6 Power Adaptor",
+    25,
+    FreePlayStageClear("Toad", onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0)
+)
+
+// Idea: Fox in Yellow Socks
+// solution: farm resources on mini bosses
+achievement(
+    "DTC 9 Ring Man's Stage",
+    "[FREE PLAY MODE: Ring, Checkpoint 0] Reach Ring Man's boss doors without dying, without E-Tanks, and only using the Pharaoh Shot",
+    25,
+    FreePlayStageClear("Ring", onlySpecificWeapon = EQUIPPED_PSHOT, allowETanks = 0)
+)
+
+// Idea: Fox in Yellow Socks
+// Solution: fly to edges and pop around to destroy missiles
+achievement(
+    "DTC 10 Drill Man's Stage",
+    "[FREE PLAY MODE: Drill, Checkpoint 0] With Full Arsenal enabled, reach Drill Man's boss doors without dying, without E-Tanks, and only using the Mega Man 6 Power Adaptor",
+    25,
+    FreePlayStageClear("Drill", onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0)
 )
 
 // Idea: JackelZXA, Fox in Yellow Socks // PUT THIS IN A SUBSET
 // SUBSET achievement("R Wily Capsule Broom Only", "As Roll, defeat Wily Capsule with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY4"], RequiresRoll))
 // TODO: SUBSET!! 3 mr.perfect achievements
 
-// TODO: Team Challenge! Wily Capsule: No Jumping + MM4 Arsenal (Fox in Yellow Socks)
-// TODO: Team Challenge! Cossack Catcher: No Jumping + No Sliding + No Damage + Full Arsenal (Fox in Yellow Socks)
-// TODO: Team Challenge! Cockroach Twins: No jumping + No E-tanks + MM4 Arsenal (Fox in Yellow Socks)
-// TODO: Team Challenge! Mothraya: No jumping + No Damage + Full Arsenal (Fox in Yellow Socks)
-// TODO: Team Challenge! Bright Man: No Damage + Rain Flush Only (Fox in Yellow Socks)
-// TODO: Team Challenge! Beat Dive Man with Rush Marine (Fox in Yellow Socks)
-// TODO: Team Challenge! Ring Man stage: No Death, No E-tanks, Pharaoh Shot only (Fox in Yellow Socks)
-// TODO: Team Challenge! Drill Man stage: MM6 Power Adaptor Only, No Death, No E-Tanks (Fox in Yellow Socks)
-// TODO: Team Challenge! Toad Man stage: MM6 Power Adaptor only, No death, No E-tanks (Fox in Yellow Socks)
+achievement("Wire Easter Egg", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg())
+achievement("Tako Trash Easter Egg", "Use D.Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 1, TakoTrashHitboxHidingSpot())
+achievement("Wily Umbrella Easter Egg [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 1, WilyUmbrellaEasterEgg())
+
 // TODO: Use Flash Stopper to skip a snail miniboss on Toad Man's stage (frijoles / FlashbackYT)
-// TODO: During the first autoscrollers in Cossack Stage 3, do the Wire easter egg
-// TODO: Use Drill Bomb on Tako Trash and walk straight into him
-// TODO: After beating Wily Machine 4, use Rain Flush while Wily is escaping (FlashbackYT)
-// TODO: Reach any of the Robot Master boss doors without attacking or dying on the stage (prime on midpoint)
-// TODO: With any character, clear the game in one hour or less (You're Quick, Man) [m]
 
 // TODO: character leaderboards
 
