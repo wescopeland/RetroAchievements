@@ -204,7 +204,6 @@ WILY_MACHINE_FORM_ONE = 0x28
 WILY_MACHINE_FORM_TWO = 0x34
 
 function CurrentStage() => byte(_MEM_STAGE)
-// FIXME: These keys should match the "BOSS_SCREENS" keys
 STAGE_ADDRESS_MAP = {
     ToadMan: 0x00,
     DustMan: 0x01,
@@ -510,7 +509,10 @@ function FreePlayStageClear(
 
     cancel =
         never(PlayerDead() && CanonicalGameState() != STATE_FREE_PLAY_MENU && CanonicalGameState() != STATE_MM4_SETTINGS) 
-        && never(CanonicalGameState() == STATE_LEVEL && IsFreePlayEnabled() == 0)
+        && never(
+            (CanonicalGameState() == STATE_LEVEL_INTRO || CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_WEAPON_GET) 
+            && IsFreePlayEnabled() == 0
+        )
         && never(CurrentStage() != STAGE_ADDRESS_MAP[primeStage])
         && allowETanksClause
         && onlySpecificWeaponClause
