@@ -275,6 +275,8 @@ function IsShootingWrongWeapon(requiredWeapon = 0x00) {
 }
 
 function StageStarted() {
+    previousGameState = prev(CanonicalGameState())
+
     // After beating a boss, their stage intro doesn't play anymore.
     return
         CanonicalGameState() == STATE_LEVEL 
