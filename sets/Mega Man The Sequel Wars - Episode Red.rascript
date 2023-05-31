@@ -373,6 +373,7 @@ RequiresMegaManOrProtoManOrMan = 2
 RequiresProtoMan = 3
 RequiresRoll = 4
 RequiresMan = 5
+RequiresMegaMan = 6
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
@@ -388,6 +389,8 @@ function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
         condition = (CurrentCharacter() == CHAR_ROLL)
     } else if (requiredCharacters == RequiresMan) {
         condition = (CurrentCharacter() == CHAR_MAN)
+    } else if (requiredCharacters == RequiresMegaMan) {
+        condition = (CurrentCharacter() == CHAR_MEGAMAN)
     }
 
     return condition
@@ -416,6 +419,12 @@ function FreePlayChallengeReset() {
         || TotalLivesLeft() < prev(TotalLivesLeft())
         || CanonicalGameState() == STATE_FREE_PLAY_MENU
 }
+
+// Compute how many frames it will take to reach a certain time span.
+// @param minutes {0} - How many minutes it will take
+// @param seconds {0} - How many seconds it will take
+// @param frames {0} - How many frames it will take
+function TimeSpan(minutes = 0, seconds = 0, frames = 0) => minutes * 3600 + seconds * 60 + frames
 // #endregion Utils
 
 // #region Achievement Functions ----------------------------------------------------------------------------------------------------------
@@ -1253,6 +1262,59 @@ achievement("Mr. Perfect", "As Mega Man, complete the entire game without taking
 achievement("Perfect Blues", "As Proto Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresProtoMan))
 achievement("Ms. Perfect", "As Roll, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresRoll))
 
+// #endregion
+
+// #region Leaderboards -------------------------------------------------------------------------------------------------------------------
+// @param requiredCharacters {1: RequiresMegaManOrMan} - Which characters are required to start the timer
+function StartLeaderboard(requiresCharacter = 1) {
+    return
+        once(
+            CanonicalGameState() == STATE_STAGE_SELECT
+            && WeaponsEarnedA() == 0x00
+            && WeaponsEarnedB() == 0x00
+        )
+        && IsUsingRequiredCharacters(RequiresRoll)
+        && IsUsingOnlyAllowedModifiers()
+        && RequireNewFileWithoutPasswords()
+}
+
+function SubmitTime() {
+    return
+        CurrentStage() == STAGE_ADDRESS_MAP[Wily4]
+        && CurrentScreen() == 0x14 // BOSS_SCREENS[Wily4]["current"]
+        && never(PlayerDead())
+        && IsBossKilled()
+}
+
+leaderboard(
+    "Any% (Mega Man)",
+    "New game, default settings",
+    start = StartLeaderboard(RequiresMegaMan),
+    cancel = always_false(),
+    submit = SubmitTime(),
+    value = repeated(TimeSpan(), always_true()),
+    format = "FRAMES"
+)
+
+leaderboard(
+    "Any% (Proto Man)",
+    "New game, default settings",
+    start = StartLeaderboard(RequiresProtoMan),
+    cancel = always_false(),
+    submit = SubmitTime(),
+    value = repeated(TimeSpan(), always_true()),
+    format = "FRAMES"
+)
+
+leaderboard(
+    "Any% (Roll)",
+    "New game, default settings",
+    start = StartLeaderboard(RequiresRoll),
+    cancel = always_false(),
+    submit = SubmitTime(),
+    value = repeated(TimeSpan(), always_true()),
+    format = "FRAMES"
+)
 // #endregion
 
 // #region Rich Presence ------------------------------------------------------------------------------------------------------------------
