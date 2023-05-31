@@ -274,6 +274,13 @@ function IsShootingWrongWeapon(requiredWeapon = 0x00) {
     return IsShootingAnyWeapon() && CurrentEquippedWeapon() != requiredWeapon
 }
 
+function StageStarted() {
+    // After beating a boss, their stage intro doesn't play anymore.
+    return
+        CanonicalGameState() == STATE_LEVEL 
+        && (previousGameState == STATE_LEVEL_INTRO || previousGameState == STATE_STAGE_SELECT)
+}
+
 MustBeDisabled = 0
 Optional = 1
 MustBeEnabled = 2
@@ -787,7 +794,7 @@ function BossKillDamageless(bossKey, requiredCharacters = 0x00, bossDeadHealth =
 // @param requiredCheckpoint {0x02: CHECKPOINT_END} - Make sure the player has reached the correct stage checkpoint
 function BossDoorDamageless(bossKey, requiredCharacters = 0x00, requiredCheckpoint = 0x02) {
     start = 
-        once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_LEVEL_INTRO)
+        once(StageStarted())
         || once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN)
         || once(CanonicalGameState() == STATE_LEVEL && CurrentHealth() == MAX_HEALTH && prev(CurrentHealth()) == 0 && CurrentCheckpoint() == CHECKPOINT_NONE)
 
@@ -807,7 +814,7 @@ function BossDoorDamageless(bossKey, requiredCharacters = 0x00, requiredCheckpoi
 
 function BrightManStageLightsAlwaysOn() {
     start =
-        once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_LEVEL_INTRO)
+        once(StageStarted())
         || once(CanonicalGameState() == STATE_LEVEL && CurrentHealth() == MAX_HEALTH && prev(CurrentHealth()) == 0 && CurrentCheckpoint() == CHECKPOINT_NONE)
 
     cancel =
