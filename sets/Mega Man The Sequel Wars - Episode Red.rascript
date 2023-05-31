@@ -1273,7 +1273,7 @@ function StartLeaderboard(requiresCharacter = 1) {
             && WeaponsEarnedA() == 0x00
             && WeaponsEarnedB() == 0x00
         )
-        && IsUsingRequiredCharacters(RequiresRoll)
+        && IsUsingRequiredCharacters(requiresCharacter)
         && IsUsingOnlyAllowedModifiers()
         && RequireNewFileWithoutPasswords()
 }
