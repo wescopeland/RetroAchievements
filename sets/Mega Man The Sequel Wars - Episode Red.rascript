@@ -50,6 +50,48 @@ _UNSAFE_MEM_ESCAPEPODYPOS  = 0x31E8
 _UNSAFE_MEM_TAKOTRASHHBOX  = 0x31EC
 // #endregion
 
+// #region Constants ----------------------------------------------------------------------------------------------------------------------
+ToadMan = "ToadMan"
+DustMan = "DustMan"
+DiveMan = "DiveMan"
+BrightMan = "BrightMan"
+DrillMan = "DrillMan"
+SkullMan = "SkullMan"
+PharaohMan = "PharaohMan"
+RingMan = "RingMan"
+Cossack1 = "Cossack1"
+Cossack2 = "Cossack2"
+Cossack3 = "Cossack3"
+Cossack4 = "Cossack4"
+Wily1 = "Wily1"
+Wily2 = "Wily2"
+Wily3 = "Wily3"
+Wily4 = "Wily4"
+
+BOSS_ACTIVE_WILY_CAPSULE = 0x0A // @see BossActive()
+MAX_HEALTH = 0x1C // @see BossHealth() and CurrentHealth()
+
+// @see _MEM_CURSCREEN
+BOSS_SCREENS = {
+    ToadMan: {"previous": [0xD2, 0x1D], "current": [0xD3, 0x21]},
+    BrightMan: {"previous": [0x15, 0x1D], "current": [0x16, 0x23]},
+    PharaohMan: {"previous": [0xB6, 0x1D], "current": [0xB7, 0x1C]},
+    RingMan: {"previous": [0x8F, 0x1D], "current": [0x90, 0x1B]},
+    DustMan: {"previous": [0x11, 0x1D], "current": [0x12, 0x1F]},
+    SkullMan: {"previous": [0x30, 0x1D], "current": [0x31, 0x18]},
+    DiveMan: {"previous": [0x53, 0x1D], "current": [0x54, 0x20]},
+    DrillMan: {"previous": [0x1E, 0x1D], "current": [0x1F, 0x22]},
+    Cossack1: {"previous": [0x0B], "current": [0x0C]},
+    Cossack2: {"previous": [0x07], "current": [0x08]},
+    Cossack3: {"previous": [0x0D], "current": [0x0E]},
+    Cossack4: {"previous": [0x68], "current": [0x69]},
+    Wily1: {"previous": [0x0B], "current": [0x0C]},
+    Wily2: {"previous": [0x0A], "current": [0x0B]},
+    Wily3: {"previous": [0x1D], "current": [0x19]},
+    Wily4: {"previous": [0x13], "current": [0x14]}
+}
+// #endregion
+
 // #region Memory -------------------------------------------------------------------------------------------------------------------------
 function IsSliding() => byte(_UNSAFE_MEM_COLMODE)
 function TotalLivesLeft() => byte(_MEM_LIVES)
@@ -164,22 +206,22 @@ WILY_MACHINE_FORM_TWO = 0x34
 function CurrentStage() => byte(_MEM_STAGE)
 // FIXME: These keys should match the "BOSS_SCREENS" keys
 STAGE_ADDRESS_MAP = {
-    "Toad": 0x00,
-    "Dust": 0x01,
-    "Dive": 0x02,
-    "Bright": 0x03,
-    "Drill": 0x04,
-    "Skull": 0x05,
-    "Pharaoh": 0x06,
-    "Ring": 0x07,
-    "Cossack1": 0x08,
-    "Cossack2": 0x09,
-    "Cossack3": 0x0A,
-    "Cossack4": 0x0B,
-    "Wily1": 0x0C,
-    "Wily2": 0x0D,
-    "Wily3": 0x0E,
-    "Wily4": 0x0F
+    ToadMan: 0x00,
+    DustMan: 0x01,
+    DiveMan: 0x02,
+    BrightMan: 0x03,
+    DrillMan: 0x04,
+    SkullMan: 0x05,
+    PharaohMan: 0x06,
+    RingMan: 0x07,
+    Cossack1: 0x08,
+    Cossack2: 0x09,
+    Cossack3: 0x0A,
+    Cossack4: 0x0B,
+    Wily1: 0x0C,
+    Wily2: 0x0D,
+    Wily3: 0x0E,
+    Wily4: 0x0F
 }
 
 function ScreenDarkness() => byte(_UNSAFE_MEM_SCREENDARKNESS)
@@ -192,29 +234,6 @@ SCREEN_BOSS_RUSH_ROOM = 0x1E
 // #endregion Memory
 
 // #region Utils --------------------------------------------------------------------------------------------------------------------------
-BOSS_ACTIVE_WILY_CAPSULE = 0x0A // @see BossActive()
-MAX_HEALTH = 0x1C // @see BossHealth() and CurrentHealth()
-
-// @see _MEM_CURSCREEN
-BOSS_SCREENS = {
-    "TOAD_MAN": {"previous": [0xD2, 0x1D], "current": [0xD3, 0x21]},
-    "BRIGHT_MAN": {"previous": [0x15, 0x1D], "current": [0x16, 0x23]},
-    "PHARAOH_MAN": {"previous": [0xB6, 0x1D], "current": [0xB7, 0x1C]},
-    "RING_MAN": {"previous": [0x8F, 0x1D], "current": [0x90, 0x1B]},
-    "DUST_MAN": {"previous": [0x11, 0x1D], "current": [0x12, 0x1F]},
-    "SKULL_MAN": {"previous": [0x30, 0x1D], "current": [0x31, 0x18]},
-    "DIVE_MAN": {"previous": [0x53, 0x1D], "current": [0x54, 0x20]},
-    "DRILL_MAN": {"previous": [0x1E, 0x1D], "current": [0x1F, 0x22]},
-    "COSSACK1": {"previous": [0x0B], "current": [0x0C]},
-    "COSSACK2": {"previous": [0x07], "current": [0x08]},
-    "COSSACK3": {"previous": [0x0D], "current": [0x0E]},
-    "COSSACK4": {"previous": [0x68], "current": [0x69]},
-    "WILY1": {"previous": [0x0B], "current": [0x0C]},
-    "WILY2": {"previous": [0x0A], "current": [0x0B]},
-    "WILY3": {"previous": [0x1D], "current": [0x19]},
-    "WILY4": {"previous": [0x13], "current": [0x14]}
-}
-
 function PlayerDead() => CurrentHealth() == 0
 
 function IsPlayerTouchingBossEntranceDoor(requiredCheckpoint = 0x02) {
@@ -308,9 +327,10 @@ function IsBossKilled(bossDeadHealth = 0, bossLifeBarCount = 1) {
         && (prev(BossActive()) != 0) // prevents a bug where the boss pointer points at Mega Man's health
 }
 
+// @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
 // @param previousScreens - The screens associated with immediately before the boss fight.
 // @param currentScreens - The screens associated with during the boss fight.
-function HasTransitionedBetweenScreens(previousScreens = [], currentScreens = []) {
+function HasTransitionedBetweenScreens(bossKey, previousScreens = [], currentScreens = []) {
     condition = always_true()
     
     iterator = 0
@@ -336,7 +356,7 @@ function HasTransitionedBetweenScreens(previousScreens = [], currentScreens = []
         iterator = iterator + 1
     }
 
-    return condition
+    return condition && CurrentStage() == STAGE_ADDRESS_MAP[bossKey]
 }
 
 RequiresAnyCharacter = 0
@@ -398,7 +418,7 @@ function EscarooSkip() {
     start = 
         once(
             CanonicalGameState() == STATE_LEVEL 
-            && CurrentStage() == STAGE_ADDRESS_MAP["Toad"]
+            && CurrentStage() == STAGE_ADDRESS_MAP[ToadMan]
             && (CurrentScreen() == EscarooScreens[0] || CurrentScreen() == EscarooScreens[1])
         )
 
@@ -417,7 +437,7 @@ function EscarooSkip() {
 function TakoTrashHitboxHidingSpot() {
     return
         CanonicalGameState() == STATE_LEVEL
-        && CurrentStage() == STAGE_ADDRESS_MAP["Wily2"]
+        && CurrentStage() == STAGE_ADDRESS_MAP[Wily2]
         && CurrentCheckpoint() == CHECKPOINT_END
         && IsUsingOnlyAllowedModifiers()
         && WilyBossesHitboxState() == 0x02 // destroyed
@@ -428,7 +448,7 @@ function TakoTrashHitboxHidingSpot() {
 function WilyUmbrellaEasterEgg() {
     return
         CanonicalGameState() == STATE_LEVEL
-        && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"]
+        && CurrentStage() == STAGE_ADDRESS_MAP[Wily3]
         && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH
         && IsUsingOnlyAllowedModifiers()
         && WilyEscapePodYPosition() != 0x00
@@ -448,7 +468,7 @@ function WireEasterEgg() {
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param allowSliding {0 or 1} - Is sliding allowed while killing this boss
 function FreePlayStageClear(
-    primeStage = "Toad",
+    primeStage,
     onlySpecificWeapon = 0,
     allowETanks = 0,
     allowFullArsenal = 0,
@@ -517,12 +537,12 @@ function DiveManMarineChallenge() {
         && disable_when(
             IsShootingAnyWeapon() 
             && CurrentEquippedWeapon() == EQUIPPED_RMARINE 
-            && CurrentScreen() == BOSS_SCREENS["DIVE_MAN"]["previous"][0],
+            && CurrentScreen() == BOSS_SCREENS[DiveMan]["previous"][0],
             CanonicalGameState() == STATE_FREE_PLAY_MENU
         )
     
     return
-        CurrentStage() == STAGE_ADDRESS_MAP["Dive"]
+        CurrentStage() == STAGE_ADDRESS_MAP[DiveMan]
         && CurrentCheckpoint() == CHECKPOINT_END
         && cancel
         && IsUsingOnlyAllowedModifiers()
@@ -541,7 +561,7 @@ function DiveManMarineChallenge() {
 // @param allowETanks {0 or 1} - Can the player use E-Tanks while killing this boss
 // @param onlySpecificWeapon {0x00: EQUIPPED_BUSTER} - Are there any weapon restrictions while killing this boss // @see EQUIPPED_*
 function FreePlayBossKill(
-    primeStage = "Toad",
+    primeStage,
     primeCheckpoint = 0x02,
     bossDeadHealth = 0,
     bossLifeBarCount = 1,
@@ -553,12 +573,12 @@ function FreePlayBossKill(
     onlySpecificWeapon = 0
 ) {
     allowJumpingClause = always_true()
-    if (allowJumping == 0 && primeStage != "Wily4") {
+    if (allowJumping == 0 && primeStage != Wily4) {
         allowJumpingClause = disable_when(
             CanonicalGameState() == STATE_LEVEL && IsJumping(),
             FreePlayChallengeReset()
         )
-    } else if (allowJumping == 0 && primeStage == "Wily4") {
+    } else if (allowJumping == 0 && primeStage == Wily4) {
         allowJumpingClause = disable_when(
             // unfortunately, the player has to traverse the level and must jump at least once before the boss
             CanonicalGameState() == STATE_LEVEL && CurrentScreen() == 0x14 && IsJumping(),
@@ -623,7 +643,7 @@ function FreePlayBossKill(
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
@@ -635,7 +655,7 @@ function FreePlayBossKill(
 // @param allowFullArsenal {0 or 1} - Is full arsenal allowed while killing this boss
 // @param allowBurstChaser {0 or 1} - Is burst chaser allowed while killing this boss
 function BossKill(
-    screensMap = {},
+    bossKey,
     bossDeadHealth = 0,
     bossLifeBarCount = 1,
     requiredDifficulty = 0x01,
@@ -647,7 +667,7 @@ function BossKill(
     allowFullArsenal = 0,
     allowBurstChaser = 0
 ) {
-    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
+    start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
     cancel = never(PlayerDead())
 
     return
@@ -667,7 +687,7 @@ function BossKill(
 }
 
 function WilyMachine4WireKill() {
-    start = HasTransitionedBetweenScreens(BOSS_SCREENS["WILY3"]["previous"], BOSS_SCREENS["WILY3"]["current"])
+    start = HasTransitionedBetweenScreens(Wily3, BOSS_SCREENS[Wily3]["previous"], BOSS_SCREENS[Wily3]["current"])
     cancel = never(PlayerDead()) && never(CanonicalGameState() != STATE_LEVEL && CanonicalGameState() != STATE_PAUSE_MENU_OPEN)
 
     return
@@ -678,12 +698,12 @@ function WilyMachine4WireKill() {
         && CurrentEquippedWeapon() == EQUIPPED_WIRE
 }
 
-// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
-function BossKillNoSpecialWeapons(screensMap = {}, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
-    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
+function BossKillNoSpecialWeapons(bossKey, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+    start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
 
     cancel = 
         never(PlayerDead()) 
@@ -698,12 +718,12 @@ function BossKillNoSpecialWeapons(screensMap = {}, requiredCharacters = 0x00, bo
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
 }
 
-// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
-function BossKillNoWeapons(screensMap = {}, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
-    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
+function BossKillNoWeapons(bossKey, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+    start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
 
     cancel = 
         never(PlayerDead()) 
@@ -723,7 +743,7 @@ function BossRushNoSpecialWeapons(requiredCharacters = 0x00) {
     start =
         once(
             CanonicalGameState() == STATE_LEVEL
-            && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"]
+            && CurrentStage() == STAGE_ADDRESS_MAP[Wily3]
             && CurrentCheckpoint() == CHECKPOINT_END // CHECKPOINT_END is the boss rush room
             && BossRushEnemiesKilledA() == 0
             && BossRushEnemiesKilledB() == 0
@@ -743,12 +763,12 @@ function BossRushNoSpecialWeapons(requiredCharacters = 0x00) {
         && trigger_when(BossRushEnemiesKilledA() == 0xFE && BossRushEnemiesKilledB() == 0x01)
 }
 
-// @param screensMap {previous: [], current: []} - The screens associated with immediately before & during the boss fight.
+// @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
-function BossKillDamageless(screensMap = {}, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
-    start = HasTransitionedBetweenScreens(screensMap["previous"], screensMap["current"])
+function BossKillDamageless(bossKey, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+    start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
 
     cancel = 
         never(PlayerDead())
@@ -765,7 +785,7 @@ function BossKillDamageless(screensMap = {}, requiredCharacters = 0x00, bossDead
 // @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredCheckpoint {0x02: CHECKPOINT_END} - Make sure the player has reached the correct stage checkpoint
-function BossDoorDamageless(bossKey = "Toad", requiredCharacters = 0x00, requiredCheckpoint = 0x02) {
+function BossDoorDamageless(bossKey, requiredCharacters = 0x00, requiredCheckpoint = 0x02) {
     start = 
         once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_LEVEL_INTRO)
         || once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN)
@@ -797,7 +817,7 @@ function BrightManStageLightsAlwaysOn() {
         start
         && cancel
         && IsUsingOnlyAllowedModifiers()
-        && CurrentStage() == STAGE_ADDRESS_MAP["Bright"]
+        && CurrentStage() == STAGE_ADDRESS_MAP[BrightMan]
         && trigger_when(CurrentCheckpoint() == CHECKPOINT_END)
 }
 
@@ -816,7 +836,7 @@ function RobotMastersClear() {
 function GameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
     return
         RequireNewFileWithoutPasswords()
-        && BossKill(BOSS_SCREENS["WILY4"], requiredCharacters = requiredCharacters, requiredDifficulty = requiredDifficulty)
+        && BossKill(Wily4, requiredCharacters = requiredCharacters, requiredDifficulty = requiredDifficulty)
 }
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
@@ -877,7 +897,7 @@ function DamagelessGameClear(requiredCharacters = 0x00) {
 }
 
 // @param weaponKey - The weapon we'll be checking the player's inventory for to trigger the unlock (see: WEAPON_ADDRESS_MAP)
-function GetWeapon(weaponKey = "Toad") {
+function GetWeapon(weaponKey) {
     return
         IsUsingOnlyAllowedModifiers()
         && CanonicalGameState() == STATE_LEVEL
@@ -889,7 +909,7 @@ function PharaohManHardenQuicksand() {
     return
         IsUsingOnlyAllowedModifiers()
         && CanonicalGameState() == STATE_LEVEL
-        && CurrentStage() == STAGE_ADDRESS_MAP["Pharaoh"]
+        && CurrentStage() == STAGE_ADDRESS_MAP[PharaohMan]
         && CurrentScreen() <= 0x0A // quicksand is visible
         && QuicksandTimer() == 0x02 // the timer is running
 }
@@ -898,7 +918,7 @@ function PharaohManTurnOffLights() {
     return
         IsUsingOnlyAllowedModifiers()
         && CanonicalGameState() == STATE_LEVEL
-        && CurrentStage() == STAGE_ADDRESS_MAP["Pharaoh"]
+        && CurrentStage() == STAGE_ADDRESS_MAP[PharaohMan]
         && CurrentScreen() > 0x0A // player is underground
         && prev(ScreenDarkness()) == 0x01
         && ScreenDarkness() == 0x02 // it ultimately ticks up to 0x07
@@ -921,7 +941,7 @@ function RingManEddie() {
     return
         IsUsingOnlyAllowedModifiers()
         && CanonicalGameState() == STATE_LEVEL
-        && CurrentStage() == STAGE_ADDRESS_MAP["Ring"]
+        && CurrentStage() == STAGE_ADDRESS_MAP[RingMan]
         && (prev(CurrentScreen()) == 0x46 && CurrentScreen() == 0x26) // climb the ladder at the checkpoint
 }
 
@@ -941,120 +961,120 @@ function NineETanks() {
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
 achievement("DEFAULT SETTINGS CHECK", "Normal or Hard difficulty, any character, any buster charge. All other settings OFF.", 0, DefaultSettingsCheck())
 
-achievement("Rain Flush", "Defeat Toad Man", 5, BossKill(BOSS_SCREENS["TOAD_MAN"]))
-achievement("Flash Stopper", "Defeat Bright Man", 5, BossKill(BOSS_SCREENS["BRIGHT_MAN"]))
-achievement("Pharaoh Shot", "Defeat Pharaoh Man", 5, BossKill(BOSS_SCREENS["PHARAOH_MAN"]))
-achievement("Ring Boomerang", "Defeat Ring Man", 5, BossKill(BOSS_SCREENS["RING_MAN"]))
-achievement("Dust Crusher", "Defeat Dust Man", 5, BossKill(BOSS_SCREENS["DUST_MAN"]))
-achievement("Skull Barrier", "Defeat Skull Man", 5, BossKill(BOSS_SCREENS["SKULL_MAN"]))
-achievement("Dive Missile", "Defeat Dive Man", 5, BossKill(BOSS_SCREENS["DIVE_MAN"]))
-achievement("Drill Bomb", "Defeat Drill Man", 5, BossKill(BOSS_SCREENS["DRILL_MAN"]))
+achievement("Rain Flush", "Defeat Toad Man", 5, BossKill(ToadMan))
+achievement("Flash Stopper", "Defeat Bright Man", 5, BossKill(BrightMan))
+achievement("Pharaoh Shot", "Defeat Pharaoh Man", 5, BossKill(PharaohMan))
+achievement("Ring Boomerang", "Defeat Ring Man", 5, BossKill(RingMan))
+achievement("Dust Crusher", "Defeat Dust Man", 5, BossKill(DustMan))
+achievement("Skull Barrier", "Defeat Skull Man", 5, BossKill(SkullMan))
+achievement("Dive Missile", "Defeat Dive Man", 5, BossKill(DiveMan))
+achievement("Drill Bomb", "Defeat Drill Man", 5, BossKill(DrillMan))
 
-achievement("Mothraya", "Defeat Mothraya", 5, BossKill(BOSS_SCREENS["COSSACK1"]))
-achievement("Square Machine", "Defeat Square Machine", 5, BossKill(BOSS_SCREENS["COSSACK2"]))
-achievement("Cockroach Twins", "Defeat Cockroach Twins", 5, BossKill(BOSS_SCREENS["COSSACK3"]))
-achievement("Cossack Catcher", "Defeat the Cossack Catcher", 5, BossKill(BOSS_SCREENS["COSSACK4"], bossDeadHealth = 0x02))
+achievement("Mothraya", "Defeat Mothraya", 5, BossKill(Cossack1))
+achievement("Square Machine", "Defeat Square Machine", 5, BossKill(Cossack2))
+achievement("Cockroach Twins", "Defeat Cockroach Twins", 5, BossKill(Cossack3))
+achievement("Cossack Catcher", "Defeat the Cossack Catcher", 5, BossKill(Cossack4, bossDeadHealth = 0x02))
 
-achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(BOSS_SCREENS["WILY1"]))
-achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(BOSS_SCREENS["WILY2"]))
-achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(BOSS_SCREENS["WILY3"], bossLifeBarCount = 2))
+achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(Wily1))
+achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(Wily2))
+achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(Wily3, bossLifeBarCount = 2))
 
 achievement("Mega Milestone", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
 achievement("Mega Perseverance", "As Mega Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
-achievement("Proto Progress", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
+achievement("Proto Power", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
 achievement("Proto Perseverance", "As Proto Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD))
 achievement("Roll's Resolution", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM))
 achievement("Roll's Perseverance", "As Roll, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresRoll, DIFFICULTY_HARD))
 
-achievement("Toad-ally Unharmed", "Reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Toad", RequiresAnyCharacter))
-achievement("Spotless Luminary", "Reach Bright Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Bright", RequiresAnyCharacter))
-achievement("Tomb Raider", "Reach Pharaoh Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Pharaoh", RequiresAnyCharacter))
-achievement("Ring Leader", "Reach Ring Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Ring", RequiresAnyCharacter))
-achievement("Dust-free Zone", "Reach Dust Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Dust", RequiresAnyCharacter))
-achievement("No Bone to Pick", "Reach Skull Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Skull", RequiresAnyCharacter))
-achievement("Surface Tension", "Reach Dive Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Dive", RequiresAnyCharacter))
-achievement("Excavating Excellence", "Reach Drill Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Drill", RequiresAnyCharacter))
+achievement("Toad-ally Unharmed", "Reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless(ToadMan, RequiresAnyCharacter))
+achievement("Spotless Luminary", "Reach Bright Man's boss doors without taking damage or dying", 10, BossDoorDamageless(BrightMan, RequiresAnyCharacter))
+achievement("Tomb Raider", "Reach Pharaoh Man's boss doors without taking damage or dying", 10, BossDoorDamageless(PharaohMan, RequiresAnyCharacter))
+achievement("Ring Leader", "Reach Ring Man's boss doors without taking damage or dying", 10, BossDoorDamageless(RingMan, RequiresAnyCharacter))
+achievement("Dust-Free Zone", "Reach Dust Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DustMan, RequiresAnyCharacter))
+achievement("No Bone to Pick", "Reach Skull Man's boss doors without taking damage or dying", 10, BossDoorDamageless(SkullMan, RequiresAnyCharacter))
+achievement("Surface Tension", "Reach Dive Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DiveMan, RequiresAnyCharacter))
+achievement("Excavating Excellence", "Reach Drill Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DrillMan, RequiresAnyCharacter))
 
-achievement("Pond Skimming", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], RequiresMegaManOrMan))
-achievement("Mega Watt", "As Mega Man, defeat Bright Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresMegaManOrMan))
-achievement("Busting the Curse", "As Mega Man, defeat Pharaoh Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresMegaManOrMan))
-achievement("Circle of Victory", "As Mega Man, defeat Ring Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresMegaManOrMan))
-achievement("Dust Buster", "As Mega Man, defeat Dust Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DUST_MAN"], RequiresMegaManOrMan))
-achievement("Skull-busted", "As Mega Man, defeat Skull Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresMegaManOrMan))
-achievement("Busting the Wave", "As Mega Man, defeat Dive Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DIVE_MAN"], RequiresMegaManOrMan))
-achievement("Busting through the Bedrock", "As Mega Man, defeat Drill Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresMegaManOrMan))
+achievement("Pond Skimming", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresMegaManOrMan))
+achievement("Mega Watt", "As Mega Man, defeat Bright Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresMegaManOrMan))
+achievement("Busting the Curse", "As Mega Man, defeat Pharaoh Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresMegaManOrMan))
+achievement("Circle of Victory", "As Mega Man, defeat Ring Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresMegaManOrMan))
+achievement("Dust Buster", "As Mega Man, defeat Dust Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DustMan, RequiresMegaManOrMan))
+achievement("Skull-busted", "As Mega Man, defeat Skull Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresMegaManOrMan))
+achievement("Busting the Wave", "As Mega Man, defeat Dive Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DiveMan, RequiresMegaManOrMan))
+achievement("Busting through the Bedrock", "As Mega Man, defeat Drill Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(DrillMan, RequiresMegaManOrMan))
 
-achievement("Rainy Defense", "As Proto Man, defeat Toad Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], RequiresProtoMan))
-achievement("Shielding the Spotlight", "As Proto Man, defeat Bright Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresProtoMan))
-achievement("Sphinx Shield Showdown", "As Proto Man, defeat Pharaoh Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresProtoMan))
-achievement("Imperfect Circle", "As Proto Man, defeat Ring Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresProtoMan))
-achievement("Shielded Dust-Off", "As Proto Man, defeat Dust Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DUST_MAN"], RequiresProtoMan))
-achievement("Bone-proof Armor", "As Proto Man, defeat Skull Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresProtoMan))
-achievement("Deep Dive Defense", "As Proto Man, defeat Dive Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DIVE_MAN"], RequiresProtoMan))
-achievement("Excavator's End", "As Proto Man, defeat Drill Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresProtoMan))
+achievement("Rainy Defense", "As Proto Man, defeat Toad Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresProtoMan))
+achievement("Shielding the Spotlight", "As Proto Man, defeat Bright Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresProtoMan))
+achievement("Sphinx Shield Showdown", "As Proto Man, defeat Pharaoh Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresProtoMan))
+achievement("Imperfect Circle", "As Proto Man, defeat Ring Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresProtoMan))
+achievement("Shielded Dust-Off", "As Proto Man, defeat Dust Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DustMan, RequiresProtoMan))
+achievement("Bone-proof Armor", "As Proto Man, defeat Skull Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresProtoMan))
+achievement("Deep Dive Defense", "As Proto Man, defeat Dive Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DiveMan, RequiresProtoMan))
+achievement("Excavator's End", "As Proto Man, defeat Drill Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(DrillMan, RequiresProtoMan))
 
-achievement("Cleaning up the Pond", "As Roll, defeat Toad Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], RequiresRoll))
-achievement("Sweeping Away the Darkness", "As Roll, defeat Bright Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresRoll))
-achievement("Dusting Off the Sphinx", "As Roll, defeat Pharaoh Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresRoll))
-achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresRoll))
-achievement("Spotless Showdown", "As Roll, defeat Dust Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DUST_MAN"], RequiresRoll))
-achievement("Sweeping the Bone Yard", "As Roll, defeat Skull Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresRoll))
-achievement("Deep Sea Broom Brawl", "As Roll, defeat Dive Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DIVE_MAN"], RequiresRoll))
-achievement("Dirt-free Drilling", "As Roll, defeat Drill Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresRoll))
+achievement("Cleaning up the Pond", "As Roll, defeat Toad Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(ToadMan, RequiresRoll))
+achievement("Sweeping Away the Darkness", "As Roll, defeat Bright Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresRoll))
+achievement("Dusting Off the Sphinx", "As Roll, defeat Pharaoh Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresRoll))
+achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresRoll))
+achievement("Dusted Clean", "As Roll, defeat Dust Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DustMan, RequiresRoll))
+achievement("Sweeping the Bone Yard", "As Roll, defeat Skull Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresRoll))
+achievement("Deep Sea Broom Brawl", "As Roll, defeat Dive Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DiveMan, RequiresRoll))
+achievement("Dirt-Free Drilling", "As Roll, defeat Drill Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DrillMan, RequiresRoll))
 
-achievement("Slippery Success", "Defeat Toad Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["TOAD_MAN"], RequiresAnyCharacter))
-achievement("Untouched Illumination", "Defeat Bright Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["BRIGHT_MAN"], RequiresAnyCharacter))
-achievement("Pyramid Scheme", "Defeat Pharaoh Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["PHARAOH_MAN"], RequiresAnyCharacter))
-achievement("Flawless Ring Toss", "Defeat Ring Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["RING_MAN"], RequiresAnyCharacter))
-achievement("Spotless Showdown", "Defeat Dust Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["DUST_MAN"], RequiresAnyCharacter))
-achievement("Bone-Dry Victory", "Defeat Skull Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["SKULL_MAN"], RequiresAnyCharacter))
-achievement("Torpedo Dodge Champion", "Defeat Dive Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["DIVE_MAN"], RequiresAnyCharacter))
-achievement("Rock Solid Success", "Defeat Drill Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["DRILL_MAN"], RequiresAnyCharacter))
+achievement("Slippery Success", "Defeat Toad Man without taking damage", 5, BossKillDamageless(ToadMan, RequiresAnyCharacter))
+achievement("Untouched Illumination", "Defeat Bright Man without taking damage", 10, BossKillDamageless(BrightMan, RequiresAnyCharacter))
+achievement("Pyramid Scheme", "Defeat Pharaoh Man without taking damage", 10, BossKillDamageless(PharaohMan, RequiresAnyCharacter))
+achievement("Flawless Ring Toss", "Defeat Ring Man without taking damage", 10, BossKillDamageless(RingMan, RequiresAnyCharacter))
+achievement("Spotless Showdown", "Defeat Dust Man without taking damage", 10, BossKillDamageless(DustMan, RequiresAnyCharacter))
+achievement("Bone-Dry Victory", "Defeat Skull Man without taking damage", 10, BossKillDamageless(SkullMan, RequiresAnyCharacter))
+achievement("Torpedo Dodge Champion", "Defeat Dive Man without taking damage", 10, BossKillDamageless(DiveMan, RequiresAnyCharacter))
+achievement("Rock Solid Success", "Defeat Drill Man without taking damage", 10, BossKillDamageless(DrillMan, RequiresAnyCharacter))
 
-achievement("Wing Wipeout", "Defeat Mothraya without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK1"], RequiresAnyCharacter))
-achievement("Geometric Genius", "Defeat Square Machine without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK2"], RequiresAnyCharacter))
-achievement("Roach Rebuke", "Defeat Cockroach Twins without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK3"], RequiresAnyCharacter))
-achievement("Soviet Showdown", "Defeat the Cossack Catcher without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK4"], RequiresAnyCharacter))
+achievement("Wing Wipeout", "Defeat Mothraya without taking damage", 10, BossKillDamageless(Cossack1, RequiresAnyCharacter))
+achievement("Geometric Genius", "Defeat Square Machine without taking damage", 10, BossKillDamageless(Cossack2, RequiresAnyCharacter))
+achievement("Roach Rebuke", "Defeat Cockroach Twins without taking damage", 10, BossKillDamageless(Cossack3, RequiresAnyCharacter))
+achievement("Soviet Showdown", "Defeat the Cossack Catcher without taking damage", 10, BossKillDamageless(Cossack4, RequiresAnyCharacter))
 
-achievement("Ironed Out", "Defeat Metall Daddy without taking damage", 10, BossKillDamageless(BOSS_SCREENS["WILY1"], RequiresAnyCharacter))
-achievement("Tako Trashed", "Defeat Tako Trash without taking damage", 10, BossKillDamageless(BOSS_SCREENS["WILY2"], RequiresAnyCharacter))
-achievement("Outsmarted Contraption", "Defeat Wily Machine 4 without taking damage", 25, BossKillDamageless(BOSS_SCREENS["WILY3"], RequiresAnyCharacter, bossLifeBarCount = 2))
-achievement("Foiled Again", "Defeat Wily Capsule without taking damage", 10, BossKillDamageless(BOSS_SCREENS["WILY4"], RequiresAnyCharacter))
+achievement("Ironed Out", "Defeat Metall Daddy without taking damage", 10, BossKillDamageless(Wily1, RequiresAnyCharacter))
+achievement("Tako Trashed", "Defeat Tako Trash without taking damage", 10, BossKillDamageless(Wily2, RequiresAnyCharacter))
+achievement("Outsmarted Contraption", "Defeat Wily Machine 4 without taking damage", 25, BossKillDamageless(Wily3, RequiresAnyCharacter, bossLifeBarCount = 2))
+achievement("Foiled Again", "Defeat Wily Capsule without taking damage", 10, BossKillDamageless(Wily4, RequiresAnyCharacter))
 
-achievement("Cold Yet Untouched", "Reach the boss doors of Dr. Cossack's Citadel I without taking damage or dying", 10, BossDoorDamageless("Cossack1", RequiresAnyCharacter))
-achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citadel II without taking damage or dying", 10, BossDoorDamageless("Cossack2", RequiresAnyCharacter))
-achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless("Cossack3", RequiresAnyCharacter))
-achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless("Cossack4", RequiresAnyCharacter))
+achievement("Cold Yet Untouched", "Reach the boss doors of Dr. Cossack's Citadel I without taking damage or dying", 10, BossDoorDamageless(Cossack1, RequiresAnyCharacter))
+achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citadel II without taking damage or dying", 10, BossDoorDamageless(Cossack2, RequiresAnyCharacter))
+achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless(Cossack3, RequiresAnyCharacter))
+achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless(Cossack4, RequiresAnyCharacter))
 
-achievement("Bug Buster", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK1"], RequiresMegaManOrMan))
-achievement("Straight-Angle Annihalator", "As Mega Man, defeat Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresMegaManOrMan))
-achievement("Insect Takedown", "As Mega Man, defeat Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresMegaManOrMan))
-achievement("Russian Roulette", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK4"], RequiresMegaManOrMan, bossDeadHealth = 0x02))
+achievement("Bug Buster", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresMegaManOrMan))
+achievement("Straight-Angle Annihalator", "As Mega Man, defeat Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack2, RequiresMegaManOrMan))
+achievement("Insect Takedown", "As Mega Man, defeat Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack3, RequiresMegaManOrMan))
+achievement("Russian Roulette", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack4, RequiresMegaManOrMan, bossDeadHealth = 0x02))
 
-achievement("Moth Masher", "As Proto Man, defeat Mothraya with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK1"], RequiresProtoMan))
-achievement("Quadrilateral Queller", "As Proto Man, defeat Square Machine with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresProtoMan))
-achievement("Paired Pest Deflection", "As Proto Man, defeat Cockroach Twins with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresProtoMan))
-achievement("Cold Conquest", "As Proto Man, defeat the Cossack Catcher with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK4"], RequiresProtoMan, bossDeadHealth = 0x02))
+achievement("Moth Masher", "As Proto Man, defeat Mothraya with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresProtoMan))
+achievement("Quadrilateral Queller", "As Proto Man, defeat Square Machine with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack2, RequiresProtoMan))
+achievement("Paired Pest Deflection", "As Proto Man, defeat Cockroach Twins with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack3, RequiresProtoMan))
+achievement("Cold Conquest", "As Proto Man, defeat the Cossack Catcher with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack4, RequiresProtoMan, bossDeadHealth = 0x02))
 
-achievement("Swept Wings", "As Roll, defeat Mothraya with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK1"], RequiresRoll))
-achievement("Shape Shifter's Nightmare", "As Roll, defeat Square Machine with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresRoll))
-achievement("Infestation Inhibition", "As Roll, defeat Cockroach Twins with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresRoll))
-achievement("Cossack's Cleanup Crew", "As Roll, defeat the Cossack Catcher with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK4"], RequiresRoll, bossDeadHealth = 0x02))
+achievement("Swept Wings", "As Roll, defeat Mothraya with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresRoll))
+achievement("Shape Shifter's Nightmare", "As Roll, defeat Square Machine with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Cossack2, RequiresRoll))
+achievement("Infestation Inhibition", "As Roll, defeat Cockroach Twins with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Cossack3, RequiresRoll))
+achievement("Cossack's Cleanup Crew", "As Roll, defeat the Cossack Catcher with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack4, RequiresRoll, bossDeadHealth = 0x02))
 
-achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless("Wily1", RequiresAnyCharacter))
-achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless("Wily2", RequiresAnyCharacter))
+achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless(Wily1, RequiresAnyCharacter))
+achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless(Wily2, RequiresAnyCharacter))
 
-achievement("Weaponless Win", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresMegaManOrMan))
-achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresMegaManOrMan))
-achievement("Classic Conquest", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresMegaManOrMan, bossLifeBarCount = 2))
+achievement("Weaponless Win", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresMegaManOrMan))
+achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresMegaManOrMan))
+achievement("Classic Conquest", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresMegaManOrMan, bossLifeBarCount = 2))
 
-achievement("Buster and Shield Showdown", "As Proto Man, defeat Metall Daddy with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresProtoMan))
-achievement("Deflected Garbage", "As Proto Man, defeat Tako Trash with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresProtoMan))
-achievement("Stellar Blues", "As Proto Man, defeat Wily Machine 4 with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresProtoMan, bossLifeBarCount = 2))
+achievement("Buster and Shield Showdown", "As Proto Man, defeat Metall Daddy with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresProtoMan))
+achievement("Deflected Garbage", "As Proto Man, defeat Tako Trash with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresProtoMan))
+achievement("Stellar Blues", "As Proto Man, defeat Wily Machine 4 with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresProtoMan, bossLifeBarCount = 2))
 
-achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresRoll))
-achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresRoll))
-achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresRoll, bossLifeBarCount = 2))
+achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresRoll))
+achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresRoll))
+achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresRoll, bossLifeBarCount = 2))
 
 achievement("Buster Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the M. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaManOrMan))
 achievement("Shield Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan))
@@ -1071,7 +1091,7 @@ achievement("Mega Maniac", "As Mega Man, beat the game without dying [Hard] [No 
 achievement("Agent of Anarchy", "As Proto Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
 achievement("Maid of Mayhem", "As Roll, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD))
 
-achievement("Ancient Air-lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"))
+achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"))
 achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"))
 
 // Idea credit: Lion Sum
@@ -1086,7 +1106,7 @@ achievement(
     10,
     RequireNewFileWithoutPasswords()
     && BossKill(
-        BOSS_SCREENS["WILY4"],
+        Wily4,
         requiredDifficulty = DIFFICULTY_EASY,
         requiredCharacters = RequiresMan,
         allowInfiniteAmmo = 1,
@@ -1108,7 +1128,7 @@ achievement("Soda Popinski's Envy", "Collect 9 E-Tanks", 5, NineETanks())
 achievement("Lumen-ating Path", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn())
 
 // Idea credit: JackelZXA
-achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only the shield [No E-Tanks]", 5, BossKillNoWeapons(BOSS_SCREENS["WILY2"], RequiresProtoMan))
+achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only the shield [No E-Tanks]", 5, BossKillNoWeapons(Wily2, RequiresProtoMan))
 
 // Idea: Fox in Yellow Socks
 achievement("Wired for Victory", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill())
@@ -1125,7 +1145,7 @@ achievement(
     "[Dev Team Challenge I] Bright Man",
     "[FREE PLAY MODE: Bright, Checkpoint 2] Defeat Bright Man damageless using only Rain Flush",
     25,
-    FreePlayBossKill("Bright", CHECKPOINT_END, allowDamage = 0, onlySpecificWeapon = EQUIPPED_RFLUSH)
+    FreePlayBossKill(BrightMan, CHECKPOINT_END, allowDamage = 0, onlySpecificWeapon = EQUIPPED_RFLUSH)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1141,7 +1161,7 @@ achievement(
     "[Dev Team Challenge III] Mothraya",
     "[FREE PLAY MODE: Cossack 1, Checkpoint 2] Defeat Mothraya damageless without jumping and with Full Arsenal enabled",
     25,
-    FreePlayBossKill("Cossack1", CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled)
+    FreePlayBossKill(Cossack1, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1150,7 +1170,7 @@ achievement(
     "[Dev Team Challenge IV] Cockroach Twins",
     "[FREE PLAY MODE: Cossack 3, Checkpoint 2] Defeat Cockroach Twins without jumping and without E-Tanks",
     10,
-    FreePlayBossKill("Cossack3", CHECKPOINT_END, allowJumping = 0, allowETanks = 0)
+    FreePlayBossKill(Cossack3, CHECKPOINT_END, allowJumping = 0, allowETanks = 0)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1159,7 +1179,7 @@ achievement(
     "[Dev Team Challenge V] Cossack Catcher",
     "[FREE PLAY MODE: Cossack 4, Checkpoint 2] Defeat Cossack Catcher damageless without jumping, without sliding, and with Full Arsenal enabled",
     25,
-    FreePlayBossKill("Cossack4", CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowFullArsenal = MustBeEnabled)
+    FreePlayBossKill(Cossack4, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowFullArsenal = MustBeEnabled)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1168,7 +1188,7 @@ achievement(
     "[Dev Team Challenge VI] Metall Daddy",
     "[FREE PLAY MODE: Wily 1, Checkpoint 2] Defeat Metall Daddy damageless and without sliding",
     25,
-    FreePlayBossKill("Wily1", CHECKPOINT_END, allowSliding = 0, allowDamage = 0)
+    FreePlayBossKill(Wily1, CHECKPOINT_END, allowSliding = 0, allowDamage = 0)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1177,7 +1197,7 @@ achievement(
     "[Dev Team Challenge VII] Wily Capsule",
     "[FREE PLAY MODE: Wily 4, Checkpoint 1] Defeat Wily Capsule without jumping",
     25,
-    FreePlayBossKill("Wily4", CHECKPOINT_NONE, allowJumping = 0)
+    FreePlayBossKill(Wily4, CHECKPOINT_NONE, allowJumping = 0)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1186,7 +1206,7 @@ achievement(
     "[Dev Team Challenge VIII] Toad Man's Stage",
     "[FREE PLAY MODE: Toad, Checkpoint 0] With Full Arsenal enabled, reach Toad Man's boss doors without dying, without E-Tanks, and only using the Mega Man 6 Power Adaptor",
     25,
-    FreePlayStageClear("Toad", onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0)
+    FreePlayStageClear(ToadMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1195,7 +1215,7 @@ achievement(
     "[Dev Team Challenge IX] Ring Man's Stage",
     "[FREE PLAY MODE: Ring, Checkpoint 0] Reach Ring Man's boss doors without dying, without E-Tanks, and only using the Pharaoh Shot",
     25,
-    FreePlayStageClear("Ring", onlySpecificWeapon = EQUIPPED_PSHOT, allowETanks = 0)
+    FreePlayStageClear(RingMan, onlySpecificWeapon = EQUIPPED_PSHOT, allowETanks = 0)
 )
 
 // Idea: Fox in Yellow Socks
@@ -1204,7 +1224,7 @@ achievement(
     "[Dev Team Challenge X] Drill Man's Stage",
     "[FREE PLAY MODE: Drill, Checkpoint 0] With Full Arsenal enabled, reach Drill Man's boss doors without dying, without E-Tanks, and only using the Mega Man 6 Power Adaptor",
     25,
-    FreePlayStageClear("Drill", onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0)
+    FreePlayStageClear(DrillMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0)
 )
 
 // TODO: character leaderboards
@@ -1414,7 +1434,10 @@ rich_presence_conditional_display(
 )
 
 rich_presence_conditional_display(
-    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() < STAGE_ADDRESS_MAP["Cossack1"] && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
+    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() < STAGE_ADDRESS_MAP[Cossack1] 
+    && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
+
     "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s stage",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
@@ -1437,8 +1460,8 @@ bossRushEnemyLabels = {
 }
 bossRushEnemyRooms = [0x21, 0x23, 0x1C, 0x1B, 0x1F, 0x18, 0x20, 0x22]
 rich_presence_conditional_display(
-    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"]
-    && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"] 
+    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == STAGE_ADDRESS_MAP[Wily3]
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
     && (CurrentCheckpoint() == CHECKPOINT_END)
     && any_of(bossRushEnemyRooms, r => CurrentScreen() == r),
 
@@ -1453,7 +1476,7 @@ rich_presence_conditional_display(
 
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
-    && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"] 
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
     && (CurrentCheckpoint() == CHECKPOINT_END),
 
     "{0} • {1} • {2}/8 • {3} {4} • In the Boss Rush of Dr. Wily's third stage",
@@ -1465,7 +1488,10 @@ rich_presence_conditional_display(
 )
 
 rich_presence_conditional_display(
-    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"] && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH,
+    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
+    && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH,
+
     "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily Machine 4",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
@@ -1475,7 +1501,10 @@ rich_presence_conditional_display(
 )
 
 rich_presence_conditional_display(
-    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == STAGE_ADDRESS_MAP["Wily4"] && BossActive() == BOSS_ACTIVE_WILY_CAPSULE,
+    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily4] 
+    && BossActive() == BOSS_ACTIVE_WILY_CAPSULE,
+
     "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily Capsule",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
@@ -1485,7 +1514,10 @@ rich_presence_conditional_display(
 )
 
 rich_presence_conditional_display(
-    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() >= STAGE_ADDRESS_MAP["Cossack1"] && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
+    (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() >= STAGE_ADDRESS_MAP[Cossack1] 
+    && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
+
     "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7} stage",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
