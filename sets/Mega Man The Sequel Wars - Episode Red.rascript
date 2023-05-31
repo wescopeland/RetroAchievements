@@ -4,11 +4,8 @@
 // TODO: Make sure boss no hit & boss no special achievements work during boss rush
 // TODO: be sure to mark missables
 // TODO: be sure to credit users for achievement ideas
-// TODO: link the RAScript in the code notes. explain the meaning of Symbol.
 // TODO: achievement order
-// TODO: better achievement names
 // TODO: better achievement descriptions [specify settings similar to Mega Man 2 PCE]
-// TODO: subset
 // TODO: make sure total points is a nice number ending in 5 or 0
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
@@ -26,6 +23,7 @@ _MEM_DEMOROUTINE           = 0x2604        // (B demoroutine)
 _MEM_FIREPRESSED           = 0x2625 - 1    // (B firepressed) - 1
 _MEM_JUMPPRESSED           = 0x262B - 1    // (B jumppressed) - 1
 _MEM_FREEPLAY              = 0x2677 - 1    // (B freeplay) - 1
+_MEM_FLASHSTOPPER          = 0x2682        // (B flashstopper)
 _MEM_CASTLEPROG            = 0x268B - 1    // (B castleprog) - 1
 _MEM_DISPHEALTH            = 0x26DE        // (B disphealth)
 _MEM_DIFFICULTY            = 0x26ED - 1    // (B difficulty) - 1
@@ -71,6 +69,7 @@ function IsDemoPlaying() => byte(_MEM_DEMOROUTINE)
 function IsFirePressed() => byte(_MEM_FIREPRESSED)
 function IsJumpPressed() => byte(_MEM_JUMPPRESSED)
 function IsFreePlayEnabled() => byte(_MEM_FREEPLAY)
+function FlashStopperTimer() => byte(_MEM_FLASHSTOPPER)
 function Timer() => byte(_MEM_TIMER)
 function CastleStagesBeaten() => byte(_MEM_CASTLEPROG)
 function CurrentHealth() => byte(_MEM_DISPHEALTH)
@@ -367,7 +366,11 @@ function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
 }
 
 function RequireWithoutPasswords() {
-    return disable_when(CanonicalGameState() == STATE_MM4_SETTINGS && prev(CanonicalGameState()) == STATE_ENTER_PASSWORD_SCREEN)
+    return disable_when(
+        CanonicalGameState() == STATE_MM4_SETTINGS 
+        && prev(CanonicalGameState()) == STATE_ENTER_PASSWORD_SCREEN,
+        CanonicalGameState() == STATE_GAME_INTRO
+    )
 }
 
 function RequireNewFileWithoutPasswords() {
@@ -388,12 +391,35 @@ function FreePlayChallengeReset() {
 // #endregion Utils
 
 // #region Achievement Functions ----------------------------------------------------------------------------------------------------------
+function EscarooSkip() {
+    EscarooScreens = [0x8C, 0xCD]
+    EscarooMaxHealth = 0x10
+
+    start = 
+        once(
+            CanonicalGameState() == STATE_LEVEL 
+            && CurrentStage() == STAGE_ADDRESS_MAP["Toad"]
+            && (CurrentScreen() == EscarooScreens[0] || CurrentScreen() == EscarooScreens[1])
+        )
+
+    cancel =
+        never(PlayerDead())
+        && disable_when(BossHealth() == EscarooMaxHealth, CurrentScreen() != prev(CurrentScreen()))
+
+    return
+        start
+        && cancel
+        && IsUsingOnlyAllowedModifiers()
+        && CurrentScreen() == (prev(CurrentScreen()) + 1)
+        && FlashStopperTimer() != 0
+}
 
 function TakoTrashHitboxHidingSpot() {
     return
         CanonicalGameState() == STATE_LEVEL
         && CurrentStage() == STAGE_ADDRESS_MAP["Wily2"]
         && CurrentCheckpoint() == CHECKPOINT_END
+        && IsUsingOnlyAllowedModifiers()
         && WilyBossesHitboxState() == 0x02 // destroyed
         && CurrentXPosition() >= 0x06
         && CurrentXPositionB() == 0x0c
@@ -404,12 +430,15 @@ function WilyUmbrellaEasterEgg() {
         CanonicalGameState() == STATE_LEVEL
         && CurrentStage() == STAGE_ADDRESS_MAP["Wily3"]
         && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH
+        && IsUsingOnlyAllowedModifiers()
         && WilyEscapePodYPosition() != 0x00
         && WilyBossesHitboxState() == 0x03 // umbrella enabled
 }
 
 function WireEasterEgg() {
-    return CanonicalGameState() == STATE_WIRE_EASTER_EGG && prev(CanonicalGameState()) == STATE_LEVEL
+    return 
+        IsUsingOnlyAllowedModifiers()
+        && (CanonicalGameState() == STATE_WIRE_EASTER_EGG && prev(CanonicalGameState()) == STATE_LEVEL)
 }
 
 // @param primeStage {STAGE_ADDRESS_MAP} - What stage this challenge lives on
@@ -793,15 +822,58 @@ function GameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
 function ContinuelessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
-    cancel = disable_when(CanonicalGameState() == STATE_GAME_OVER)
+    cancel = disable_when(CanonicalGameState() == STATE_GAME_OVER, CanonicalGameState() == STATE_GAME_INTRO)
     return cancel && GameClear(requiredCharacters, requiredDifficulty)
 }
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
 function DeathlessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
-    cancel = disable_when(CanonicalGameState() == STATE_LEVEL && TotalLivesLeft() < prev(TotalLivesLeft()))
+    cancel = disable_when(
+        CanonicalGameState() == STATE_LEVEL 
+        && TotalLivesLeft() < prev(TotalLivesLeft()),
+        CanonicalGameState() == STATE_GAME_INTRO
+    )
+
     return cancel && GameClear(requiredCharacters, requiredDifficulty)
+}
+
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+function DamagelessRobotMastersClear(requiredCharacters = 0x00) {
+    start =
+        once(CanonicalGameState() == STATE_STAGE_SELECT)
+
+    cancel =
+        disable_when(CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()), CanonicalGameState() == STATE_GAME_INTRO)
+
+    return
+        start
+        && cancel
+        && IsUsingRequiredCharacters(requiredCharacters)
+        && IsUsingOnlyAllowedModifiers()
+        && RequireNewFileWithoutPasswords()
+        && trigger_when(
+            CanonicalGameState() == STATE_STAGE_SELECT
+            && WeaponsEarnedA() == 0xFE // All earned
+            && WeaponsEarnedB() == 0x01 // All earned
+        )
+}
+
+// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+function DamagelessGameClear(requiredCharacters = 0x00) {
+    start =
+        once(CanonicalGameState() == STATE_STAGE_SELECT)
+
+    cancel =
+        disable_when(CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()), CanonicalGameState() == STATE_GAME_INTRO)
+
+    return
+        start
+        && cancel
+        && IsUsingRequiredCharacters(requiredCharacters)
+        && IsUsingOnlyAllowedModifiers()
+        && RequireNewFileWithoutPasswords()
+        && trigger_when(CanonicalGameState() == STATE_ENDING_ONE)
 }
 
 // @param weaponKey - The weapon we'll be checking the player's inventory for to trigger the unlock (see: WEAPON_ADDRESS_MAP)
@@ -867,11 +939,7 @@ function NineETanks() {
 // #endregion Achievement Functions
 
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
-
-// TODO: some kind of invalid settings detected icon that persists?
-// maybe show this icon on the modifiers screen for MM4
-
-achievement("DEFAULT SETTINGS CHECK", "TODO: describe the default settings here", 0, DefaultSettingsCheck())
+achievement("DEFAULT SETTINGS CHECK", "Normal or Hard difficulty, any character, any buster charge. All other settings OFF.", 0, DefaultSettingsCheck())
 
 achievement("Rain Flush", "Defeat Toad Man", 5, BossKill(BOSS_SCREENS["TOAD_MAN"]))
 achievement("Flash Stopper", "Defeat Bright Man", 5, BossKill(BOSS_SCREENS["BRIGHT_MAN"]))
@@ -883,20 +951,20 @@ achievement("Dive Missile", "Defeat Dive Man", 5, BossKill(BOSS_SCREENS["DIVE_MA
 achievement("Drill Bomb", "Defeat Drill Man", 5, BossKill(BOSS_SCREENS["DRILL_MAN"]))
 
 achievement("Mothraya", "Defeat Mothraya", 5, BossKill(BOSS_SCREENS["COSSACK1"]))
-achievement("Square Machine", "Defeat the Square Machine", 5, BossKill(BOSS_SCREENS["COSSACK2"]))
-achievement("Cockroach Twins", "Defeat the Cockroach Twins", 5, BossKill(BOSS_SCREENS["COSSACK3"]))
+achievement("Square Machine", "Defeat Square Machine", 5, BossKill(BOSS_SCREENS["COSSACK2"]))
+achievement("Cockroach Twins", "Defeat Cockroach Twins", 5, BossKill(BOSS_SCREENS["COSSACK3"]))
 achievement("Cossack Catcher", "Defeat the Cossack Catcher", 5, BossKill(BOSS_SCREENS["COSSACK4"], bossDeadHealth = 0x02))
 
 achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(BOSS_SCREENS["WILY1"]))
 achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(BOSS_SCREENS["WILY2"]))
 achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(BOSS_SCREENS["WILY3"], bossLifeBarCount = 2))
 
-achievement("Mega Milestone", "As Mega Man, beat the game on Normal or greater on a new file without the use of passwords", 10, GameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
-achievement("Mega Perseverance", "As Mega Man, beat the game on Hard on a new file without the use of passwords", 25, GameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
-achievement("Proto Progress", "As Proto Man, beat the game on Normal or greater on a new file without the use of passwords", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
-achievement("Proto Perseverance", "As Proto Man, beat the game on Hard on a new file without the use of passwords", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD))
-achievement("Roll's Resolution", "As Roll, beat the game on Normal or greater on a new file without the use of passwords", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM))
-achievement("Roll's Perseverance", "As Roll, beat the game on Hard on a new file without the use of passwords", 25, GameClear(RequiresRoll, DIFFICULTY_HARD))
+achievement("Mega Milestone", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
+achievement("Mega Perseverance", "As Mega Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Proto Progress", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
+achievement("Proto Perseverance", "As Proto Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Roll's Resolution", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM))
+achievement("Roll's Perseverance", "As Roll, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresRoll, DIFFICULTY_HARD))
 
 achievement("Toad-ally Unharmed", "Reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Toad", RequiresAnyCharacter))
 achievement("Spotless Luminary", "Reach Bright Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Bright", RequiresAnyCharacter))
@@ -908,115 +976,113 @@ achievement("Surface Tension", "Reach Dive Man's boss doors without taking damag
 achievement("Excavating Excellence", "Reach Drill Man's boss doors without taking damage or dying", 10, BossDoorDamageless("Drill", RequiresAnyCharacter))
 
 achievement("Pond Skimming", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], RequiresMegaManOrMan))
-achievement("Mega Watt", "As Mega Man, defeat Bright Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresMegaManOrMan))
-achievement("Busting the Curse", "As Mega Man, defeat Pharaoh Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresMegaManOrMan))
-achievement("Circle of Victory", "As Mega Man, defeat Ring Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresMegaManOrMan))
+achievement("Mega Watt", "As Mega Man, defeat Bright Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresMegaManOrMan))
+achievement("Busting the Curse", "As Mega Man, defeat Pharaoh Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresMegaManOrMan))
+achievement("Circle of Victory", "As Mega Man, defeat Ring Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresMegaManOrMan))
 achievement("Dust Buster", "As Mega Man, defeat Dust Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DUST_MAN"], RequiresMegaManOrMan))
-achievement("Skull-busted", "As Mega Man, defeat Skull Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresMegaManOrMan))
+achievement("Skull-busted", "As Mega Man, defeat Skull Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresMegaManOrMan))
 achievement("Busting the Wave", "As Mega Man, defeat Dive Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DIVE_MAN"], RequiresMegaManOrMan))
-achievement("Busting through the Bedrock", "As Mega Man, defeat Drill Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresMegaManOrMan))
+achievement("Busting through the Bedrock", "As Mega Man, defeat Drill Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresMegaManOrMan))
 
 achievement("Rainy Defense", "As Proto Man, defeat Toad Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], RequiresProtoMan))
-achievement("Shielding the Spotlight", "As Proto Man, defeat Bright Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresProtoMan))
-achievement("Sphinx Shield Showdown", "As Proto Man, defeat Pharaoh Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresProtoMan))
-achievement("Imperfect Circle", "As Proto Man, defeat Ring Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresProtoMan))
+achievement("Shielding the Spotlight", "As Proto Man, defeat Bright Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresProtoMan))
+achievement("Sphinx Shield Showdown", "As Proto Man, defeat Pharaoh Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresProtoMan))
+achievement("Imperfect Circle", "As Proto Man, defeat Ring Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresProtoMan))
 achievement("Shielded Dust-Off", "As Proto Man, defeat Dust Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DUST_MAN"], RequiresProtoMan))
-achievement("Bone-proof Armor", "As Proto Man, defeat Skull Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresProtoMan))
+achievement("Bone-proof Armor", "As Proto Man, defeat Skull Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresProtoMan))
 achievement("Deep Dive Defense", "As Proto Man, defeat Dive Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DIVE_MAN"], RequiresProtoMan))
-achievement("Excavator's End", "As Proto Man, defeat Drill Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresProtoMan))
+achievement("Excavator's End", "As Proto Man, defeat Drill Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresProtoMan))
 
-achievement("Cleaning up the Pond", "As Roll, defeat Toad Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], RequiresRoll))
-achievement("Sweeping Away the Darkness", "As Roll, defeat Bright Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresRoll))
-achievement("Dusting Off the Sphinx", "As Roll, defeat Pharaoh Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresRoll))
-achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresRoll))
-achievement("Spotless Showdown", "As Roll, defeat Dust Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DUST_MAN"], RequiresRoll))
-achievement("Sweeping the Bone Yard", "As Roll, defeat Skull Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresRoll))
-achievement("Deep Sea Broom Brawl", "As Roll, defeat Dive Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DIVE_MAN"], RequiresRoll))
-achievement("Dirt-free Drilling", "As Roll, defeat Drill Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresRoll))
+achievement("Cleaning up the Pond", "As Roll, defeat Toad Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["TOAD_MAN"], RequiresRoll))
+achievement("Sweeping Away the Darkness", "As Roll, defeat Bright Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["BRIGHT_MAN"], RequiresRoll))
+achievement("Dusting Off the Sphinx", "As Roll, defeat Pharaoh Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["PHARAOH_MAN"], RequiresRoll))
+achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["RING_MAN"], RequiresRoll))
+achievement("Spotless Showdown", "As Roll, defeat Dust Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DUST_MAN"], RequiresRoll))
+achievement("Sweeping the Bone Yard", "As Roll, defeat Skull Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["SKULL_MAN"], RequiresRoll))
+achievement("Deep Sea Broom Brawl", "As Roll, defeat Dive Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DIVE_MAN"], RequiresRoll))
+achievement("Dirt-free Drilling", "As Roll, defeat Drill Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["DRILL_MAN"], RequiresRoll))
 
 achievement("Slippery Success", "Defeat Toad Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["TOAD_MAN"], RequiresAnyCharacter))
-achievement("Untouched Illumination", "Defeat Bright Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["BRIGHT_MAN"], RequiresAnyCharacter))
-achievement("Pyramid Scheme", "Defeat Pharaoh Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["PHARAOH_MAN"], RequiresAnyCharacter))
-achievement("Flawless Ring Toss", "Defeat Ring Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["RING_MAN"], RequiresAnyCharacter))
-achievement("Spotless Showdown", "Defeat Dust Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["DUST_MAN"], RequiresAnyCharacter))
-achievement("Bone-Dry Victory", "Defeat Skull Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["SKULL_MAN"], RequiresAnyCharacter))
-achievement("Torpedo Dodge Champion", "Defeat Dive Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["DIVE_MAN"], RequiresAnyCharacter))
-achievement("Rock Solid Success", "Defeat Drill Man without taking damage", 5, BossKillDamageless(BOSS_SCREENS["DRILL_MAN"], RequiresAnyCharacter))
+achievement("Untouched Illumination", "Defeat Bright Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["BRIGHT_MAN"], RequiresAnyCharacter))
+achievement("Pyramid Scheme", "Defeat Pharaoh Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["PHARAOH_MAN"], RequiresAnyCharacter))
+achievement("Flawless Ring Toss", "Defeat Ring Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["RING_MAN"], RequiresAnyCharacter))
+achievement("Spotless Showdown", "Defeat Dust Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["DUST_MAN"], RequiresAnyCharacter))
+achievement("Bone-Dry Victory", "Defeat Skull Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["SKULL_MAN"], RequiresAnyCharacter))
+achievement("Torpedo Dodge Champion", "Defeat Dive Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["DIVE_MAN"], RequiresAnyCharacter))
+achievement("Rock Solid Success", "Defeat Drill Man without taking damage", 10, BossKillDamageless(BOSS_SCREENS["DRILL_MAN"], RequiresAnyCharacter))
 
-achievement("Wing Wipeout", "Defeat Mothraya without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK1"], RequiresAnyCharacter))
-achievement("Geometric Genius", "Defeat the Square Machine without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK2"], RequiresAnyCharacter))
-achievement("Roach Rebuke", "Defeat the Cockroach Twins without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK3"], RequiresAnyCharacter))
-achievement("Soviet Showdown", "Defeat the Cossack Catcher without taking damage", 5, BossKillDamageless(BOSS_SCREENS["COSSACK4"], RequiresAnyCharacter))
+achievement("Wing Wipeout", "Defeat Mothraya without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK1"], RequiresAnyCharacter))
+achievement("Geometric Genius", "Defeat Square Machine without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK2"], RequiresAnyCharacter))
+achievement("Roach Rebuke", "Defeat Cockroach Twins without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK3"], RequiresAnyCharacter))
+achievement("Soviet Showdown", "Defeat the Cossack Catcher without taking damage", 10, BossKillDamageless(BOSS_SCREENS["COSSACK4"], RequiresAnyCharacter))
 
-achievement("Ironed Out", "Defeat Metall Daddy without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY1"], RequiresAnyCharacter))
-achievement("Tako Trashed", "Defeat Tako Trash without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY2"], RequiresAnyCharacter))
-achievement("Outsmarted Contraption", "Defeat Wily Machine 4 without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY3"], RequiresAnyCharacter, bossLifeBarCount = 2))
-achievement("Foiled Again", "Defeat Wily Capsule without taking damage", 5, BossKillDamageless(BOSS_SCREENS["WILY4"], RequiresAnyCharacter))
+achievement("Ironed Out", "Defeat Metall Daddy without taking damage", 10, BossKillDamageless(BOSS_SCREENS["WILY1"], RequiresAnyCharacter))
+achievement("Tako Trashed", "Defeat Tako Trash without taking damage", 10, BossKillDamageless(BOSS_SCREENS["WILY2"], RequiresAnyCharacter))
+achievement("Outsmarted Contraption", "Defeat Wily Machine 4 without taking damage", 25, BossKillDamageless(BOSS_SCREENS["WILY3"], RequiresAnyCharacter, bossLifeBarCount = 2))
+achievement("Foiled Again", "Defeat Wily Capsule without taking damage", 10, BossKillDamageless(BOSS_SCREENS["WILY4"], RequiresAnyCharacter))
 
-achievement("Cold Yet Untouched", "Reach Cossack 1's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack1", RequiresAnyCharacter))
-achievement("Frost-Free Fortress", "Reach Cossack 2's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack2", RequiresAnyCharacter))
-achievement("Polar Performance", "Reach Cossack 3's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack3", RequiresAnyCharacter))
-achievement("Ice-Free Invasion", "Reach Cossack 4's boss doors without taking damage or dying", 10, BossDoorDamageless("Cossack4", RequiresAnyCharacter))
+achievement("Cold Yet Untouched", "Reach the boss doors of Dr. Cossack's Citadel I without taking damage or dying", 10, BossDoorDamageless("Cossack1", RequiresAnyCharacter))
+achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citadel II without taking damage or dying", 10, BossDoorDamageless("Cossack2", RequiresAnyCharacter))
+achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless("Cossack3", RequiresAnyCharacter))
+achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless("Cossack4", RequiresAnyCharacter))
 
 achievement("Bug Buster", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK1"], RequiresMegaManOrMan))
-achievement("Straight-Angle Annihalator", "As Mega Man, defeat the Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresMegaManOrMan))
-achievement("Insect Takedown", "As Mega Man, defeat the Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresMegaManOrMan))
+achievement("Straight-Angle Annihalator", "As Mega Man, defeat Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresMegaManOrMan))
+achievement("Insect Takedown", "As Mega Man, defeat Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresMegaManOrMan))
 achievement("Russian Roulette", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK4"], RequiresMegaManOrMan, bossDeadHealth = 0x02))
 
 achievement("Moth Masher", "As Proto Man, defeat Mothraya with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK1"], RequiresProtoMan))
-achievement("Quadrilateral Queller", "As Proto Man, defeat the Square Machine with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresProtoMan))
-achievement("Paired Pest Deflection", "As Proto Man, defeat the Cockroach Twins with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresProtoMan))
+achievement("Quadrilateral Queller", "As Proto Man, defeat Square Machine with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresProtoMan))
+achievement("Paired Pest Deflection", "As Proto Man, defeat Cockroach Twins with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresProtoMan))
 achievement("Cold Conquest", "As Proto Man, defeat the Cossack Catcher with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK4"], RequiresProtoMan, bossDeadHealth = 0x02))
 
 achievement("Swept Wings", "As Roll, defeat Mothraya with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK1"], RequiresRoll))
-achievement("Shape Shifter's Nightmare", "As Roll, defeat the Square Machine with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresRoll))
-achievement("Infestation Inhibition", "As Roll, defeat the Cockroach Twins with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresRoll))
+achievement("Shape Shifter's Nightmare", "As Roll, defeat Square Machine with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK2"], RequiresRoll))
+achievement("Infestation Inhibition", "As Roll, defeat Cockroach Twins with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK3"], RequiresRoll))
 achievement("Cossack's Cleanup Crew", "As Roll, defeat the Cossack Catcher with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["COSSACK4"], RequiresRoll, bossDeadHealth = 0x02))
 
-achievement("Unscathed Approach", "Reach Wily 1's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily1", RequiresAnyCharacter))
-achievement("Aggressive Advancement", "Reach Wily 2's boss doors without taking damage or dying", 10, BossDoorDamageless("Wily2", RequiresAnyCharacter))
+achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless("Wily1", RequiresAnyCharacter))
+achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless("Wily2", RequiresAnyCharacter))
 
-achievement("Weaponless Win", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresMegaManOrMan))
-achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresMegaManOrMan))
-achievement("Classic Conquest", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresMegaManOrMan, bossLifeBarCount = 2))
+achievement("Weaponless Win", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresMegaManOrMan))
+achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresMegaManOrMan))
+achievement("Classic Conquest", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresMegaManOrMan, bossLifeBarCount = 2))
 
-achievement("Buster and Shield Showdown", "As Proto Man, defeat Metall Daddy with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresProtoMan))
-achievement("Deflected Garbage", "As Proto Man, defeat Tako Trash with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresProtoMan))
-achievement("Stellar Blues", "As Proto Man, defeat Wily Machine 4 with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresProtoMan, bossLifeBarCount = 2))
+achievement("Buster and Shield Showdown", "As Proto Man, defeat Metall Daddy with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresProtoMan))
+achievement("Deflected Garbage", "As Proto Man, defeat Tako Trash with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresProtoMan))
+achievement("Stellar Blues", "As Proto Man, defeat Wily Machine 4 with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresProtoMan, bossLifeBarCount = 2))
 
-achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresRoll))
-achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresRoll))
-achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresRoll, bossLifeBarCount = 2))
+achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY1"], RequiresRoll))
+achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY2"], RequiresRoll))
+achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY3"], RequiresRoll, bossLifeBarCount = 2))
 
 achievement("Buster Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the M. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaManOrMan))
 achievement("Shield Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan))
 achievement("Broom Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll))
 
-// FIXME: These should clearly state the no password & new file requirements
-achievement("Mega Momentum [m]", "As Mega Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
-achievement("Mega Mastery [m]", "As Mega Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
-achievement("Proto Progress [m]", "As Proto Man, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
-achievement("Proto Perfection [m]", "As Proto Man, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
-achievement("Roll's Resolve [m]", "As Roll, beat the game on Normal or greater without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM))
-achievement("Roll's Resilience [m]", "As Roll, beat the game on Hard without ever using a continue", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD))
+achievement("Mega Momentum [m]", "As Mega Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
+achievement("Mega Mastery [m]", "As Mega Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Proto Progress [m]", "As Proto Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
+achievement("Proto Perfection [m]", "As Proto Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Roll's Resolve [m]", "As Roll, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM))
+achievement("Roll's Resilience [m]", "As Roll, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD))
 
-// FIXME: These should clearly state the no password & new file requirements
-achievement("Mega Maniac", "As Mega Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
-achievement("Agent of Anarchy", "As Proto Man, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
-achievement("Maid of Mayhem", "As Roll, beat the game on Hard without losing a life", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD))
+achievement("Mega Maniac", "As Mega Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
+achievement("Agent of Anarchy", "As Proto Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD))
+achievement("Maid of Mayhem", "As Roll, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD))
 
 achievement("Ancient Air-lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"))
 achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"))
 
 // Idea credit: Lion Sum
-achievement("Pharaoh's Flood", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 1, PharaohManHardenQuicksand())
+achievement("Pharaoh's Flood", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 2, PharaohManHardenQuicksand())
 // Idea credit: Lion Sum
-achievement("Desert Blackout", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 1, PharaohManTurnOffLights())
+achievement("Desert Blackout", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 2, PharaohManTurnOffLights())
 
 // Idea credit: Fox in Yellow Socks
 achievement(
     "What is a man?",
-    "Beat the game as Man - All settings and cheats are allowed!",
+    "Beat the game as Man. All settings and cheats are allowed!",
     10,
     RequireNewFileWithoutPasswords()
     && BossKill(
@@ -1047,6 +1113,13 @@ achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only t
 // Idea: Fox in Yellow Socks
 achievement("Wired for Victory", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill())
 
+achievement("A Mega Surprise", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg())
+achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 2, TakoTrashHitboxHidingSpot())
+achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg())
+
+// Idea: frijoles / FlashbackYT
+achievement("Toadally Skipped", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip())
+
 // Idea: Fox in Yellow Socks
 achievement(
     "[Dev Team Challenge I] Bright Man",
@@ -1075,7 +1148,7 @@ achievement(
 // solution: D.Missile
 achievement(
     "[Dev Team Challenge IV] Cockroach Twins",
-    "[FREE PLAY MODE: Cossack 3, Checkpoint 2] Defeat the Cockroach Twins without jumping and without E-Tanks",
+    "[FREE PLAY MODE: Cossack 3, Checkpoint 2] Defeat Cockroach Twins without jumping and without E-Tanks",
     10,
     FreePlayBossKill("Cossack3", CHECKPOINT_END, allowJumping = 0, allowETanks = 0)
 )
@@ -1134,19 +1207,20 @@ achievement(
     FreePlayStageClear("Drill", onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0)
 )
 
-// Idea: JackelZXA, Fox in Yellow Socks // PUT THIS IN A SUBSET
-// SUBSET achievement("R Wily Capsule Broom Only", "As Roll, defeat Wily Capsule with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BOSS_SCREENS["WILY4"], RequiresRoll))
-// TODO: SUBSET!! 3 mr.perfect achievements
-
-achievement("A Mega Surprise", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg())
-achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 1, TakoTrashHitboxHidingSpot())
-achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 1, WilyUmbrellaEasterEgg())
-
-// TODO: Use Flash Stopper to skip a snail miniboss on Toad Man's stage (frijoles / FlashbackYT)
-
 // TODO: character leaderboards
 
 // #endregion Achievements
+
+// #region Subset - Bonus -----------------------------------------------------------------------------------------------------------------
+
+achievement("Halfway Hero", "As Mega Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresMegaManOrMan))
+achievement("Halfway Haven", "As Proto Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresProtoMan))
+achievement("Halfway Helper", "As Roll, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresRoll))
+achievement("Mr. Perfect", "As Mega Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresMegaManOrMan))
+achievement("Perfect Blues", "As Proto Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresProtoMan))
+achievement("Ms. Perfect", "As Roll, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresRoll))
+
+// #endregion
 
 // #region Rich Presence ------------------------------------------------------------------------------------------------------------------
 livesLabels = {
@@ -1260,8 +1334,8 @@ bossNameLabels = {
     0x06: "Pharaoh Man",
     0x07: "Ring Man",
     0x08: "Mothraya",
-    0x09: "the Square Machine",
-    0x0A: "the Cockroach Twins",
+    0x09: "Square Machine",
+    0x0A: "Cockroach Twins",
     0x0B: "the Cossack Catcher",
     0x0C: "Metall Daddy",
     0x0D: "Tako Trash",
