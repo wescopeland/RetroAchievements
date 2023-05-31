@@ -792,7 +792,8 @@ function BossDoorDamageless(bossKey, requiredCharacters = 0x00, requiredCheckpoi
         || once(CanonicalGameState() == STATE_LEVEL && CurrentHealth() == MAX_HEALTH && prev(CurrentHealth()) == 0 && CurrentCheckpoint() == CHECKPOINT_NONE)
 
     cancel = 
-        never(IsDemoPlaying() == 1) 
+        never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN)
+        && never(IsDemoPlaying() == 1) 
         && never(CurrentHealth() < prev(CurrentHealth()))
 
     return
@@ -810,8 +811,9 @@ function BrightManStageLightsAlwaysOn() {
         || once(CanonicalGameState() == STATE_LEVEL && CurrentHealth() == MAX_HEALTH && prev(CurrentHealth()) == 0 && CurrentCheckpoint() == CHECKPOINT_NONE)
 
     cancel =
-        never(IsDemoPlaying() == 1)
-        && never(Timer() == 0x02 && prev(Timer()) == 0x00)
+        never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN)
+        && never(IsDemoPlaying() == 1)
+        && never(Timer() == 0x02 && prev(Timer()) == 0x00) // This is the stage lights turning off.
 
     return
         start
