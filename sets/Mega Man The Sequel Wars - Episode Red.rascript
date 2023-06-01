@@ -516,20 +516,21 @@ function FreePlayStageClear(
         )
     }
 
+    start =
+        once(CurrentStage() == STAGE_ADDRESS_MAP[primeStage])
+        && once(CurrentCheckpoint() == CHECKPOINT_NONE)
+
     cancel =
         never(PlayerDead() && CanonicalGameState() != STATE_FREE_PLAY_MENU && CanonicalGameState() != STATE_MM4_SETTINGS) 
-        && never(
-            (CanonicalGameState() == STATE_LEVEL_INTRO || CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_WEAPON_GET) 
-            && IsFreePlayEnabled() == 0
-        )
+        && never(CanonicalGameState() != STATE_FREE_PLAY_MENU && IsFreePlayEnabled() == 0)
         && never(CurrentStage() != STAGE_ADDRESS_MAP[primeStage])
+        && never(CanonicalGameState() == STATE_FREE_PLAY_MENU && CurrentCheckpoint() != CHECKPOINT_NONE)
         && allowETanksClause
         && onlySpecificWeaponClause
         && allowSlidingClause
 
     return
-        once(CurrentStage() == STAGE_ADDRESS_MAP[primeStage])
-        && once(CurrentCheckpoint() == CHECKPOINT_NONE)
+        start
         && cancel
         && IsUsingOnlyAllowedModifiers(
             minimumDifficulty = DIFFICULTY_MEDIUM,
@@ -541,13 +542,17 @@ function FreePlayStageClear(
             allowBurstChaser = 0
         )
         && IsUsingRequiredCharacters(requiredCharacters)
-        && trigger_when(CurrentCheckpoint() == CHECKPOINT_END)
+        && trigger_when(CanonicalGameState() == STATE_LEVEL && CurrentCheckpoint() == CHECKPOINT_END)
 }
 
 function DiveManMarineChallenge() {
+    start = 
+        CurrentStage() == STAGE_ADDRESS_MAP[DiveMan]
+        && CurrentCheckpoint() == CHECKPOINT_END
+
     cancel =
         never(PlayerDead() && CanonicalGameState() != STATE_FREE_PLAY_MENU && CanonicalGameState() != STATE_MM4_SETTINGS)
-        && never(CanonicalGameState() == STATE_LEVEL && IsFreePlayEnabled() == 0)
+        && never(CanonicalGameState() != STATE_FREE_PLAY_MENU && IsFreePlayEnabled() == 0)
         && disable_when(
             CurrentHealth() < prev(CurrentHealth())
             && CurrentEquippedWeapon() == EQUIPPED_RMARINE
@@ -562,8 +567,7 @@ function DiveManMarineChallenge() {
         )
     
     return
-        CurrentStage() == STAGE_ADDRESS_MAP[DiveMan]
-        && CurrentCheckpoint() == CHECKPOINT_END
+        start
         && cancel
         && IsUsingOnlyAllowedModifiers()
         && IsUsingRequiredCharacters(RequiresMegaManOrMan)
@@ -638,9 +642,13 @@ function FreePlayBossKill(
         )
     }
 
+    start =
+        CurrentStage() == STAGE_ADDRESS_MAP[primeStage]
+        && CurrentCheckpoint() == primeCheckpoint
+
     cancel =
         never(PlayerDead() && CanonicalGameState() != STATE_FREE_PLAY_MENU && CanonicalGameState() != STATE_MM4_SETTINGS) 
-        && never(CanonicalGameState() == STATE_LEVEL && IsFreePlayEnabled() == 0)
+        && never(CanonicalGameState() != STATE_FREE_PLAY_MENU && IsFreePlayEnabled() == 0)
         && allowJumpingClause
         && allowSlidingClause
         && allowDamageClause
@@ -648,8 +656,7 @@ function FreePlayBossKill(
         && onlySpecificWeaponClause
 
     return
-        CurrentStage() == STAGE_ADDRESS_MAP[primeStage]
-        && CurrentCheckpoint() == primeCheckpoint
+        start
         && cancel
         && IsUsingOnlyAllowedModifiers(
             minimumDifficulty = DIFFICULTY_MEDIUM,
@@ -1001,11 +1008,11 @@ achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(Wily1))
 achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(Wily2))
 achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(Wily3, bossLifeBarCount = 2))
 
-achievement("Mega Milestone", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
+achievement("Mega Man Game Clear", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM))
 achievement("Mega Perseverance", "As Mega Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresMegaManOrMan, DIFFICULTY_HARD))
-achievement("Proto Power", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
+achievement("Proto Man Game Clear", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM))
 achievement("Proto Perseverance", "As Proto Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD))
-achievement("Roll's Resolution", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM))
+achievement("Roll Game Clear", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM))
 achievement("Roll's Perseverance", "As Roll, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresRoll, DIFFICULTY_HARD))
 
 achievement("Toad-ally Unharmed", "Reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless(ToadMan, RequiresAnyCharacter))
@@ -1031,14 +1038,14 @@ achievement("Shielding the Spotlight", "As Proto Man, defeat Bright Man with onl
 achievement("Sphinx Shield Showdown", "As Proto Man, defeat Pharaoh Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresProtoMan))
 achievement("Imperfect Circle", "As Proto Man, defeat Ring Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresProtoMan))
 achievement("Shielded Dust-Off", "As Proto Man, defeat Dust Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DustMan, RequiresProtoMan))
-achievement("Bone-proof Armor", "As Proto Man, defeat Skull Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresProtoMan))
+achievement("Bone-Proof Armor", "As Proto Man, defeat Skull Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresProtoMan))
 achievement("Deep Dive Defense", "As Proto Man, defeat Dive Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DiveMan, RequiresProtoMan))
 achievement("Excavator's End", "As Proto Man, defeat Drill Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(DrillMan, RequiresProtoMan))
 
-achievement("Cleaning up the Pond", "As Roll, defeat Toad Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(ToadMan, RequiresRoll))
-achievement("Sweeping Away the Darkness", "As Roll, defeat Bright Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresRoll))
+achievement("Cleaning up the Pond", "As Roll, defeat Toad Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresRoll))
+achievement("Sweeping Away the Darkness", "As Roll, defeat Bright Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BrightMan, RequiresRoll))
 achievement("Dusting Off the Sphinx", "As Roll, defeat Pharaoh Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresRoll))
-achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresRoll))
+achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 25, BossKillNoSpecialWeapons(RingMan, RequiresRoll))
 achievement("Dusted Clean", "As Roll, defeat Dust Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DustMan, RequiresRoll))
 achievement("Sweeping the Bone Yard", "As Roll, defeat Skull Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresRoll))
 achievement("Deep Sea Broom Brawl", "As Roll, defeat Dive Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DiveMan, RequiresRoll))
@@ -1048,7 +1055,7 @@ achievement("Slippery Success", "Defeat Toad Man without taking damage", 5, Boss
 achievement("Untouched Illumination", "Defeat Bright Man without taking damage", 10, BossKillDamageless(BrightMan, RequiresAnyCharacter))
 achievement("Pyramid Scheme", "Defeat Pharaoh Man without taking damage", 10, BossKillDamageless(PharaohMan, RequiresAnyCharacter))
 achievement("Flawless Ring Toss", "Defeat Ring Man without taking damage", 10, BossKillDamageless(RingMan, RequiresAnyCharacter))
-achievement("Spotless Showdown", "Defeat Dust Man without taking damage", 10, BossKillDamageless(DustMan, RequiresAnyCharacter))
+achievement("Scrapyard Scrapper", "Defeat Dust Man without taking damage", 10, BossKillDamageless(DustMan, RequiresAnyCharacter))
 achievement("Bone-Dry Victory", "Defeat Skull Man without taking damage", 10, BossKillDamageless(SkullMan, RequiresAnyCharacter))
 achievement("Torpedo Dodge Champion", "Defeat Dive Man without taking damage", 10, BossKillDamageless(DiveMan, RequiresAnyCharacter))
 achievement("Rock Solid Success", "Defeat Drill Man without taking damage", 10, BossKillDamageless(DrillMan, RequiresAnyCharacter))
@@ -1123,7 +1130,7 @@ achievement("Desert Blackout", "Turn off the lights in Pharaoh Man's stage with 
 
 // Idea credit: Fox in Yellow Socks
 achievement(
-    "What is a man?",
+    "What is a Man?",
     "Beat the game as Man. All settings and cheats are allowed!",
     10,
     RequireNewFileWithoutPasswords()
@@ -1160,7 +1167,7 @@ achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize 
 achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg())
 
 // Idea: frijoles / FlashbackYT
-achievement("Toadally Skipped", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip())
+achievement("Toad-ally Skipped", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip())
 
 // Idea: Fox in Yellow Socks
 achievement(
@@ -1287,7 +1294,7 @@ function SubmitTime() {
 }
 
 leaderboard(
-    "Any% (Mega Man)",
+    "Mega Man Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresMegaMan),
     cancel = always_false(),
@@ -1297,7 +1304,7 @@ leaderboard(
 )
 
 leaderboard(
-    "Any% (Proto Man)",
+    "Proto Man Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresProtoMan),
     cancel = always_false(),
@@ -1307,10 +1314,41 @@ leaderboard(
 )
 
 leaderboard(
-    "Any% (Roll)",
+    "Roll Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresRoll),
     cancel = always_false(),
+    submit = SubmitTime(),
+    value = repeated(TimeSpan(), always_true()),
+    format = "FRAMES"
+)
+
+// Subset Leaderboards
+leaderboard(
+    "Mr. Perfect",
+    "New game, default settings",
+    start = StartLeaderboard(RequiresMegaMan),
+    cancel = CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
+    submit = SubmitTime(),
+    value = repeated(TimeSpan(), always_true()),
+    format = "FRAMES"
+)
+
+leaderboard(
+    "Ms. Perfect",
+    "New game, default settings",
+    start = StartLeaderboard(RequiresRoll),
+    cancel = CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
+    submit = SubmitTime(),
+    value = repeated(TimeSpan(), always_true()),
+    format = "FRAMES"
+)
+
+leaderboard(
+    "Perfect Blues",
+    "New game, default settings",
+    start = StartLeaderboard(RequiresProtoMan),
+    cancel = CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
     format = "FRAMES"
