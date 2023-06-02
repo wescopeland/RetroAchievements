@@ -1297,7 +1297,7 @@ leaderboard(
     "Mega Man Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresMegaMan),
-    cancel = always_false(),
+    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
     format = "FRAMES"
@@ -1307,7 +1307,7 @@ leaderboard(
     "Proto Man Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresProtoMan),
-    cancel = always_false(),
+    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
     format = "FRAMES"
@@ -1317,7 +1317,7 @@ leaderboard(
     "Roll Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresRoll),
-    cancel = always_false(),
+    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
     format = "FRAMES"
@@ -1328,7 +1328,10 @@ leaderboard(
     "Mr. Perfect",
     "New game, default settings",
     start = StartLeaderboard(RequiresMegaMan),
-    cancel = CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
+    cancel = 
+        CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
+        || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
+    ,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
     format = "FRAMES"
@@ -1338,7 +1341,10 @@ leaderboard(
     "Ms. Perfect",
     "New game, default settings",
     start = StartLeaderboard(RequiresRoll),
-    cancel = CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
+    cancel = 
+        CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
+        || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
+    ,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
     format = "FRAMES"
@@ -1348,7 +1354,10 @@ leaderboard(
     "Perfect Blues",
     "New game, default settings",
     start = StartLeaderboard(RequiresProtoMan),
-    cancel = CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
+    cancel = 
+        CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
+        || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
+    ,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
     format = "FRAMES"
