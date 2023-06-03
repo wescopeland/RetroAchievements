@@ -103,6 +103,7 @@ BOSS_SCREENS = {
     Wily3: {"previous": [0x1D], "current": [0x19]},
     Wily4: {"previous": [0x13], "current": [0x14]}
 }
+WILY3_CURRENT = 0x19
 // #endregion
 
 // #region Memory -------------------------------------------------------------------------------------------------------------------------
@@ -349,7 +350,7 @@ function IsUsingOnlyAllowedModifiers(
 function IsBossKilled(bossDeadHealth = 0, bossLifeBarCount = 1) {
     wilyMachineHack = always_true()
     if (bossLifeBarCount == 2) {
-        wilyMachineHack = once(HighestVDPSpriteIndex() == WILY_MACHINE_FORM_TWO)
+        wilyMachineHack = once(CurrentScreen() == WILY3_CURRENT && HighestVDPSpriteIndex() == WILY_MACHINE_FORM_TWO)
     }
 
     return
@@ -1151,9 +1152,9 @@ achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man'
 achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776)
 
 // Idea credit: Lion Sum
-achievement("Pharaoh's Flood", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 2, PharaohManHardenQuicksand(), id = 323777)
+achievement("Pharaoh's Flood [m]", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 2, PharaohManHardenQuicksand(), id = 323777)
 // Idea credit: Lion Sum
-achievement("Desert Blackout", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 2, PharaohManTurnOffLights(), id = 323778)
+achievement("Desert Blackout [m]", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 2, PharaohManTurnOffLights(), id = 323778)
 
 // Idea credit: Fox in Yellow Socks
 achievement(
@@ -1182,20 +1183,20 @@ achievement("The Kremlin Crawl", "Unlock Dr. Cossack's stages by defeating all e
 achievement("9 Times the Charm", "Collect 9 lives", 5, NineLives(), id = 323782)
 achievement("Soda Popinski's Envy", "Collect 9 E-Tanks", 5, NineETanks(), id = 323783)
 
-achievement("Lumen-ating Path", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn(), id = 323784)
+achievement("Lumen-ating Path [m]", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn(), id = 323784)
 
 // Idea credit: JackelZXA
 achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only the shield [No E-Tanks]", 5, BossKillNoWeapons(Wily2, RequiresProtoMan), id = 323785)
 
 // Idea: Fox in Yellow Socks
-achievement("Wired for Victory", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill(), id = 323786)
+achievement("Wired for Victory [m]", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill(), id = 323786)
 
-achievement("A Mega Surprise", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787)
+achievement("A Mega Surprise [m]", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787)
 achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 2, TakoTrashHitboxHidingSpot(), id = 323788)
 achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg(), id = 323789)
 
 // Idea: frijoles / FlashbackYT
-achievement("Toad-ally Skipped", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip(), id = 323790)
+achievement("Toad-ally Skipped [m]", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip(), id = 323790)
 
 // Idea: Fox in Yellow Socks
 achievement(
