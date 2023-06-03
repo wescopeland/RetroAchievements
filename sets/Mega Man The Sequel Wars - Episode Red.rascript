@@ -3,23 +3,21 @@
 
 // Credits:
 // Woodfrog, Sequel Wars Team - Game programming, memory dump, pointers assistance, game icon
-// Fox in Yellow Socks, Sequel Wars Team - Dev Team Challenges, achievement ideas
+// Fox in Yellow Socks, Sequel Wars Team - Dev Team Challenges, Achievement ideas
 // Lion Sum, Sequel Wars Team - Achievement ideas
 // JackelZXA, Sequel Wars Team - Achievement ideas
-// frijoles, Sequel Wars Team - Achievement ideas
+// frijoles, Sequel Wars Team - Achievement ideas, Playtesting
+// SonicFan1, Sequel Wars Team - Playtesting
+// Cykette, RetroAchievements - Lead Quality Assurance, Playtesting
 // FlashbackYT, RetroAchievements - Achievement ideas
 // televandalist, RetroAchievements - Artwork assistance
-// Cykette - Playtesting and quality assurance
 
 // Special Thanks:
 // purplem1lk, suspect15
 
-// TODO: Make sure boss no hit & boss no special achievements work during boss rush
-// TODO: be sure to mark missables
 // TODO: be sure to credit users for achievement ideas
 // TODO: achievement order
 // TODO: better achievement descriptions [specify settings similar to Mega Man 2 PCE]
-// TODO: make sure total points is a nice number ending in 5 or 0
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
@@ -59,6 +57,7 @@ _UNSAFE_MEM_BOSSRUSHDEADA  = 0x2852
 _UNSAFE_MEM_BOSSRUSHDEADB  = 0x2853
 _UNSAFE_MEM_SCREENDARKNESS = 0x2E1A
 _UNSAFE_MEM_QUICKSANDTIMER = 0x2E25
+_UNSAFE_MEM_IFRAMETIMER    = 0x307E
 _UNSAFE_MEM_ESCAPEPODYPOS  = 0x31E8
 _UNSAFE_MEM_TAKOTRASHHBOX  = 0x31EC
 // #endregion
@@ -127,6 +126,7 @@ function IsJumpPressed() => byte(_MEM_JUMPPRESSED)
 function IsFreePlayEnabled() => byte(_MEM_FREEPLAY)
 function FlashStopperTimer() => byte(_MEM_FLASHSTOPPER)
 function Timer() => byte(_MEM_TIMER)
+function IframeTimer() => byte(_UNSAFE_MEM_IFRAMETIMER)
 function CastleStagesBeaten() => byte(_MEM_CASTLEPROG)
 function CurrentHealth() => byte(_MEM_DISPHEALTH)
 
@@ -1329,20 +1329,15 @@ achievement(
     id = 323800,
     badge = "361460"
 )
-
-// TODO: character leaderboards
-
 // #endregion Achievements
 
 // #region Subset - Bonus -----------------------------------------------------------------------------------------------------------------
-
 achievement("Halfway Hero", "As Mega Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresMegaManOrMan))
 achievement("Halfway Haven", "As Proto Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresProtoMan))
 achievement("Halfway Helper", "As Roll, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresRoll))
 achievement("Mr. Perfect", "As Mega Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresMegaManOrMan))
 achievement("Perfect Blues", "As Proto Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresProtoMan))
 achievement("Ms. Perfect", "As Roll, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresRoll))
-
 // #endregion
 
 // #region Leaderboards -------------------------------------------------------------------------------------------------------------------
@@ -1599,6 +1594,15 @@ rich_presence_conditional_display(CanonicalGameState() == STATE_ENTER_PASSWORD_S
 rich_presence_conditional_display(CanonicalGameState() == STATE_MM4_SETTINGS, "Adjusting the Mega Man 4 game settings")
 rich_presence_conditional_display(CanonicalGameState() == STATE_FREE_PLAY_MENU, "On the Free Play menu")
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_ENDING_ONE || CanonicalGameState() == STATE_ENDING_TWO),
+
+    "{0} • {1} • Watching the Ending",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels)
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_ENDING_ONE || CanonicalGameState() == STATE_ENDING_TWO),
     "{0} • {1} • Watching the ending",
@@ -1606,6 +1610,15 @@ rich_presence_conditional_display(
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels)
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && CanonicalGameState() == STATE_CREDITS,
+
+    "{0} • {1} • Viewing the credits. Thanks for Playing! 🎉",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels)
+)
 rich_presence_conditional_display(
     CanonicalGameState() == STATE_CREDITS,
     "{0} • {1} • Viewing the credits. Thanks for playing! 🎉",
@@ -1613,6 +1626,18 @@ rich_presence_conditional_display(
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels)
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && CanonicalGameState() == STATE_STAGE_SELECT,
+
+    "{0} • {1} • {2}/8 • {3} {4} • Stage Select Screen",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
+)
 rich_presence_conditional_display(
     CanonicalGameState() == STATE_STAGE_SELECT,
     "{0} • {1} • {2}/8 • {3} {4} • Stage Select Screen",
@@ -1623,12 +1648,36 @@ rich_presence_conditional_display(
     rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && CanonicalGameState() == STATE_LEVEL_INTRO,
+
+    "Watching the Intro to {0}'s stage",
+    rich_presence_lookup("Stage", CurrentStage(), stageLabels, "a bad guy")
+)
 rich_presence_conditional_display(
     CanonicalGameState() == STATE_LEVEL_INTRO,
     "Watching the intro to {0}'s stage",
     rich_presence_lookup("Stage", CurrentStage(), stageLabels, "a bad guy")
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() < STAGE_ADDRESS_MAP[Cossack1] 
+    && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
+
+    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s Stage",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives"),
+    rich_presence_lookup("Checkpoint Label", CurrentCheckpoint(), checkpointLabels, "In"),
+    rich_presence_lookup("Stage", CurrentStage(), stageLabels, "a bad guy")
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() < STAGE_ADDRESS_MAP[Cossack1] 
@@ -1655,6 +1704,22 @@ bossRushEnemyLabels = {
     0x22: "Drill Man"
 }
 bossRushEnemyRooms = [0x21, 0x23, 0x1C, 0x1B, 0x1F, 0x18, 0x20, 0x22]
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == STAGE_ADDRESS_MAP[Wily3]
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
+    && (CurrentCheckpoint() == CHECKPOINT_END)
+    && any_of(bossRushEnemyRooms, r => CurrentScreen() == r),
+
+    "{0} • {1} • {2}/8 • {3} {4} • Fighting {5} in the boss rush",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives"),
+    rich_presence_lookup("Boss Rush Enemy Label", CurrentScreen(), bossRushEnemyLabels, "a bad guy")
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == STAGE_ADDRESS_MAP[Wily3]
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
@@ -1670,6 +1735,20 @@ rich_presence_conditional_display(
     rich_presence_lookup("Boss Rush Enemy Label", CurrentScreen(), bossRushEnemyLabels, "a bad guy")
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
+    && (CurrentCheckpoint() == CHECKPOINT_END),
+
+    "{0} • {1} • {2}/8 • {3} {4} • In the boss rush of Dr. Wily's third stage",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
@@ -1683,6 +1762,20 @@ rich_presence_conditional_display(
     rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
+    && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH,
+
+    "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily Machine 4",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
@@ -1696,6 +1789,20 @@ rich_presence_conditional_display(
     rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() == STAGE_ADDRESS_MAP[Wily4] 
+    && BossActive() == BOSS_ACTIVE_WILY_CAPSULE,
+
+    "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily Capsule",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily4] 
@@ -1709,12 +1816,29 @@ rich_presence_conditional_display(
     rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives")
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
+    && CurrentStage() >= STAGE_ADDRESS_MAP[Cossack1] 
+    && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
+
+    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7}",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives"),
+    rich_presence_lookup("Checkpoint Label", CurrentCheckpoint(), checkpointLabels, "In"),
+    rich_presence_lookup("Stage", CurrentStage(), stageLabels, "a bad guy"),
+    rich_presence_lookup("EndStage", CurrentStage(), doctorVillainStageIntroLabels, "endgame")
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() >= STAGE_ADDRESS_MAP[Cossack1] 
     && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
 
-    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7} stage",
+    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7}",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
     rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
@@ -1725,6 +1849,18 @@ rich_presence_conditional_display(
     rich_presence_lookup("EndStage", CurrentStage(), doctorVillainStageIntroLabels, "endgame")
 )
 
+// anticheat
+rich_presence_conditional_display(
+    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && (CurrentCheckpoint() == CHECKPOINT_END),
+    "{0} • {1} • {2}/8 • {3} {4} • Fighting {5}",
+    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
+    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
+    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
+    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
+    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives"),
+    rich_presence_lookup("Boss Name", CurrentStage(), bossNameLabels, "a bad guy")
+)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && (CurrentCheckpoint() == CHECKPOINT_END),
     "{0} • {1} • {2}/8 • {3} {4} • Fighting {5}",
