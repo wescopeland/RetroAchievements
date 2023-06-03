@@ -2,15 +2,15 @@
 // #ID = 24453
 
 // Credits:
-// Woodfrog, Sequel Wars Team - Game programming, memory dump, pointers assistance, game icon
-// Fox in Yellow Socks, Sequel Wars Team - Dev Team Challenges, Achievement ideas
-// Lion Sum, Sequel Wars Team - Achievement ideas
-// JackelZXA, Sequel Wars Team - Achievement ideas
-// frijoles, Sequel Wars Team - Achievement ideas, Playtesting
-// SonicFan1, Sequel Wars Team - Playtesting
+// Woodfrog, Sequel Wars Team - Game Programming, Memory Assistance, Pointers Assistance, Game Icon
+// Fox in Yellow Socks, Sequel Wars Team - Dev Team Challenges, Achievement Concepts
 // Cykette, RetroAchievements - Lead Quality Assurance, Playtesting
-// FlashbackYT, RetroAchievements - Achievement ideas
-// televandalist, RetroAchievements - Artwork assistance
+// frijoles, Sequel Wars Team - Achievement Concepts, Playtesting, Subset Icon
+// Lion Sum, Sequel Wars Team - Achievement Concepts
+// JackelZXA, Sequel Wars Team - Achievement Concepts
+// SonicFan1, Sequel Wars Team - Playtesting
+// FlashbackYT, RetroAchievements - Achievement Concepts
+// televandalist, RetroAchievements - Artwork Assistance
 
 // Special Thanks:
 // purplem1lk, suspect15
@@ -1123,10 +1123,10 @@ achievement("Tako Trashed", "Defeat Tako Trash without taking damage", 10, BossK
 achievement("Outsmarted Contraption", "Defeat Wily Machine 4 without taking damage", 25, BossKillDamageless(Wily3, RequiresAnyCharacter, bossLifeBarCount = 2), id = 323734, badge = "361664")
 achievement("Foiled Again", "Defeat Wily Capsule without taking damage", 10, BossKillDamageless(Wily4, RequiresAnyCharacter), id = 323735, badge = "361726")
 
-achievement("Cold Yet Untouched", "Reach the boss doors of Dr. Cossack's Citadel I without taking damage or dying", 10, BossDoorDamageless(Cossack1, RequiresAnyCharacter), id = 323736)
-achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citadel II without taking damage or dying", 10, BossDoorDamageless(Cossack2, RequiresAnyCharacter), id = 323737)
-achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless(Cossack3, RequiresAnyCharacter), id = 323738)
-achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless(Cossack4, RequiresAnyCharacter), id = 323739)
+achievement("Cold Yet Untouched", "Reach the boss doors of Dr. Cossack's Citadel I without taking damage or dying", 10, BossDoorDamageless(Cossack1, RequiresAnyCharacter), id = 323736, badge = "361886")
+achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citadel II without taking damage or dying", 10, BossDoorDamageless(Cossack2, RequiresAnyCharacter), id = 323737, badge = "361887")
+achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless(Cossack3, RequiresAnyCharacter), id = 323738, badge = "361888")
+achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless(Cossack4, RequiresAnyCharacter), id = 323739, badge = "361891")
 
 achievement("Bug Buster", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresMegaManOrMan), id = 323740, badge = "361641")
 achievement("Straight-Angle Annihalator", "As Mega Man, defeat Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack2, RequiresMegaManOrMan), id = 323741, badge = "361642")
@@ -1143,8 +1143,8 @@ achievement("Shape Shifter's Nightmare", "As Roll, defeat Square Machine with on
 achievement("Infestation Inhibition", "As Roll, defeat Cockroach Twins with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Cossack3, RequiresRoll), id = 323750, badge = "361651")
 achievement("Cossack's Cleanup Crew", "As Roll, defeat the Cossack Catcher with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack4, RequiresRoll, bossDeadHealth = 0x02), id = 323751, badge = "361652")
 
-achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless(Wily1, RequiresAnyCharacter), id = 323752)
-achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless(Wily2, RequiresAnyCharacter), id = 323753)
+achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless(Wily1, RequiresAnyCharacter), id = 323752, badge = "361889")
+achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless(Wily2, RequiresAnyCharacter), id = 323753, badge = "361890")
 
 // TODO: Rename
 achievement("Weaponless Win", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresMegaManOrMan), id = 323754, badge = "361653")
@@ -1175,13 +1175,13 @@ achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Hard] 
 achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323773, badge = "361695")
 achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323774, badge = "361696")
 
-achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"), id = 323775)
-achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776)
+achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"), id = 323775, badge = "361987")
+achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776, badge = "361988")
 
 // Idea credit: Lion Sum
-achievement("Pharaoh's Flood [m]", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 2, PharaohManHardenQuicksand(), id = 323777)
+achievement("Pharaoh's Flood [m]", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 2, PharaohManHardenQuicksand(), id = 323777, badge = "361989")
 // Idea credit: Lion Sum
-achievement("Desert Blackout [m]", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 2, PharaohManTurnOffLights(), id = 323778)
+achievement("Desert Blackout [m]", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 2, PharaohManTurnOffLights(), id = 323778, badge = "361990")
 
 // Idea credit: Fox in Yellow Socks
 achievement(
@@ -1200,30 +1200,31 @@ achievement(
         allowFullArsenal = 1,
         allowBurstChaser = 1
     ),
-    id = 323779
+    id = 323779,
+    badge = "361991"
 )
 
 // Idea credit: JackelZXA
-achievement("Intergalactic Eddie", "Find Eddie on Ring Man's stage", 1, RingManEddie(), id = 323780)
+achievement("Intergalactic Eddie", "Find Eddie on Ring Man's stage", 1, RingManEddie(), id = 323780, badge = "361992")
 
 achievement("The Kremlin Crawl", "Unlock Dr. Cossack's stages by defeating all eight Robot Masters [No Passwords]", 10, RobotMastersClear(), id = 323781, badge = "361628")
-achievement("9 Times the Charm", "Collect 9 lives", 5, NineLives(), id = 323782)
-achievement("Soda Popinski's Envy", "Collect 9 E-Tanks", 5, NineETanks(), id = 323783)
+achievement("9 Times the Charm", "Collect 9 lives", 5, NineLives(), id = 323782, badge = "361993")
+achievement("Soda Popinski's Envy", "Collect 9 E-Tanks", 5, NineETanks(), id = 323783, badge = "361994")
 
-achievement("Lumen-ating Path [m]", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn(), id = 323784)
+achievement("Lumen-ating Path [m]", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn(), id = 323784, badge = "361995")
 
 // Idea credit: JackelZXA
-achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only the shield [No E-Tanks]", 5, BossKillNoWeapons(Wily2, RequiresProtoMan), id = 323785)
+achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only the shield [No E-Tanks]", 5, BossKillNoWeapons(Wily2, RequiresProtoMan), id = 323785, badge = "361997")
 
 // Idea: Fox in Yellow Socks
-achievement("Wired for Victory [m]", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill(), id = 323786)
+achievement("Wired for Victory [m]", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill(), id = 323786, badge = "362043")
 
-achievement("A Mega Surprise [m]", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787)
-achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 2, TakoTrashHitboxHidingSpot(), id = 323788)
-achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg(), id = 323789)
+achievement("A Mega Surprise [m]", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787, badge = "361998")
+achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 2, TakoTrashHitboxHidingSpot(), id = 323788, badge = "362035")
+achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg(), id = 323789, badge = "362034")
 
 // Idea: frijoles / FlashbackYT
-achievement("Toad-ally Skipped [m]", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip(), id = 323790)
+achievement("Toad-ally Skipped [m]", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip(), id = 323790, badge = "362044")
 
 // Idea: Fox in Yellow Socks
 achievement(
