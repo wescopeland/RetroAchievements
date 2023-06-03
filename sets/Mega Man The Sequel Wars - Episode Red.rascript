@@ -311,7 +311,11 @@ function StageStarted() {
     // After beating a boss, their stage intro doesn't play anymore.
     return
         CanonicalGameState() == STATE_LEVEL 
-        && (previousGameState == STATE_LEVEL_INTRO || previousGameState == STATE_STAGE_SELECT)
+        && (
+            previousGameState == STATE_LEVEL_INTRO // normal gameplay
+            || previousGameState == STATE_STAGE_SELECT 
+            || previousGameState == STATE_MM4_SETTINGS // free play mode
+        )
 }
 
 MustBeDisabled = 0
