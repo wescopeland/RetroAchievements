@@ -1143,9 +1143,9 @@ achievement("Proto Perfection [m]", "As Proto Man, beat the game without ever us
 achievement("Roll's Resolve [m]", "As Roll, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323770, badge = "361692")
 achievement("Roll's Resilience [m]", "As Roll, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323771, badge = "361693")
 
-achievement("Mega Maniac", "As Mega Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323772, badge = "361694")
-achievement("Agent of Anarchy", "As Proto Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323773, badge = "361695")
-achievement("Maid of Mayhem", "As Roll, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323774, badge = "361696")
+achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323772, badge = "361694")
+achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323773, badge = "361695")
+achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323774, badge = "361696")
 
 achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"), id = 323775)
 achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776)
@@ -1264,7 +1264,7 @@ achievement(
 // Solution: Stand near the middle and slide
 achievement(
     "[Dev Team Challenge VII] Wily Capsule",
-    "[FREE PLAY MODE: Wily 4, Checkpoint 1] Defeat Wily Capsule without jumping",
+    "[FREE PLAY MODE: Wily 4, Checkpoint 0] Defeat Wily Capsule without jumping",
     25,
     FreePlayBossKill(Wily4, CHECKPOINT_NONE, allowJumping = 0),
     id = 323797,
