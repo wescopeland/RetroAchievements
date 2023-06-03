@@ -311,6 +311,7 @@ function StageStarted() {
     // After beating a boss, their stage intro doesn't play anymore.
     return
         CanonicalGameState() == STATE_LEVEL 
+        && CurrentCheckpoint() == CHECKPOINT_NONE
         && (
             previousGameState == STATE_LEVEL_INTRO // normal gameplay
             || previousGameState == STATE_STAGE_SELECT 
