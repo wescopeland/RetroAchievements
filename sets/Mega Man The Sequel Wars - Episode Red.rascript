@@ -473,6 +473,10 @@ function ResetIfNonPlayingState() {
     return clause
 }
 
+function HasUnlockedEightRobotMasterWeapons() {
+    return WeaponsEarnedA() == 0xFE && bit0(_MEM_WEPUNLOCKED_B) == 1
+}
+
 // Compute how many frames it will take to reach a certain time span.
 // @param minutes {0} - How many minutes it will take
 // @param seconds {0} - How many seconds it will take
@@ -913,8 +917,7 @@ function RobotMastersClear() {
         RequireWithoutPasswords()
         && IsUsingOnlyAllowedModifiers()
         && CanonicalGameState() == STATE_STAGE_SELECT
-        && WeaponsEarnedA() == 0xFE // All earned
-        && WeaponsEarnedB() == 0x01 // All earned
+        && HasUnlockedEightRobotMasterWeapons()
 }
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
@@ -960,8 +963,7 @@ function DamagelessRobotMastersClear(requiredCharacters = 0x00) {
         && RequireNewFileWithoutPasswords()
         && trigger_when(
             CanonicalGameState() == STATE_STAGE_SELECT
-            && WeaponsEarnedA() == 0xFE // All earned
-            && WeaponsEarnedB() == 0x01 // All earned
+            && HasUnlockedEightRobotMasterWeapons()
         )
 }
 
