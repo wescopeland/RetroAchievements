@@ -102,7 +102,13 @@ BOSS_SCREENS = {
     Wily3: {"previous": [0x1D], "current": [0x19]},
     Wily4: {"previous": [0x13], "current": [0x14]}
 }
-WILY3_CURRENT = 0x19
+BRIGHT_MAN_CURRENT = 0x23
+MOTHRAYA_CURRENT = 0x0C
+COCKROACH_CURRENT = 0x0E
+COSSACK_CURRENT = 0x69
+METALL_CURRENT = 0x0C
+WILY_MACHINE_CURRENT = 0x19
+WILY_CAPSULE_CURRENT = 0x14
 // #endregion
 
 // #region Memory -------------------------------------------------------------------------------------------------------------------------
@@ -350,7 +356,7 @@ function IsUsingOnlyAllowedModifiers(
 function IsBossKilled(bossDeadHealth = 0, bossLifeBarCount = 1) {
     wilyMachineHack = always_true()
     if (bossLifeBarCount == 2) {
-        wilyMachineHack = once(CurrentScreen() == WILY3_CURRENT && HighestVDPSpriteIndex() == WILY_MACHINE_FORM_TWO)
+        wilyMachineHack = once(CurrentScreen() == WILY_MACHINE_CURRENT && HighestVDPSpriteIndex() == WILY_MACHINE_FORM_TWO)
     }
 
     return
@@ -618,6 +624,7 @@ function DiveManMarineChallenge() {
 }
 
 // @param primeStage {STAGE_ADDRESS_MAP} - What stage this challenge lives on
+// @param currentScreen {see BOSS_SCREENS[bossKey]["current"]} - So we don't disable jump, etc outside the boss fight
 // @param primeCheckpoint {0x02: CHECKPOINT_END} - On what checkpoint to prime the achievement icon
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
@@ -629,6 +636,7 @@ function DiveManMarineChallenge() {
 // @param onlySpecificWeapon {0x00: EQUIPPED_BUSTER} - Are there any weapon restrictions while killing this boss // @see EQUIPPED_*
 function FreePlayBossKill(
     primeStage,
+    currentScreen = 0x00,
     primeCheckpoint = 0x02,
     bossDeadHealth = 0,
     bossLifeBarCount = 1,
@@ -640,15 +648,9 @@ function FreePlayBossKill(
     onlySpecificWeapon = 0
 ) {
     allowJumpingClause = always_true()
-    if (allowJumping == 0 && primeStage != Wily4) {
+    if (allowJumping == 0) {
         allowJumpingClause = disable_when(
-            CanonicalGameState() == STATE_LEVEL && IsJumping(),
-            FreePlayChallengeReset()
-        )
-    } else if (allowJumping == 0 && primeStage == Wily4) {
-        allowJumpingClause = disable_when(
-            // unfortunately, the player has to traverse the level and must jump at least once before the boss
-            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == 0x14 && IsJumping(),
+            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == currentScreen && IsJumping(),
             FreePlayChallengeReset()
         )
     }
@@ -656,7 +658,7 @@ function FreePlayBossKill(
     allowSlidingClause = always_true()
     if (allowSliding == 0) {
         allowSlidingClause = disable_when(
-            CanonicalGameState() == STATE_LEVEL && IsSliding() == 1,
+            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == currentScreen && IsSliding() == 1,
             FreePlayChallengeReset()
         )
     }
@@ -664,7 +666,7 @@ function FreePlayBossKill(
     allowDamageClause = always_true()
     if (allowDamage == 0) {
         allowDamageClause = disable_when(
-            CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth()),
+            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == currentScreen && CurrentHealth() < prev(CurrentHealth()),
             FreePlayChallengeReset()
         )
     }
@@ -1228,7 +1230,7 @@ achievement(
     "[Dev Team Challenge I] Bright Man",
     "[FREE PLAY MODE: Bright, Checkpoint 2] Defeat Bright Man damageless using only Rain Flush",
     25,
-    FreePlayBossKill(BrightMan, CHECKPOINT_END, allowDamage = 0, onlySpecificWeapon = EQUIPPED_RFLUSH),
+    FreePlayBossKill(BrightMan, BRIGHT_MAN_CURRENT, CHECKPOINT_END, allowDamage = 0, onlySpecificWeapon = EQUIPPED_RFLUSH),
     id = 323791,
     badge = "361456"
 )
@@ -1248,7 +1250,7 @@ achievement(
     "[Dev Team Challenge III] Mothraya",
     "[FREE PLAY MODE: Cossack 1, Checkpoint 2] Defeat Mothraya damageless without jumping and with Full Arsenal enabled",
     25,
-    FreePlayBossKill(Cossack1, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled),
+    FreePlayBossKill(Cossack1, MOTHRAYA_CURRENT, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled),
     id = 323793,
     badge = "361659"
 )
@@ -1259,7 +1261,7 @@ achievement(
     "[Dev Team Challenge IV] Cockroach Twins",
     "[FREE PLAY MODE: Cossack 3, Checkpoint 2] Defeat Cockroach Twins without jumping and without E-Tanks",
     10,
-    FreePlayBossKill(Cossack3, CHECKPOINT_END, allowJumping = 0, allowETanks = 0),
+    FreePlayBossKill(Cossack3, COCKROACH_CURRENT, CHECKPOINT_END, allowJumping = 0, allowETanks = 0),
     id = 323794,
     badge = "361660"
 )
@@ -1270,7 +1272,7 @@ achievement(
     "[Dev Team Challenge V] Cossack Catcher",
     "[FREE PLAY MODE: Cossack 4, Checkpoint 2] Defeat Cossack Catcher damageless without jumping, without sliding, and with Full Arsenal enabled",
     25,
-    FreePlayBossKill(Cossack4, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowFullArsenal = MustBeEnabled),
+    FreePlayBossKill(Cossack4, COSSACK_CURRENT, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowFullArsenal = MustBeEnabled, bossDeadHealth = 0x02),
     id = 323795,
     badge = "361661"
 )
@@ -1281,7 +1283,7 @@ achievement(
     "[Dev Team Challenge VI] Metall Daddy",
     "[FREE PLAY MODE: Wily 1, Checkpoint 2] Defeat Metall Daddy damageless and without sliding",
     25,
-    FreePlayBossKill(Wily1, CHECKPOINT_END, allowSliding = 0, allowDamage = 0),
+    FreePlayBossKill(Wily1, METALL_CURRENT, CHECKPOINT_END, allowSliding = 0, allowDamage = 0),
     id = 323796,
     badge = "361662"
 )
@@ -1292,7 +1294,7 @@ achievement(
     "[Dev Team Challenge VII] Wily Capsule",
     "[FREE PLAY MODE: Wily 4, Checkpoint 0] Defeat Wily Capsule without jumping",
     25,
-    FreePlayBossKill(Wily4, CHECKPOINT_NONE, allowJumping = 0),
+    FreePlayBossKill(Wily4, WILY_CAPSULE_CURRENT, CHECKPOINT_NONE, allowJumping = 0),
     id = 323797,
     badge = "361725"
 )
@@ -1357,7 +1359,7 @@ function StartLeaderboard(requiresCharacter = 1) {
 function SubmitTime() {
     return
         CurrentStage() == STAGE_ADDRESS_MAP[Wily4]
-        && CurrentScreen() == 0x14 // BOSS_SCREENS[Wily4]["current"]
+        && CurrentScreen() == WILY4_CURRENT // BOSS_SCREENS[Wily4]["current"]
         && never(PlayerDead())
         && IsBossKilled()
 }
