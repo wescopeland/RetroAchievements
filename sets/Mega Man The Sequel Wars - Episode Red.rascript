@@ -446,6 +446,22 @@ function FreePlayChallengeReset() {
         || CanonicalGameState() == STATE_FREE_PLAY_MENU
 }
 
+function ResetIfNonPlayingState() {
+    clause = (
+        // prevent triggers when exiting from free play
+        never(CanonicalGameState() == STATE_FREE_PLAY_MENU && prev(CanonicalGameState()) == STATE_PAUSE_MENU_OPEN)
+
+        // prevent triggers when exiting from a stage
+        && never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN && prev(CanonicalGameState()) == STATE_PAUSE_MENU_OPEN)
+
+        // prevent premature icons
+        && never(CanonicalGameState() == STATE_WEAPON_GET)
+        && never(CanonicalGameState() == STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN)
+    )
+
+    return clause
+}
+
 // Compute how many frames it will take to reach a certain time span.
 // @param minutes {0} - How many minutes it will take
 // @param seconds {0} - How many seconds it will take
@@ -595,6 +611,7 @@ function DiveManMarineChallenge() {
     return
         start
         && cancel
+        && ResetIfNonPlayingState()
         && IsUsingOnlyAllowedModifiers()
         && IsUsingRequiredCharacters(RequiresMegaManOrMan)
         && trigger_when(CurrentEquippedWeapon() == EQUIPPED_RMARINE && CurrentWeaponAmmo() == 0)
@@ -684,6 +701,7 @@ function FreePlayBossKill(
     return
         start
         && cancel
+        && ResetIfNonPlayingState()
         && IsUsingOnlyAllowedModifiers(
             minimumDifficulty = DIFFICULTY_MEDIUM,
             allowInfiniteAmmo = 0,
@@ -721,11 +739,12 @@ function BossKill(
     allowBurstChaser = 0
 ) {
     start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
-    cancel = never(PlayerDead())
+    cancel =  never(PlayerDead())
 
     return
         start
         && cancel
+        && ResetIfNonPlayingState()
         && IsUsingOnlyAllowedModifiers(
             requiredDifficulty,
             allowInfiniteAmmo,
@@ -766,6 +785,7 @@ function BossKillNoSpecialWeapons(bossKey, requiredCharacters = 0x00, bossDeadHe
     return
         start
         && cancel
+        && ResetIfNonPlayingState()
         && IsUsingOnlyAllowedModifiers()
         && IsUsingRequiredCharacters(requiredCharacters)
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
@@ -786,6 +806,7 @@ function BossKillNoWeapons(bossKey, requiredCharacters = 0x00, bossDeadHealth = 
     return
         start
         && cancel
+        && ResetIfNonPlayingState()
         && IsUsingOnlyAllowedModifiers()
         && IsUsingRequiredCharacters(requiredCharacters)
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
@@ -830,6 +851,7 @@ function BossKillDamageless(bossKey, requiredCharacters = 0x00, bossDeadHealth =
     return
         start
         && cancel
+        && ResetIfNonPlayingState()
         && IsUsingOnlyAllowedModifiers()
         && IsUsingRequiredCharacters(requiredCharacters)
         && trigger_when(IsBossKilled(bossDeadHealth, bossLifeBarCount))
@@ -984,12 +1006,15 @@ function DefaultSettingsCheck() {
 
     cancel = 
         never(!IsUsingOnlyAllowedModifiers()) 
-        && never(CanonicalGameState() != STATE_MM4_SETTINGS && CanonicalGameState() != STATE_STAGE_SELECT)
+        && never(CanonicalGameState() != STATE_MM4_SETTINGS && CanonicalGameState() != STATE_STAGE_SELECT && CanonicalGameState() != STATE_LEVEL)
 
     return
         start
         && cancel
-        && trigger_when(prev(CanonicalGameState()) == STATE_MM4_SETTINGS && CanonicalGameState() == STATE_STAGE_SELECT)
+        && trigger_when(
+            prev(CanonicalGameState()) == STATE_MM4_SETTINGS 
+            && (CanonicalGameState() == STATE_STAGE_SELECT || CanonicalGameState() == STATE_LEVEL) // Free Play means they can start right in a level.
+        )
 }
 
 function RingManEddie() {
