@@ -874,6 +874,7 @@ function BossDoorDamageless(bossKey, requiredCharacters = 0x00, requiredCheckpoi
 
     cancel = 
         never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN)
+        && never(CanonicalGameState() == STATE_FREE_PLAY_MENU)
         && never(IsDemoPlaying() == 1) 
         && never(CurrentHealth() < prev(CurrentHealth()))
 
@@ -893,6 +894,7 @@ function BrightManStageLightsAlwaysOn() {
 
     cancel =
         never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN)
+        && never(CanonicalGameState() == STATE_FREE_PLAY_MENU)
         && never(IsDemoPlaying() == 1)
         && never(Timer() == 0x02 && prev(Timer()) == 0x00) // This is the stage lights turning off.
 
@@ -1364,7 +1366,7 @@ function StartLeaderboard(requiresCharacter = 1) {
 function SubmitTime() {
     return
         CurrentStage() == STAGE_ADDRESS_MAP[Wily4]
-        && CurrentScreen() == WILY4_CURRENT // BOSS_SCREENS[Wily4]["current"]
+        && CurrentScreen() == WILY_CAPSULE_CURRENT // BOSS_SCREENS[Wily4]["current"]
         && never(PlayerDead())
         && IsBossKilled()
 }
@@ -1638,7 +1640,7 @@ rich_presence_conditional_display(
     once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
     && CanonicalGameState() == STATE_STAGE_SELECT,
 
-    "{0} • {1} • {2}/8 • {3} {4} • Stage Select Screen",
+    "{0} • {1} • {2}/8 • {3} {4} • Stage Select screen",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
     rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
@@ -1776,7 +1778,7 @@ rich_presence_conditional_display(
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
     && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH,
 
-    "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily Machine 4",
+    "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily Machine IV",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
     rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
@@ -1803,7 +1805,7 @@ rich_presence_conditional_display(
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily4] 
     && BossActive() == BOSS_ACTIVE_WILY_CAPSULE,
 
-    "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily Capsule",
+    "{0} • {1} • {2}/8 • {3} {4} • Fighting Wily's Capsule",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
     rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
@@ -1856,18 +1858,6 @@ rich_presence_conditional_display(
     rich_presence_lookup("EndStage", CurrentStage(), doctorVillainStageIntroLabels, "endgame")
 )
 
-// anticheat
-rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
-    && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && (CurrentCheckpoint() == CHECKPOINT_END),
-    "{0} • {1} • {2}/8 • {3} {4} • Fighting {5}",
-    rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
-    rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
-    rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
-    rich_presence_lookup("Lives", TotalLivesLeft(), livesCountLabels, "3"),
-    rich_presence_lookup("Lives Label", TotalLivesLeft(), livesLabels, "lives"),
-    rich_presence_lookup("Boss Name", CurrentStage(), bossNameLabels, "a bad guy")
-)
 rich_presence_conditional_display(
     (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && (CurrentCheckpoint() == CHECKPOINT_END),
     "{0} • {1} • {2}/8 • {3} {4} • Fighting {5}",
