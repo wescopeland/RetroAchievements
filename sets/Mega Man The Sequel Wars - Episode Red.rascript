@@ -287,8 +287,17 @@ function IsShootingSpecialWeapon() {
         && CurrentWeaponAmmo() < prev(CurrentWeaponAmmo())
     )
 
+    // Pharaoh Shot can be charge buffered during the fade transition between pauses.
+    pharaohShotProtection2 = (
+        CurrentEquippedWeapon() == EQUIPPED_PSHOT
+        && IsFirePressed() == 1
+        && CanonicalGameState() == STATE_LEVEL
+        && BossHealth() != 0
+    )
+
     return
-        pharaohShotProtection 
+        pharaohShotProtection
+        || pharaohShotProtection2 
         || (
             IsShootingAnyWeapon()
             && CanonicalGameState() == STATE_LEVEL
