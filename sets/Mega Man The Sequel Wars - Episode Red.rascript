@@ -15,10 +15,6 @@
 // Special Thanks:
 // purplem1lk, suspect15
 
-// TODO: be sure to credit users for achievement ideas
-// TODO: achievement order
-// TODO: better achievement descriptions [specify settings similar to Mega Man 2 PCE]
-
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
 _MEM_LIVES                 = 0x01A1 - 1    // (D lives) - 1
 _MEM_ETANKS                = 0x01A0 + 1    // (D etanks) + 1
@@ -976,6 +972,11 @@ function DeathlessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01
         && TotalLivesLeft() < prev(TotalLivesLeft()),
         CanonicalGameState() == STATE_GAME_INTRO
     )
+    && disable_when(
+        CanonicalGameState() == STATE_LEVEL
+        && TotalETanksLeft() < prev(TotalETanksLeft()),
+        CanonicalGameState() == STATE_GAME_INTRO
+    )
 
     return cancel && GameClear(requiredCharacters, requiredDifficulty)
 }
@@ -1188,9 +1189,7 @@ achievement("Cossack's Cleanup Crew", "As Roll, defeat the Cossack Catcher with 
 achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless(Wily1, RequiresAnyCharacter), id = 323752, badge = "361889")
 achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless(Wily2, RequiresAnyCharacter), id = 323753, badge = "361890")
 
-// TODO: Rename
-achievement("Weaponless Win", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresMegaManOrMan), id = 323754, badge = "361653")
-
+achievement("Man Over Metall", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresMegaManOrMan), id = 323754, badge = "361653")
 achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresMegaManOrMan), id = 323755, badge = "361654")
 achievement("Classic Conquest", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresMegaManOrMan, bossLifeBarCount = 2), id = 323756, badge = "361665")
 
@@ -1202,9 +1201,9 @@ achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broo
 achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresRoll), id = 323761, badge = "361658")
 achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresRoll, bossLifeBarCount = 2), id = 323762, badge = "361667")
 
-achievement("Buster Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the M. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaManOrMan), id = 323763, badge = "361727")
-achievement("Shield Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan), id = 323764, badge = "361728")
-achievement("Broom Proficiency", "Without dying, defeat all 8 Robot Masters in the boss rush using only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll), id = 323765, badge = "361729")
+achievement("Buster Proficiency", "As Mega Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaManOrMan), id = 323763, badge = "361727")
+achievement("Shield Proficiency", "As Proto Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan), id = 323764, badge = "361728")
+achievement("Broom Proficiency", "As Roll, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll), id = 323765, badge = "361729")
 
 achievement("Mega Momentum [m]", "As Mega Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM), id = 323766, badge = "361688")
 achievement("Mega Mastery [m]", "As Mega Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323767, badge = "361689")
@@ -1213,9 +1212,9 @@ achievement("Proto Perfection [m]", "As Proto Man, beat the game without ever us
 achievement("Roll's Resolve [m]", "As Roll, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323770, badge = "361692")
 achievement("Roll's Resilience [m]", "As Roll, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323771, badge = "361693")
 
-achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323772, badge = "361694")
-achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323773, badge = "361695")
-achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Hard] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323774, badge = "361696")
+achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323772, badge = "361694")
+achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323773, badge = "361695")
+achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323774, badge = "361696")
 
 achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"), id = 323775, badge = "361987")
 achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776, badge = "361988")
@@ -1250,8 +1249,8 @@ achievement(
 achievement("Intergalactic Eddie", "Find Eddie on Ring Man's stage", 1, RingManEddie(), id = 323780, badge = "361992")
 
 achievement("The Kremlin Crawl", "Unlock Dr. Cossack's stages by defeating all eight Robot Masters [No Passwords]", 10, RobotMastersClear(), id = 323781, badge = "361628")
-achievement("9 Times the Charm", "Collect 9 lives", 5, NineLives(), id = 323782, badge = "361993")
-achievement("Soda Popinski's Envy", "Collect 9 E-Tanks", 5, NineETanks(), id = 323783, badge = "361994")
+achievement("9 Times the Charm", "Hold 9 lives at once", 5, NineLives(), id = 323782, badge = "361993")
+achievement("Soda Popinski's Envy", "Hold 9 E-Tanks at once", 5, NineETanks(), id = 323783, badge = "361994")
 
 achievement("Lumen-ating Path [m]", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn(), id = 323784, badge = "361995")
 
@@ -1261,7 +1260,7 @@ achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only t
 // Idea: Fox in Yellow Socks
 achievement("Wired for Victory [m]", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill(), id = 323786, badge = "362043")
 
-achievement("A Mega Surprise [m]", "On Dr. Cossack's third stage, hold on to a platform with Wire for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787, badge = "361998")
+achievement("A Mega Surprise [m]", "On Dr. Cossack's third stage, hold on to a platform with the Wire Adaptor for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787, badge = "361998")
 achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 2, TakoTrashHitboxHidingSpot(), id = 323788, badge = "362035")
 achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg(), id = 323789, badge = "362034")
 
@@ -1346,7 +1345,7 @@ achievement(
 // solution: farm health from respawning enemies
 achievement(
     "[Dev Team Challenge VIII] Toad Man's Stage",
-    "[FREE PLAY MODE: Toad, Checkpoint 0] With Full Arsenal enabled, reach Toad Man's boss doors without dying, without E-Tanks, and only using the Mega Man 6 Power Adaptor",
+    "[FREE PLAY MODE: Toad, Checkpoint 0] With Full Arsenal enabled, reach Toad Man's boss doors without dying, without using E-Tanks, and only using the Mega Man 6 Power Adaptor",
     25,
     FreePlayStageClear(ToadMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0),
     id = 323798,
@@ -1357,7 +1356,7 @@ achievement(
 // solution: farm resources on mini bosses
 achievement(
     "[Dev Team Challenge IX] Ring Man's Stage",
-    "[FREE PLAY MODE: Ring, Checkpoint 0] Reach Ring Man's boss doors without dying, without E-Tanks, and only using the Pharaoh Shot",
+    "[FREE PLAY MODE: Ring, Checkpoint 0] Reach Ring Man's boss doors without dying, without using E-Tanks, and only using the Pharaoh Shot",
     25,
     FreePlayStageClear(RingMan, onlySpecificWeapon = EQUIPPED_PSHOT, allowETanks = 0),
     id = 323799,
@@ -1368,7 +1367,7 @@ achievement(
 // Solution: fly to edges and pop around to destroy missiles
 achievement(
     "[Dev Team Challenge X] Drill Man's Stage",
-    "[FREE PLAY MODE: Drill, Checkpoint 0] With Full Arsenal enabled, reach Drill Man's boss doors without dying, without E-Tanks, and only using the Mega Man 6 Power Adaptor",
+    "[FREE PLAY MODE: Drill, Checkpoint 0] With Full Arsenal enabled, reach Drill Man's boss doors without dying, without using E-Tanks, and only using the Mega Man 6 Power Adaptor",
     25,
     FreePlayStageClear(DrillMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0),
     id = 323800,
