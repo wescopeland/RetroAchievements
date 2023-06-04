@@ -498,6 +498,7 @@ function EscarooSkip() {
 
     cancel =
         never(PlayerDead())
+        && never(CurrentStage() != STAGE_ADDRESS_MAP[ToadMan])
         && disable_when(BossHealth() == EscarooMaxHealth, CurrentScreen() != prev(CurrentScreen()))
 
     return
