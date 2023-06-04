@@ -358,15 +358,21 @@ function IsUsingOnlyAllowedModifiers(
         && IsBurstChaserEnabled() <= allowBurstChaser
 }
 
+function IsWilyMachineKilled() {
+    return once(
+        CurrentStage() == STAGE_ADDRESS_MAP[Wily3]
+        && CurrentScreen() == WILY_MACHINE_CURRENT
+        && (prev(WilyEscapePodYPosition()) == 0 && WilyEscapePodYPosition() > 0)
+    )
+}
+
 function IsBossKilled(bossDeadHealth = 0, bossLifeBarCount = 1) {
-    wilyMachineHack = always_true()
     if (bossLifeBarCount == 2) {
-        wilyMachineHack = once(CurrentScreen() == WILY_MACHINE_CURRENT && HighestVDPSpriteIndex() == WILY_MACHINE_FORM_TWO)
+        return IsWilyMachineKilled()
     }
 
     return
-        wilyMachineHack
-        && (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
+        (BossHealth() <= bossDeadHealth && prev(BossHealth()) > bossDeadHealth)
         && (once(IsPlayerLocked() == 0 && prev(IsPlayerLocked()) == 1))
         && once(BossHealth() < MAX_HEALTH && prev(BossHealth()) == MAX_HEALTH)
         && (prev(BossActive()) != 0) // prevents a bug where the boss pointer points at Mega Man's health
@@ -411,6 +417,7 @@ RequiresProtoMan = 3
 RequiresRoll = 4
 RequiresMan = 5
 RequiresMegaMan = 6
+RequiresMegaManOrRoll = 7
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
@@ -428,6 +435,8 @@ function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
         condition = (CurrentCharacter() == CHAR_MAN)
     } else if (requiredCharacters == RequiresMegaMan) {
         condition = (CurrentCharacter() == CHAR_MEGAMAN)
+    } else if (requiredCharacters == RequiresMegaManOrRoll) {
+        condition = (CurrentCharacter() == CHAR_MEGAMAN || CurrentCharacter() == CHAR_ROLL)
     }
 
     return condition
@@ -459,11 +468,17 @@ function FreePlayChallengeReset() {
 
 function ResetIfNonPlayingState() {
     clause = (
-        // prevent triggers when exiting from free play
+        // prevent triggers when exiting a stage during free play
         never(CanonicalGameState() == STATE_FREE_PLAY_MENU && prev(CanonicalGameState()) == STATE_PAUSE_MENU_OPEN)
+
+        // prevent triggers when exiting from free play to title
+        && never(CanonicalGameState() == STATE_MM4_TITLE_SCREEN && prev(CanonicalGameState()) == STATE_FREE_PLAY_MENU)
 
         // prevent triggers when exiting from a stage
         && never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN && prev(CanonicalGameState()) == STATE_PAUSE_MENU_OPEN)
+
+        // prevent triggers when selecting a character in the settings menu
+        && never(CanonicalGameState() == STATE_MM4_SETTINGS && prev(CanonicalGameState()) == STATE_FREE_PLAY_MENU)
 
         // prevent premature icons
         && never(CanonicalGameState() == STATE_WEAPON_GET)
@@ -540,14 +555,14 @@ function WireEasterEgg() {
 // @param onlySpecificWeapon {0x00: EQUIPPED_BUSTER} - Are there any weapon restrictions while killing this boss // @see EQUIPPED_*
 // @param allowETanks {0 or 1} - Can the player use E-Tanks while killing this boss
 // @param allowFullArsenal {0 or 1} - Is full arsenal allowed while killing this boss
-// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+// @param requiredCharacters {0: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param allowSliding {0 or 1} - Is sliding allowed while killing this boss
 function FreePlayStageClear(
     primeStage,
     onlySpecificWeapon = 0,
     allowETanks = 0,
     allowFullArsenal = 0,
-    requiredCharacters = 0x00,
+    requiredCharacters = 0,
     allowSliding = 1
 ) {
     allowETanksClause = always_true()
@@ -644,6 +659,7 @@ function DiveManMarineChallenge() {
 // @param allowDamage {0 or 1} - Can the player receive any damage while killing this boss
 // @param allowETanks {0 or 1} - Can the player use E-Tanks while killing this boss
 // @param onlySpecificWeapon {0x00: EQUIPPED_BUSTER} - Are there any weapon restrictions while killing this boss // @see EQUIPPED_*
+// @param isProtoManAllowed {1: true} - Can Proto Man be used for this challenge?
 function FreePlayBossKill(
     primeStage,
     currentScreen = 0x00,
@@ -655,7 +671,8 @@ function FreePlayBossKill(
     allowSliding = 1,
     allowDamage = 1,
     allowETanks = 1,
-    onlySpecificWeapon = 0
+    onlySpecificWeapon = 0,
+    isProtoManAllowed = 1
 ) {
     allowJumpingClause = always_true()
     if (allowJumping == 0) {
@@ -697,6 +714,11 @@ function FreePlayBossKill(
         )
     }
 
+    protoManBannedClause = always_true()
+    if (isProtoManAllowed == 0) {
+        protoManBannedClause = never(CurrentCharacter() == CHAR_PROTOMAN)
+    }
+
     start =
         CurrentStage() == STAGE_ADDRESS_MAP[primeStage]
         && CurrentCheckpoint() == primeCheckpoint
@@ -709,6 +731,7 @@ function FreePlayBossKill(
         && allowDamageClause
         && allowETanksClause
         && onlySpecificWeaponClause
+        && protoManBannedClause
 
     return
         start
@@ -1239,9 +1262,9 @@ achievement("Toad-ally Skipped [m]", "Use Flash Stopper to skip an Escaroo minib
 // Idea: Fox in Yellow Socks
 achievement(
     "[Dev Team Challenge I] Bright Man",
-    "[FREE PLAY MODE: Bright, Checkpoint 2] Defeat Bright Man damageless using only Rain Flush",
+    "[FREE PLAY MODE: Bright, Checkpoint 2] Defeat Bright Man damageless with Mega Man or Roll using only Rain Flush",
     25,
-    FreePlayBossKill(BrightMan, BRIGHT_MAN_CURRENT, CHECKPOINT_END, allowDamage = 0, onlySpecificWeapon = EQUIPPED_RFLUSH),
+    FreePlayBossKill(BrightMan, BRIGHT_MAN_CURRENT, CHECKPOINT_END, allowDamage = 0, onlySpecificWeapon = EQUIPPED_RFLUSH, isProtoManAllowed = 0),
     id = 323791,
     badge = "361456"
 )
