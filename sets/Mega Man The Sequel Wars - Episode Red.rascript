@@ -649,7 +649,7 @@ function DiveManMarineChallenge() {
         && cancel
         && ResetIfNonPlayingState()
         && IsUsingOnlyAllowedModifiers()
-        && IsUsingRequiredCharacters(RequiresMegaManOrMan)
+        && IsUsingRequiredCharacters(RequiresMegaMan)
         && trigger_when(CurrentEquippedWeapon() == EQUIPPED_RMARINE && CurrentWeaponAmmo() == 0)
 }
 
@@ -1104,8 +1104,8 @@ achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(Wily1), id = 3236
 achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(Wily2), id = 323679, badge = "361634")
 achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(Wily3, bossLifeBarCount = 2), id = 323680, badge = "361663")
 
-achievement("Mega Man Game Clear [m]", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM), id = 323681, badge = "361682")
-achievement("Mega Perseverance [m]", "As Mega Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323683, badge = "361683")
+achievement("Mega Man Game Clear [m]", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323681, badge = "361682")
+achievement("Mega Perseverance [m]", "As Mega Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323683, badge = "361683")
 achievement("Proto Man Game Clear [m]", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323684, badge = "361684")
 achievement("Proto Perseverance [m]", "As Proto Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323685, badge = "361685")
 achievement("Roll Game Clear [m]", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323686, badge = "361686")
@@ -1120,14 +1120,14 @@ achievement("No Bone to Pick", "Reach Skull Man's boss doors without taking dama
 achievement("Surface Tension", "Reach Dive Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DiveMan, RequiresAnyCharacter), id = 323694, badge = "361422")
 achievement("Excavating Excellence", "Reach Drill Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DrillMan, RequiresAnyCharacter), id = 323695, badge = "361423")
 
-achievement("Pond Skimming", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresMegaManOrMan), id = 323696, badge = "361432")
-achievement("Mega Watt", "As Mega Man, defeat Bright Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresMegaManOrMan), id = 323697, badge = "361433")
-achievement("Busting the Curse", "As Mega Man, defeat Pharaoh Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresMegaManOrMan), id = 323698, badge = "361434")
-achievement("Circle of Victory", "As Mega Man, defeat Ring Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresMegaManOrMan), id = 323699, badge = "361435")
-achievement("Dust Buster", "As Mega Man, defeat Dust Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DustMan, RequiresMegaManOrMan), id = 323700, badge = "361436")
-achievement("Skull-busted", "As Mega Man, defeat Skull Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresMegaManOrMan), id = 323701, badge = "361437")
-achievement("Busting the Wave", "As Mega Man, defeat Dive Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DiveMan, RequiresMegaManOrMan), id = 323702, badge = "361438")
-achievement("Busting through the Bedrock", "As Mega Man, defeat Drill Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(DrillMan, RequiresMegaManOrMan), id = 323703, badge = "361439")
+achievement("Pond Skimming", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresMegaMan), id = 323696, badge = "361432")
+achievement("Mega Watt", "As Mega Man, defeat Bright Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresMegaMan), id = 323697, badge = "361433")
+achievement("Busting the Curse", "As Mega Man, defeat Pharaoh Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresMegaMan), id = 323698, badge = "361434")
+achievement("Circle of Victory", "As Mega Man, defeat Ring Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresMegaMan), id = 323699, badge = "361435")
+achievement("Dust Buster", "As Mega Man, defeat Dust Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DustMan, RequiresMegaMan), id = 323700, badge = "361436")
+achievement("Skull-busted", "As Mega Man, defeat Skull Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresMegaMan), id = 323701, badge = "361437")
+achievement("Busting the Wave", "As Mega Man, defeat Dive Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(DiveMan, RequiresMegaMan), id = 323702, badge = "361438")
+achievement("Busting through the Bedrock", "As Mega Man, defeat Drill Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(DrillMan, RequiresMegaMan), id = 323703, badge = "361439")
 
 achievement("Rainy Defense", "As Proto Man, defeat Toad Man with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresProtoMan), id = 323704, badge = "361440")
 achievement("Shielding the Spotlight", "As Proto Man, defeat Bright Man with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresProtoMan), id = 323705, badge = "361441")
@@ -1171,10 +1171,10 @@ achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citade
 achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless(Cossack3, RequiresAnyCharacter), id = 323738, badge = "361888")
 achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless(Cossack4, RequiresAnyCharacter), id = 323739, badge = "361891")
 
-achievement("Bug Buster", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresMegaManOrMan), id = 323740, badge = "361641")
-achievement("Straight-Angle Annihalator", "As Mega Man, defeat Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack2, RequiresMegaManOrMan), id = 323741, badge = "361642")
-achievement("Insect Takedown", "As Mega Man, defeat Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack3, RequiresMegaManOrMan), id = 323742, badge = "361643")
-achievement("Russian Roulette", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack4, RequiresMegaManOrMan, bossDeadHealth = 0x02), id = 323743, badge = "361644")
+achievement("Bug Buster", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresMegaMan), id = 323740, badge = "361641")
+achievement("Straight-Angle Annihalator", "As Mega Man, defeat Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack2, RequiresMegaMan), id = 323741, badge = "361642")
+achievement("Insect Takedown", "As Mega Man, defeat Cockroach Twins with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack3, RequiresMegaMan), id = 323742, badge = "361643")
+achievement("Russian Roulette", "As Mega Man, defeat the Cossack Catcher with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack4, RequiresMegaMan, bossDeadHealth = 0x02), id = 323743, badge = "361644")
 
 achievement("Moth Masher", "As Proto Man, defeat Mothraya with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresProtoMan), id = 323744, badge = "361645")
 achievement("Quadrilateral Queller", "As Proto Man, defeat Square Machine with only the P. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack2, RequiresProtoMan), id = 323745, badge = "361646")
@@ -1189,9 +1189,9 @@ achievement("Cossack's Cleanup Crew", "As Roll, defeat the Cossack Catcher with 
 achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless(Wily1, RequiresAnyCharacter), id = 323752, badge = "361889")
 achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless(Wily2, RequiresAnyCharacter), id = 323753, badge = "361890")
 
-achievement("Man Over Metall", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresMegaManOrMan), id = 323754, badge = "361653")
-achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresMegaManOrMan), id = 323755, badge = "361654")
-achievement("Classic Conquest", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresMegaManOrMan, bossLifeBarCount = 2), id = 323756, badge = "361665")
+achievement("Man Over Metall", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresMegaMan), id = 323754, badge = "361653")
+achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresMegaMan), id = 323755, badge = "361654")
+achievement("Classic Conquest", "As Mega Man, defeat Wily Machine 4 with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresMegaMan, bossLifeBarCount = 2), id = 323756, badge = "361665")
 
 achievement("Buster and Shield Showdown", "As Proto Man, defeat Metall Daddy with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresProtoMan), id = 323757, badge = "361655")
 achievement("Deflected Garbage", "As Proto Man, defeat Tako Trash with only the P. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresProtoMan), id = 323758, badge = "361656")
@@ -1201,18 +1201,18 @@ achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broo
 achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresRoll), id = 323761, badge = "361658")
 achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 25, BossKillNoSpecialWeapons(Wily3, RequiresRoll, bossLifeBarCount = 2), id = 323762, badge = "361667")
 
-achievement("Buster Proficiency", "As Mega Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaManOrMan), id = 323763, badge = "361727")
+achievement("Buster Proficiency", "As Mega Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaMan), id = 323763, badge = "361727")
 achievement("Shield Proficiency", "As Proto Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan), id = 323764, badge = "361728")
 achievement("Broom Proficiency", "As Roll, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll), id = 323765, badge = "361729")
 
-achievement("Mega Momentum [m]", "As Mega Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_MEDIUM), id = 323766, badge = "361688")
-achievement("Mega Mastery [m]", "As Mega Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323767, badge = "361689")
+achievement("Mega Momentum [m]", "As Mega Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323766, badge = "361688")
+achievement("Mega Mastery [m]", "As Mega Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323767, badge = "361689")
 achievement("Proto Progress [m]", "As Proto Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323768, badge = "361690")
 achievement("Proto Perfection [m]", "As Proto Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323769, badge = "361691")
 achievement("Roll's Resolve [m]", "As Roll, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323770, badge = "361692")
 achievement("Roll's Resilience [m]", "As Roll, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323771, badge = "361693")
 
-achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaManOrMan, DIFFICULTY_HARD), id = 323772, badge = "361694")
+achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323772, badge = "361694")
 achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323773, badge = "361695")
 achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323774, badge = "361696")
 
@@ -1280,7 +1280,7 @@ achievement(
 // Idea: Fox in Yellow Socks
 achievement(
     "[Dev Team Challenge II] Dive Man",
-    "[FREE PLAY MODE: Dive, Checkpoint 2] Start the fight against Dive Man with full Rush Marine ammo and spend all that ammo without taking damage",
+    "[FREE PLAY MODE: Dive, Checkpoint 2] As Mega Man, start the fight against Dive Man with full Rush Marine ammo and spend all that ammo without taking damage",
     25,
     DiveManMarineChallenge(),
     id = 323792,
@@ -1347,7 +1347,7 @@ achievement(
     "[Dev Team Challenge VIII] Toad Man's Stage",
     "[FREE PLAY MODE: Toad, Checkpoint 0] With Full Arsenal enabled, reach Toad Man's boss doors without dying, without using E-Tanks, and only using the Mega Man 6 Power Adaptor",
     25,
-    FreePlayStageClear(ToadMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0),
+    FreePlayStageClear(ToadMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaMan, allowSliding = 0),
     id = 323798,
     badge = "361458"
 )
@@ -1356,9 +1356,9 @@ achievement(
 // solution: farm resources on mini bosses
 achievement(
     "[Dev Team Challenge IX] Ring Man's Stage",
-    "[FREE PLAY MODE: Ring, Checkpoint 0] Reach Ring Man's boss doors without dying, without using E-Tanks, and only using the Pharaoh Shot",
+    "[FREE PLAY MODE: Ring, Checkpoint 0] As Mega Man or Roll, reach Ring Man's boss doors without dying, without using E-Tanks, and only using the Pharaoh Shot",
     25,
-    FreePlayStageClear(RingMan, onlySpecificWeapon = EQUIPPED_PSHOT, allowETanks = 0),
+    FreePlayStageClear(RingMan, onlySpecificWeapon = EQUIPPED_PSHOT, allowETanks = 0, requiredCharacters = RequiresMegaManOrRoll),
     id = 323799,
     badge = "361459"
 )
@@ -1369,24 +1369,24 @@ achievement(
     "[Dev Team Challenge X] Drill Man's Stage",
     "[FREE PLAY MODE: Drill, Checkpoint 0] With Full Arsenal enabled, reach Drill Man's boss doors without dying, without using E-Tanks, and only using the Mega Man 6 Power Adaptor",
     25,
-    FreePlayStageClear(DrillMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaManOrMan, allowSliding = 0),
+    FreePlayStageClear(DrillMan, onlySpecificWeapon = EQUIPPED_MM6_POWERADAPTOR, allowETanks = 0, allowFullArsenal = MustBeEnabled, requiredCharacters = RequiresMegaMan, allowSliding = 0),
     id = 323800,
     badge = "361460"
 )
 // #endregion Achievements
 
 // #region Subset - Bonus -----------------------------------------------------------------------------------------------------------------
-achievement("Halfway Hero", "As Mega Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresMegaManOrMan), id = 324657, badge = "362520")
+achievement("Halfway Hero", "As Mega Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresMegaMan), id = 324657, badge = "362520")
 achievement("Halfway Haven", "As Proto Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresProtoMan), id = 324658, badge = "362521")
 achievement("Halfway Helper", "As Roll, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresRoll), id = 324659, badge = "362522")
-achievement("Mr. Perfect", "As Mega Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresMegaManOrMan), id = 324660, badge = "362523")
+achievement("Mr. Perfect", "As Mega Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresMegaMan), id = 324660, badge = "362523")
 achievement("Mr. Imperfect", "As Proto Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresProtoMan), id = 324661, badge = "362524")
 achievement("Ms. Perfect", "As Roll, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresRoll), id = 324662, badge = "362525")
 // #endregion
 
 // #region Leaderboards -------------------------------------------------------------------------------------------------------------------
-// @param requiredCharacters {1: RequiresMegaManOrMan} - Which characters are required to start the timer
-function StartLeaderboard(requiresCharacter = 1) {
+// @param requiredCharacters {1: RequiresMegaMan} - Which characters are required to start the timer
+function StartLeaderboard(requiresCharacter = 6) {
     return
         once(
             CanonicalGameState() == STATE_STAGE_SELECT
