@@ -1867,7 +1867,7 @@ rich_presence_conditional_display(
     && CurrentStage() >= STAGE_ADDRESS_MAP[Cossack1] 
     && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
 
-    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7}",
+    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7} Stage",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
     rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
@@ -1882,7 +1882,7 @@ rich_presence_conditional_display(
     && CurrentStage() >= STAGE_ADDRESS_MAP[Cossack1] 
     && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
 
-    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7}",
+    "{0} • {1} • {2}/8 • {3} {4} • {5} {6}'s {7} stage",
     rich_presence_lookup("Character", CurrentCharacter(), characterLabels),
     rich_presence_lookup("Difficulty", CurrentDifficulty(), difficultyLabels),
     rich_presence_value("Defeated Bosses", sum_of(range(0, 8), b => bit(b, 0x269A))),
