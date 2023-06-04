@@ -1141,7 +1141,7 @@ achievement("Excavator's End", "As Proto Man, defeat Drill Man with only the P. 
 achievement("Cleaning up the Pond", "As Roll, defeat Toad Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresRoll), id = 323712, badge = "361448")
 achievement("Sweeping Away the Darkness", "As Roll, defeat Bright Man with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(BrightMan, RequiresRoll), id = 323713, badge = "361449")
 achievement("Dusting Off the Sphinx", "As Roll, defeat Pharaoh Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(PharaohMan, RequiresRoll), id = 323714, badge = "361450")
-achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 25, BossKillNoSpecialWeapons(RingMan, RequiresRoll), id = 323715, badge = "361451")
+achievement("Cleaning the Ring Toss", "As Roll, defeat Ring Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(RingMan, RequiresRoll), id = 323715, badge = "361451")
 achievement("Dusted Clean", "As Roll, defeat Dust Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DustMan, RequiresRoll), id = 323716, badge = "361452")
 achievement("Sweeping the Bone Yard", "As Roll, defeat Skull Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(SkullMan, RequiresRoll), id = 323717, badge = "361453")
 achievement("Deep Sea Broom Brawl", "As Roll, defeat Dive Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DiveMan, RequiresRoll), id = 323718, badge = "361454")
@@ -1199,7 +1199,7 @@ achievement("Stellar Blues", "As Proto Man, defeat Wily Machine 4 with only the 
 
 achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresRoll), id = 323760, badge = "361657")
 achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresRoll), id = 323761, badge = "361658")
-achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily3, RequiresRoll, bossLifeBarCount = 2), id = 323762, badge = "361667")
+achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 25, BossKillNoSpecialWeapons(Wily3, RequiresRoll, bossLifeBarCount = 2), id = 323762, badge = "361667")
 
 achievement("Buster Proficiency", "As Mega Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaManOrMan), id = 323763, badge = "361727")
 achievement("Shield Proficiency", "As Proto Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan), id = 323764, badge = "361728")
