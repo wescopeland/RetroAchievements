@@ -1376,12 +1376,12 @@ achievement(
 // #endregion Achievements
 
 // #region Subset - Bonus -----------------------------------------------------------------------------------------------------------------
-achievement("Halfway Hero", "As Mega Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresMegaManOrMan))
-achievement("Halfway Haven", "As Proto Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresProtoMan))
-achievement("Halfway Helper", "As Roll, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresRoll))
-achievement("Mr. Perfect", "As Mega Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresMegaManOrMan))
-achievement("Perfect Blues", "As Proto Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresProtoMan))
-achievement("Ms. Perfect", "As Roll, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresRoll))
+achievement("Halfway Hero", "As Mega Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresMegaManOrMan), id = 324657, badge = "362520")
+achievement("Halfway Haven", "As Proto Man, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresProtoMan), id = 324658, badge = "362521")
+achievement("Halfway Helper", "As Roll, defeat all eight Robot Masters without taking damage [Normal]", 50, DamagelessRobotMastersClear(RequiresRoll), id = 324659, badge = "362522")
+achievement("Mr. Perfect", "As Mega Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresMegaManOrMan), id = 324660, badge = "362523")
+achievement("Mr. Imperfect", "As Proto Man, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresProtoMan), id = 324661, badge = "362524")
+achievement("Ms. Perfect", "As Roll, complete the entire game without taking damage [Normal]", 100, DamagelessGameClear(RequiresRoll), id = 324662, badge = "362525")
 // #endregion
 
 // #region Leaderboards -------------------------------------------------------------------------------------------------------------------
@@ -1451,9 +1451,9 @@ leaderboard(
 )
 
 leaderboard(
-    "Ms. Perfect",
+    "Mr. Imperfect",
     "New game, default settings",
-    start = StartLeaderboard(RequiresRoll),
+    start = StartLeaderboard(RequiresProtoMan),
     cancel = 
         CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
         || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
@@ -1464,9 +1464,9 @@ leaderboard(
 )
 
 leaderboard(
-    "Perfect Blues",
+    "Ms. Perfect",
     "New game, default settings",
-    start = StartLeaderboard(RequiresProtoMan),
+    start = StartLeaderboard(RequiresRoll),
     cancel = 
         CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
         || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
