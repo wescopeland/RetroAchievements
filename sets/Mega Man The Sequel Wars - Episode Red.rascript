@@ -540,7 +540,7 @@ function TakoTrashHitboxHidingSpot() {
         && CurrentCheckpoint() == CHECKPOINT_END
         && IsUsingOnlyAllowedModifiers()
         && WilyBossesHitboxState() == 0x02 // destroyed
-        && CurrentXPosition() >= 0x06
+        && CurrentXPosition() >= 0x03
         && CurrentXPositionB() == 0x0c
 }
 
