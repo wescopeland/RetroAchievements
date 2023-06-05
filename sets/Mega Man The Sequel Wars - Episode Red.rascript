@@ -98,7 +98,7 @@ BOSS_SCREENS = {
     Wily3: {"previous": [0x1D], "current": [0x19]},
     Wily4: {"previous": [0x13], "current": [0x14]}
 }
-BRIGHT_MAN_CURRENT = 0x23
+BRIGHT_MAN_CURRENT = 0x16
 MOTHRAYA_CURRENT = 0x0C
 COCKROACH_CURRENT = 0x0E
 COSSACK_CURRENT = 0x69
@@ -423,9 +423,10 @@ RequiresRoll = 4
 RequiresMan = 5
 RequiresMegaMan = 6
 RequiresMegaManOrRoll = 7
+RequiresNotMan = 8
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
-function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
+function IsUsingRequiredCharacters(requiredCharacters = 0x08) {
     condition = always_true()
 
     if (requiredCharacters == RequiresMegaManOrMan) {
@@ -442,6 +443,8 @@ function IsUsingRequiredCharacters(requiredCharacters = 0x00) {
         condition = (CurrentCharacter() == CHAR_MEGAMAN)
     } else if (requiredCharacters == RequiresMegaManOrRoll) {
         condition = (CurrentCharacter() == CHAR_MEGAMAN || CurrentCharacter() == CHAR_ROLL)
+    } else if (requiredCharacters == RequiresNotMan) {
+        condition = (CurrentCharacter() != CHAR_MAN)
     }
 
     return condition
@@ -451,6 +454,7 @@ function RequireWithoutPasswords() {
     return disable_when(
         CanonicalGameState() == STATE_MM4_SETTINGS 
         && prev(CanonicalGameState()) == STATE_ENTER_PASSWORD_SCREEN,
+
         CanonicalGameState() == STATE_GAME_INTRO
     )
 }
@@ -567,7 +571,7 @@ function FreePlayStageClear(
     onlySpecificWeapon = 0,
     allowETanks = 0,
     allowFullArsenal = 0,
-    requiredCharacters = 0,
+    requiredCharacters = 8,
     allowSliding = 1
 ) {
     allowETanksClause = always_true()
@@ -719,9 +723,11 @@ function FreePlayBossKill(
         )
     }
 
-    protoManBannedClause = always_true()
+    bannedCharactersClause = always_true()
     if (isProtoManAllowed == 0) {
-        protoManBannedClause = never(CurrentCharacter() == CHAR_PROTOMAN)
+        bannedCharactersClause = never(CurrentCharacter() == CHAR_PROTOMAN) && never(CurrentCharacter() == CHAR_MAN)
+    } else {
+        bannedCharactersClause = never(CurrentCharacter() == CHAR_MAN)
     }
 
     start =
@@ -736,7 +742,7 @@ function FreePlayBossKill(
         && allowDamageClause
         && allowETanksClause
         && onlySpecificWeaponClause
-        && protoManBannedClause
+        && bannedCharactersClause
 
     return
         start
@@ -770,7 +776,7 @@ function BossKill(
     bossDeadHealth = 0,
     bossLifeBarCount = 1,
     requiredDifficulty = 0x01,
-    requiredCharacters = 0x00,
+    requiredCharacters = 8,
     allowInfiniteAmmo = 0,
     allowInfiniteLives = 0,
     allowAirSliding = 0,
@@ -814,7 +820,7 @@ function WilyMachine4WireKill() {
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
-function BossKillNoSpecialWeapons(bossKey, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+function BossKillNoSpecialWeapons(bossKey, requiredCharacters = 8, bossDeadHealth = 0, bossLifeBarCount = 1) {
     start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
 
     cancel = 
@@ -835,7 +841,7 @@ function BossKillNoSpecialWeapons(bossKey, requiredCharacters = 0x00, bossDeadHe
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
-function BossKillNoWeapons(bossKey, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+function BossKillNoWeapons(bossKey, requiredCharacters = 8, bossDeadHealth = 0, bossLifeBarCount = 1) {
     start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
 
     cancel = 
@@ -853,7 +859,7 @@ function BossKillNoWeapons(bossKey, requiredCharacters = 0x00, bossDeadHealth = 
 }
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
-function BossRushNoSpecialWeapons(requiredCharacters = 0x00) {
+function BossRushNoSpecialWeapons(requiredCharacters = 8) {
     start =
         once(
             CanonicalGameState() == STATE_LEVEL
@@ -881,7 +887,7 @@ function BossRushNoSpecialWeapons(requiredCharacters = 0x00) {
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param bossDeadHealth - At what health will victory be achieved? Some bosses like Cossack Catcher trigger a cutscene on 2HP.
 // @param bossLifeBarCount - Does this boss have multiple forms? If so, we have to trigger the achievement on killing the final form.
-function BossKillDamageless(bossKey, requiredCharacters = 0x00, bossDeadHealth = 0, bossLifeBarCount = 1) {
+function BossKillDamageless(bossKey, requiredCharacters = 8, bossDeadHealth = 0, bossLifeBarCount = 1) {
     start = HasTransitionedBetweenScreens(bossKey, BOSS_SCREENS[bossKey]["previous"], BOSS_SCREENS[bossKey]["current"])
 
     cancel = 
@@ -900,7 +906,7 @@ function BossKillDamageless(bossKey, requiredCharacters = 0x00, bossDeadHealth =
 // @param bossKey - Make sure the player is on the correct stage (see: STAGE_ADDRESS_MAP)
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredCheckpoint {0x02: CHECKPOINT_END} - Make sure the player has reached the correct stage checkpoint
-function BossDoorDamageless(bossKey, requiredCharacters = 0x00, requiredCheckpoint = 0x02) {
+function BossDoorDamageless(bossKey, requiredCharacters = 8, requiredCheckpoint = 0x02) {
     start = 
         once(StageStarted())
         || once(CanonicalGameState() == STATE_LEVEL && prev(CanonicalGameState()) == STATE_COSSACK_WILY_LEVEL_INTRO_SCREEN)
@@ -951,7 +957,7 @@ function RobotMastersClear() {
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
-function GameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
+function GameClear(requiredCharacters = 8, requiredDifficulty = 0x01) {
     return
         RequireNewFileWithoutPasswords()
         && BossKill(Wily4, requiredCharacters = requiredCharacters, requiredDifficulty = requiredDifficulty)
@@ -959,14 +965,14 @@ function GameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
-function ContinuelessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
+function ContinuelessGameClear(requiredCharacters = 8, requiredDifficulty = 0x01) {
     cancel = disable_when(CanonicalGameState() == STATE_GAME_OVER, CanonicalGameState() == STATE_GAME_INTRO)
     return cancel && GameClear(requiredCharacters, requiredDifficulty)
 }
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
-function DeathlessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01) {
+function DeathlessGameClear(requiredCharacters = 8, requiredDifficulty = 0x01) {
     cancel = disable_when(
         CanonicalGameState() == STATE_LEVEL 
         && TotalLivesLeft() < prev(TotalLivesLeft()),
@@ -982,7 +988,7 @@ function DeathlessGameClear(requiredCharacters = 0x00, requiredDifficulty = 0x01
 }
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
-function DamagelessRobotMastersClear(requiredCharacters = 0x00) {
+function DamagelessRobotMastersClear(requiredCharacters = 8) {
     start =
         once(CanonicalGameState() == STATE_STAGE_SELECT)
 
@@ -1002,7 +1008,7 @@ function DamagelessRobotMastersClear(requiredCharacters = 0x00) {
 }
 
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
-function DamagelessGameClear(requiredCharacters = 0x00) {
+function DamagelessGameClear(requiredCharacters = 8) {
     start =
         once(CanonicalGameState() == STATE_STAGE_SELECT)
 
@@ -1084,7 +1090,7 @@ function NineETanks() {
 // #endregion Achievement Functions
 
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
-achievement("DEFAULT SETTINGS CHECK", "Normal or Hard difficulty, any character, any buster charge. All other settings OFF.", 0, DefaultSettingsCheck(), id = 323665, badge = "361407")
+achievement("DEFAULT SETTINGS CHECK", "Normal or Hard difficulty, any character but Man, any buster charge. All other settings OFF.", 0, DefaultSettingsCheck(), id = 323665, badge = "361407")
 
 achievement("Rain Flush", "Defeat Toad Man", 5, BossKill(ToadMan), id = 323666, badge = "361408")
 achievement("Flash Stopper", "Defeat Bright Man", 5, BossKill(BrightMan), id = 323667, badge = "361409")
@@ -1111,14 +1117,14 @@ achievement("Proto Perseverance [m]", "As Proto Man, beat the game [Hard] [No Lo
 achievement("Roll Game Clear [m]", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323686, badge = "361686")
 achievement("Roll's Perseverance [m]", "As Roll, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresRoll, DIFFICULTY_HARD), id = 323687, badge = "361687")
 
-achievement("Toad-ally Unharmed", "Reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless(ToadMan, RequiresAnyCharacter), id = 323688, badge = "361416")
-achievement("Spotless Luminary", "Reach Bright Man's boss doors without taking damage or dying", 10, BossDoorDamageless(BrightMan, RequiresAnyCharacter), id = 323689, badge = "361417")
-achievement("Tomb Raider", "Reach Pharaoh Man's boss doors without taking damage or dying", 10, BossDoorDamageless(PharaohMan, RequiresAnyCharacter), id = 323690, badge = "361418")
-achievement("Ring Leader", "Reach Ring Man's boss doors without taking damage or dying", 10, BossDoorDamageless(RingMan, RequiresAnyCharacter), id = 323691, badge = "361419")
-achievement("Dust-Free Zone", "Reach Dust Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DustMan, RequiresAnyCharacter), id = 323692, badge = "361420")
-achievement("No Bone to Pick", "Reach Skull Man's boss doors without taking damage or dying", 10, BossDoorDamageless(SkullMan, RequiresAnyCharacter), id = 323693, badge = "361421")
-achievement("Surface Tension", "Reach Dive Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DiveMan, RequiresAnyCharacter), id = 323694, badge = "361422")
-achievement("Excavating Excellence", "Reach Drill Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DrillMan, RequiresAnyCharacter), id = 323695, badge = "361423")
+achievement("Toad-ally Unharmed", "Reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless(ToadMan, RequiresNotMan), id = 323688, badge = "361416")
+achievement("Spotless Luminary", "Reach Bright Man's boss doors without taking damage or dying", 10, BossDoorDamageless(BrightMan, RequiresNotMan), id = 323689, badge = "361417")
+achievement("Tomb Raider", "Reach Pharaoh Man's boss doors without taking damage or dying", 10, BossDoorDamageless(PharaohMan, RequiresNotMan), id = 323690, badge = "361418")
+achievement("Ring Leader", "Reach Ring Man's boss doors without taking damage or dying", 10, BossDoorDamageless(RingMan, RequiresNotMan), id = 323691, badge = "361419")
+achievement("Dust-Free Zone", "Reach Dust Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DustMan, RequiresNotMan), id = 323692, badge = "361420")
+achievement("No Bone to Pick", "Reach Skull Man's boss doors without taking damage or dying", 10, BossDoorDamageless(SkullMan, RequiresNotMan), id = 323693, badge = "361421")
+achievement("Surface Tension", "Reach Dive Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DiveMan, RequiresNotMan), id = 323694, badge = "361422")
+achievement("Excavating Excellence", "Reach Drill Man's boss doors without taking damage or dying", 10, BossDoorDamageless(DrillMan, RequiresNotMan), id = 323695, badge = "361423")
 
 achievement("Pond Skimming", "As Mega Man, defeat Toad Man with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(ToadMan, RequiresMegaMan), id = 323696, badge = "361432")
 achievement("Mega Watt", "As Mega Man, defeat Bright Man with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(BrightMan, RequiresMegaMan), id = 323697, badge = "361433")
@@ -1147,29 +1153,29 @@ achievement("Sweeping the Bone Yard", "As Roll, defeat Skull Man with only the R
 achievement("Deep Sea Broom Brawl", "As Roll, defeat Dive Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DiveMan, RequiresRoll), id = 323718, badge = "361454")
 achievement("Dirt-Free Drilling", "As Roll, defeat Drill Man with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(DrillMan, RequiresRoll), id = 323719, badge = "361740")
 
-achievement("Slippery Success", "Defeat Toad Man without taking damage", 5, BossKillDamageless(ToadMan, RequiresAnyCharacter), id = 323720, badge = "361424")
-achievement("Untouched Illumination", "Defeat Bright Man without taking damage", 10, BossKillDamageless(BrightMan, RequiresAnyCharacter), id = 323721, badge = "361425")
-achievement("Pyramid Scheme", "Defeat Pharaoh Man without taking damage", 10, BossKillDamageless(PharaohMan, RequiresAnyCharacter), id = 323722, badge = "361426")
-achievement("Flawless Ring Toss", "Defeat Ring Man without taking damage", 10, BossKillDamageless(RingMan, RequiresAnyCharacter), id = 323723, badge = "361427")
-achievement("Scrapyard Scrapper", "Defeat Dust Man without taking damage", 10, BossKillDamageless(DustMan, RequiresAnyCharacter), id = 323724, badge = "361428")
-achievement("Bone-Dry Victory", "Defeat Skull Man without taking damage", 10, BossKillDamageless(SkullMan, RequiresAnyCharacter), id = 323725, badge = "361429")
-achievement("Torpedo Dodge Champion", "Defeat Dive Man without taking damage", 10, BossKillDamageless(DiveMan, RequiresAnyCharacter), id = 323726, badge = "361430")
-achievement("Rock Solid Success", "Defeat Drill Man without taking damage", 10, BossKillDamageless(DrillMan, RequiresAnyCharacter), id = 323727, badge = "361431")
+achievement("Slippery Success", "Defeat Toad Man without taking damage", 5, BossKillDamageless(ToadMan, RequiresNotMan), id = 323720, badge = "361424")
+achievement("Untouched Illumination", "Defeat Bright Man without taking damage", 10, BossKillDamageless(BrightMan, RequiresNotMan), id = 323721, badge = "361425")
+achievement("Pyramid Scheme", "Defeat Pharaoh Man without taking damage", 10, BossKillDamageless(PharaohMan, RequiresNotMan), id = 323722, badge = "361426")
+achievement("Flawless Ring Toss", "Defeat Ring Man without taking damage", 10, BossKillDamageless(RingMan, RequiresNotMan), id = 323723, badge = "361427")
+achievement("Scrapyard Scrapper", "Defeat Dust Man without taking damage", 10, BossKillDamageless(DustMan, RequiresNotMan), id = 323724, badge = "361428")
+achievement("Bone-Dry Victory", "Defeat Skull Man without taking damage", 10, BossKillDamageless(SkullMan, RequiresNotMan), id = 323725, badge = "361429")
+achievement("Torpedo Dodge Champion", "Defeat Dive Man without taking damage", 10, BossKillDamageless(DiveMan, RequiresNotMan), id = 323726, badge = "361430")
+achievement("Rock Solid Success", "Defeat Drill Man without taking damage", 10, BossKillDamageless(DrillMan, RequiresNotMan), id = 323727, badge = "361431")
 
-achievement("Wing Wipeout", "Defeat Mothraya without taking damage", 10, BossKillDamageless(Cossack1, RequiresAnyCharacter), id = 323728, badge = "361635")
-achievement("Geometric Genius", "Defeat Square Machine without taking damage", 10, BossKillDamageless(Cossack2, RequiresAnyCharacter), id = 323729, badge = "361636")
-achievement("Roach Rebuke", "Defeat Cockroach Twins without taking damage", 10, BossKillDamageless(Cossack3, RequiresAnyCharacter), id = 323730, badge = "361637")
-achievement("Soviet Showdown", "Defeat the Cossack Catcher without taking damage", 10, BossKillDamageless(Cossack4, RequiresAnyCharacter), id = 323731, badge = "361638")
+achievement("Wing Wipeout", "Defeat Mothraya without taking damage", 10, BossKillDamageless(Cossack1, RequiresNotMan), id = 323728, badge = "361635")
+achievement("Geometric Genius", "Defeat Square Machine without taking damage", 10, BossKillDamageless(Cossack2, RequiresNotMan), id = 323729, badge = "361636")
+achievement("Roach Rebuke", "Defeat Cockroach Twins without taking damage", 10, BossKillDamageless(Cossack3, RequiresNotMan), id = 323730, badge = "361637")
+achievement("Soviet Showdown", "Defeat the Cossack Catcher without taking damage", 10, BossKillDamageless(Cossack4, RequiresNotMan), id = 323731, badge = "361638")
 
-achievement("Ironed Out", "Defeat Metall Daddy without taking damage", 10, BossKillDamageless(Wily1, RequiresAnyCharacter), id = 323732, badge = "361639")
-achievement("Tako Trashed", "Defeat Tako Trash without taking damage", 10, BossKillDamageless(Wily2, RequiresAnyCharacter), id = 323733, badge = "361640")
-achievement("Outsmarted Contraption", "Defeat Wily Machine 4 without taking damage", 25, BossKillDamageless(Wily3, RequiresAnyCharacter, bossLifeBarCount = 2), id = 323734, badge = "361664")
-achievement("Foiled Again", "Defeat Wily Capsule without taking damage", 10, BossKillDamageless(Wily4, RequiresAnyCharacter), id = 323735, badge = "361726")
+achievement("Ironed Out", "Defeat Metall Daddy without taking damage", 10, BossKillDamageless(Wily1, RequiresNotMan), id = 323732, badge = "361639")
+achievement("Tako Trashed", "Defeat Tako Trash without taking damage", 10, BossKillDamageless(Wily2, RequiresNotMan), id = 323733, badge = "361640")
+achievement("Outsmarted Contraption", "Defeat Wily Machine 4 without taking damage", 25, BossKillDamageless(Wily3, RequiresNotMan, bossLifeBarCount = 2), id = 323734, badge = "361664")
+achievement("Foiled Again", "Defeat Wily Capsule without taking damage", 10, BossKillDamageless(Wily4, RequiresNotMan), id = 323735, badge = "361726")
 
-achievement("Cold Yet Untouched", "Reach the boss doors of Dr. Cossack's Citadel I without taking damage or dying", 10, BossDoorDamageless(Cossack1, RequiresAnyCharacter), id = 323736, badge = "361886")
-achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citadel II without taking damage or dying", 10, BossDoorDamageless(Cossack2, RequiresAnyCharacter), id = 323737, badge = "361887")
-achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless(Cossack3, RequiresAnyCharacter), id = 323738, badge = "361888")
-achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless(Cossack4, RequiresAnyCharacter), id = 323739, badge = "361891")
+achievement("Cold Yet Untouched", "Reach the boss doors of Dr. Cossack's Citadel I without taking damage or dying", 10, BossDoorDamageless(Cossack1, RequiresNotMan), id = 323736, badge = "361886")
+achievement("Frost-Free Fortress", "Reach the boss doors of Dr. Cossack's Citadel II without taking damage or dying", 10, BossDoorDamageless(Cossack2, RequiresNotMan), id = 323737, badge = "361887")
+achievement("Polar Performance", "Reach the boss doors of Dr. Cossack's Citadel III without taking damage or dying", 10, BossDoorDamageless(Cossack3, RequiresNotMan), id = 323738, badge = "361888")
+achievement("Ice-Free Invasion", "Reach the boss doors of Dr. Cossack's Citadel IV without taking damage or dying", 10, BossDoorDamageless(Cossack4, RequiresNotMan), id = 323739, badge = "361891")
 
 achievement("Bug Buster", "As Mega Man, defeat Mothraya with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack1, RequiresMegaMan), id = 323740, badge = "361641")
 achievement("Straight-Angle Annihalator", "As Mega Man, defeat Square Machine with only the M. Buster [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack2, RequiresMegaMan), id = 323741, badge = "361642")
@@ -1186,8 +1192,8 @@ achievement("Shape Shifter's Nightmare", "As Roll, defeat Square Machine with on
 achievement("Infestation Inhibition", "As Roll, defeat Cockroach Twins with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Cossack3, RequiresRoll), id = 323750, badge = "361651")
 achievement("Cossack's Cleanup Crew", "As Roll, defeat the Cossack Catcher with only the R. Broom [No E-Tanks]", 5, BossKillNoSpecialWeapons(Cossack4, RequiresRoll, bossDeadHealth = 0x02), id = 323751, badge = "361652")
 
-achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless(Wily1, RequiresAnyCharacter), id = 323752, badge = "361889")
-achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless(Wily2, RequiresAnyCharacter), id = 323753, badge = "361890")
+achievement("Unscathed Approach", "Reach the boss doors of Wily Castle I without taking damage or dying", 10, BossDoorDamageless(Wily1, RequiresNotMan), id = 323752, badge = "361889")
+achievement("Aggressive Advancement", "Reach the boss doors of Wily Castle II without taking damage or dying", 10, BossDoorDamageless(Wily2, RequiresNotMan), id = 323753, badge = "361890")
 
 achievement("Man Over Metall", "As Mega Man, defeat Metall Daddy with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily1, RequiresMegaMan), id = 323754, badge = "361653")
 achievement("Dumpster Fire", "As Mega Man, defeat Tako Trash with only the M. Buster [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresMegaMan), id = 323755, badge = "361654")
@@ -1201,9 +1207,9 @@ achievement("Metall Mopped", "As Roll, defeat Metall Daddy with only the R. Broo
 achievement("Trash Sweep", "As Roll, defeat Tako Trash with only the R. Broom [No E-Tanks]", 10, BossKillNoSpecialWeapons(Wily2, RequiresRoll), id = 323761, badge = "361658")
 achievement("Wiped Clean", "As Roll, defeat Wily Machine 4 with only the R. Broom [No E-Tanks]", 25, BossKillNoSpecialWeapons(Wily3, RequiresRoll, bossLifeBarCount = 2), id = 323762, badge = "361667")
 
-achievement("Buster Proficiency", "As Mega Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaMan), id = 323763, badge = "361727")
-achievement("Shield Proficiency", "As Proto Man, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan), id = 323764, badge = "361728")
-achievement("Broom Proficiency", "As Roll, defeat all 8 Robot Masters in the boss rush without dying [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll), id = 323765, badge = "361729")
+achievement("Buster Proficiency", "As Mega Man, defeat all 8 Robot Masters in the boss rush without dying and with only the M. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresMegaMan), id = 323763, badge = "361727")
+achievement("Shield Proficiency", "As Proto Man, defeat all 8 Robot Masters in the boss rush without dying and with only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan), id = 323764, badge = "361728")
+achievement("Broom Proficiency", "As Roll, defeat all 8 Robot Masters in the boss rush without dying and with only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll), id = 323765, badge = "361729")
 
 achievement("Mega Momentum [m]", "As Mega Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323766, badge = "361688")
 achievement("Mega Mastery [m]", "As Mega Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323767, badge = "361689")
@@ -1229,8 +1235,7 @@ achievement(
     "What is a Man?",
     "Beat the game as Man. All settings and cheats are allowed!",
     10,
-    RequireNewFileWithoutPasswords()
-    && BossKill(
+    BossKill(
         Wily4,
         requiredDifficulty = DIFFICULTY_EASY,
         requiredCharacters = RequiresMan,
@@ -1393,6 +1398,7 @@ function StartLeaderboard(requiresCharacter = 6) {
             && WeaponsEarnedA() == 0x00
             && WeaponsEarnedB() == 0x00
         )
+        && CanonicalGameState() != STATE_FILE_SELECT // this blocks leaderboards starting when saving a game
         && IsUsingRequiredCharacters(requiresCharacter)
         && IsUsingOnlyAllowedModifiers()
         && RequireNewFileWithoutPasswords()
@@ -1410,30 +1416,33 @@ leaderboard(
     "Mega Man Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresMegaMan),
-    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN,
+    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN || CanonicalGameState() == STATE_MM4_SETTINGS,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
-    format = "FRAMES"
+    format = "FRAMES",
+    lower_is_better = true
 )
 
 leaderboard(
     "Proto Man Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresProtoMan),
-    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN,
+    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN || CanonicalGameState() == STATE_MM4_SETTINGS,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
-    format = "FRAMES"
+    format = "FRAMES",
+    lower_is_better = true
 )
 
 leaderboard(
     "Roll Game Clear",
     "New game, default settings",
     start = StartLeaderboard(RequiresRoll),
-    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN,
+    cancel = CanonicalGameState() == STATE_MM4_TITLE_SCREEN || CanonicalGameState() == STATE_MM4_SETTINGS,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
-    format = "FRAMES"
+    format = "FRAMES",
+    lower_is_better = true
 )
 
 // Subset Leaderboards
@@ -1444,10 +1453,12 @@ leaderboard(
     cancel = 
         CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
         || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
+        || CanonicalGameState() == STATE_MM4_SETTINGS
     ,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
-    format = "FRAMES"
+    format = "FRAMES",
+    lower_is_better = true
 )
 
 leaderboard(
@@ -1457,10 +1468,12 @@ leaderboard(
     cancel = 
         CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
         || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
+        || CanonicalGameState() == STATE_MM4_SETTINGS
     ,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
-    format = "FRAMES"
+    format = "FRAMES",
+    lower_is_better = true
 )
 
 leaderboard(
@@ -1470,10 +1483,12 @@ leaderboard(
     cancel = 
         CanonicalGameState() == STATE_LEVEL && CurrentHealth() < prev(CurrentHealth())
         || CanonicalGameState() == STATE_MM4_TITLE_SCREEN
+        || CanonicalGameState() == STATE_MM4_SETTINGS
     ,
     submit = SubmitTime(),
     value = repeated(TimeSpan(), always_true()),
-    format = "FRAMES"
+    format = "FRAMES",
+    lower_is_better = true
 )
 // #endregion
 
