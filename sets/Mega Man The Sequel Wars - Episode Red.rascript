@@ -462,8 +462,8 @@ function RequireWithoutPasswords() {
 function RequireNewFileWithoutPasswords() {
     return 
         disable_when(
-            CanonicalGameState() == STATE_MM4_TITLE_SCREEN && WeaponsEarnedA() != 0 && WeaponsEarnedB() != 0,
-            CanonicalGameState() == STATE_FILE_SELECT
+            CanonicalGameState() == STATE_MEGAMAN_GAME_SELECT && WeaponsEarnedA() != 0 && WeaponsEarnedB() != 0,
+            CanonicalGameState() == STATE_MM4_TITLE_SCREEN && WeaponsEarnedA() == 0 && WeaponsEarnedB() == 0
         )
         && RequireWithoutPasswords()
 }
@@ -966,7 +966,11 @@ function GameClear(requiredCharacters = 8, requiredDifficulty = 0x01) {
 // @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
 // @param requiredDifficulty {0x01: DIFFICULTY_MEDIUM} - The difficulty level required for the achievement to unlock.
 function ContinuelessGameClear(requiredCharacters = 8, requiredDifficulty = 0x01) {
-    cancel = disable_when(CanonicalGameState() == STATE_GAME_OVER, CanonicalGameState() == STATE_GAME_INTRO)
+    cancel = disable_when(
+        TotalLivesLeft() == 0xFD, // game over
+        CanonicalGameState() == STATE_MEGAMAN_GAME_SELECT && WeaponsEarnedA() == 0 && WeaponsEarnedB() == 0
+    )
+
     return cancel && GameClear(requiredCharacters, requiredDifficulty)
 }
 
@@ -1393,12 +1397,9 @@ achievement("Ms. Perfect", "As Roll, complete the entire game without taking dam
 // @param requiredCharacters {1: RequiresMegaMan} - Which characters are required to start the timer
 function StartLeaderboard(requiresCharacter = 6) {
     return
-        once(
-            CanonicalGameState() == STATE_STAGE_SELECT
-            && WeaponsEarnedA() == 0x00
-            && WeaponsEarnedB() == 0x00
-        )
-        && CanonicalGameState() != STATE_FILE_SELECT // this blocks leaderboards starting when saving a game
+        CanonicalGameState() == STATE_STAGE_SELECT
+        && WeaponsEarnedA() == 0x00
+        && WeaponsEarnedB() == 0x00
         && IsUsingRequiredCharacters(requiresCharacter)
         && IsUsingOnlyAllowedModifiers()
         && RequireNewFileWithoutPasswords()
