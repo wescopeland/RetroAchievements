@@ -1222,9 +1222,9 @@ achievement("Proto Perfection [m]", "As Proto Man, beat the game without ever us
 achievement("Roll's Resolve [m]", "As Roll, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323770, badge = "361692")
 achievement("Roll's Resilience [m]", "As Roll, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323771, badge = "361693")
 
-achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323772, badge = "361694")
-achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323773, badge = "361695")
-achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Hard] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323774, badge = "361696")
+achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323772, badge = "361694")
+achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323773, badge = "361695")
+achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323774, badge = "361696")
 
 achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"), id = 323775, badge = "361987")
 achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776, badge = "361988")
@@ -1654,9 +1654,13 @@ rich_presence_conditional_display(CanonicalGameState() == STATE_ENTER_PASSWORD_S
 rich_presence_conditional_display(CanonicalGameState() == STATE_MM4_SETTINGS, "Adjusting the Mega Man 4 game settings")
 rich_presence_conditional_display(CanonicalGameState() == STATE_FREE_PLAY_MENU, "On the Free Play menu")
 
+function AnticheatTrap() {
+    return IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH && CanonicalGameState() == STATE_LEVEL
+}
+
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && (CanonicalGameState() == STATE_ENDING_ONE || CanonicalGameState() == STATE_ENDING_TWO),
 
     "{0} • {1} • Watching the Ending",
@@ -1672,7 +1676,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && CanonicalGameState() == STATE_CREDITS,
 
     "{0} • {1} • Viewing the credits. Thanks for Playing! 🎉",
@@ -1688,7 +1692,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && CanonicalGameState() == STATE_STAGE_SELECT,
 
     "{0} • {1} • {2}/8 • {3} {4} • Stage Select screen",
@@ -1710,7 +1714,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && CanonicalGameState() == STATE_LEVEL_INTRO,
 
     "Watching the Intro to {0}'s stage",
@@ -1724,7 +1728,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() < STAGE_ADDRESS_MAP[Cossack1] 
     && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
@@ -1766,7 +1770,7 @@ bossRushEnemyLabels = {
 bossRushEnemyRooms = [0x21, 0x23, 0x1C, 0x1B, 0x1F, 0x18, 0x20, 0x22]
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) && CurrentStage() == STAGE_ADDRESS_MAP[Wily3]
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
     && (CurrentCheckpoint() == CHECKPOINT_END)
@@ -1797,7 +1801,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
     && (CurrentCheckpoint() == CHECKPOINT_END),
@@ -1824,7 +1828,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily3] 
     && CurrentCheckpoint() == CHECKPOINT_FINISHED_BOSS_RUSH,
@@ -1851,7 +1855,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() == STAGE_ADDRESS_MAP[Wily4] 
     && BossActive() == BOSS_ACTIVE_WILY_CAPSULE,
@@ -1878,7 +1882,7 @@ rich_presence_conditional_display(
 
 // anticheat
 rich_presence_conditional_display(
-    once(IframeTimer() != 0 && CurrentHealth() == MAX_HEALTH)
+    once(AnticheatTrap())
     && (CanonicalGameState() == STATE_LEVEL || CanonicalGameState() == STATE_PAUSE_MENU_OPEN) 
     && CurrentStage() >= STAGE_ADDRESS_MAP[Cossack1] 
     && (CurrentCheckpoint() == CHECKPOINT_NONE || CurrentCheckpoint() == CHECKPOINT_MID),
