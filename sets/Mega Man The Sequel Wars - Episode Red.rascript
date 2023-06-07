@@ -105,10 +105,13 @@ COSSACK_CURRENT = 0x69
 METALL_CURRENT = 0x0C
 WILY_MACHINE_CURRENT = 0x19
 WILY_CAPSULE_CURRENT = 0x14
+
+IS_SLIDING_NOT_ROLL = 0x01
+IS_SLIDING_ROLL = 0xFB
 // #endregion
 
 // #region Memory -------------------------------------------------------------------------------------------------------------------------
-function IsSliding() => byte(_UNSAFE_MEM_COLMODE)
+function IsSlidingAddr() => byte(_UNSAFE_MEM_COLMODE)
 function TotalLivesLeft() => byte(_MEM_LIVES)
 function TotalETanksLeft() => byte(_MEM_ETANKS)
 function CurrentYPosition() => byte(_MEM_PSY)
@@ -593,7 +596,9 @@ function FreePlayStageClear(
     allowSlidingClause = always_true()
     if (allowSliding == 0) {
         allowSlidingClause = disable_when(
-            CanonicalGameState() == STATE_LEVEL && IsSliding() == 1,
+            CanonicalGameState() == STATE_LEVEL 
+            && (IsSlidingAddr() == IS_SLIDING_NOT_ROLL || IsSlidingAddr() == IS_SLIDING_ROLL),
+
             FreePlayChallengeReset()
         )
     }
@@ -694,7 +699,10 @@ function FreePlayBossKill(
     allowSlidingClause = always_true()
     if (allowSliding == 0) {
         allowSlidingClause = disable_when(
-            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == currentScreen && IsSliding() == 1,
+            CanonicalGameState() == STATE_LEVEL 
+            && CurrentScreen() == currentScreen 
+            && (IsSlidingAddr() == IS_SLIDING_NOT_ROLL || IsSlidingAddr() == IS_SLIDING_ROLL),
+
             FreePlayChallengeReset()
         )
     }
