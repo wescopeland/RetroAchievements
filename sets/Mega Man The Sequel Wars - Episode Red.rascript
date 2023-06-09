@@ -489,6 +489,9 @@ function ResetIfNonPlayingState() {
         // prevent triggers when exiting from a stage
         && never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN && prev(CanonicalGameState()) == STATE_PAUSE_MENU_OPEN)
 
+        // prevent triggers from walking in a dead boss's room and leaving the stage
+        && never(CanonicalGameState() == STATE_SAVE_OR_CONTINUE_SCREEN && prev(CanonicalGameState()) == STATE_LEVEL)
+
         // prevent triggers when selecting a character in the settings menu
         && never(CanonicalGameState() == STATE_MM4_SETTINGS && prev(CanonicalGameState()) == STATE_FREE_PLAY_MENU)
 
@@ -674,6 +677,7 @@ function DiveManMarineChallenge() {
 // @param allowETanks {0 or 1} - Can the player use E-Tanks while killing this boss
 // @param onlySpecificWeapon {0x00: EQUIPPED_BUSTER} - Are there any weapon restrictions while killing this boss // @see EQUIPPED_*
 // @param isProtoManAllowed {1: true} - Can Proto Man be used for this challenge?
+// @param isRollAllowed {1: true} - Can Roll be used for this challenge?
 function FreePlayBossKill(
     primeStage,
     currentScreen = 0x00,
@@ -686,7 +690,8 @@ function FreePlayBossKill(
     allowDamage = 1,
     allowETanks = 1,
     onlySpecificWeapon = 0,
-    isProtoManAllowed = 1
+    isProtoManAllowed = 1,
+    isRollAllowed = 1
 ) {
     allowJumpingClause = always_true()
     if (allowJumping == 0) {
@@ -732,8 +737,15 @@ function FreePlayBossKill(
     }
 
     bannedCharactersClause = always_true()
-    if (isProtoManAllowed == 0) {
+    if (isProtoManAllowed == 0 && isRollAllowed == 1) {
         bannedCharactersClause = never(CurrentCharacter() == CHAR_PROTOMAN) && never(CurrentCharacter() == CHAR_MAN)
+    } else if (isProtoManAllowed == 1 && isRollAllowed == 0) {
+        bannedCharactersClause = never(CurrentCharacter() == CHAR_ROLL) && never(CurrentCharacter() == CHAR_MAN)
+    } else if (isProtoManAllowed == 0 && isRollAllowed == 0) {
+        bannedCharactersClause =
+            never(CurrentCharacter() == CHAR_ROLL)
+            && never(CurrentCharacter() == CHAR_PROTOMAN)
+            && never(CurrentCharacter() == CHAR_MAN)
     } else {
         bannedCharactersClause = never(CurrentCharacter() == CHAR_MAN)
     }
@@ -1307,9 +1319,9 @@ achievement(
 // Idea: Fox in Yellow Socks
 achievement(
     "[Dev Team Challenge III] Mothraya",
-    "[FREE PLAY MODE: Cossack 1, Checkpoint 2] Defeat Mothraya damageless without jumping and with Full Arsenal enabled",
+    "[FREE PLAY MODE: Cossack 1, Checkpoint 2] As Mega Man, defeat Mothraya damageless without jumping and with Full Arsenal enabled",
     25,
-    FreePlayBossKill(Cossack1, MOTHRAYA_CURRENT, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled),
+    FreePlayBossKill(Cossack1, MOTHRAYA_CURRENT, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowFullArsenal = MustBeEnabled, isProtoManAllowed = 0, isRollAllowed = 0),
     id = 323793,
     badge = "361659"
 )
@@ -1329,9 +1341,9 @@ achievement(
 // Solution: G.Attack + Blind spot on leftmost spot of screen
 achievement(
     "[Dev Team Challenge V] Cossack Catcher",
-    "[FREE PLAY MODE: Cossack 4, Checkpoint 2] Defeat Cossack Catcher damageless without jumping, without sliding, and with Full Arsenal enabled",
+    "[FREE PLAY MODE: Cossack 4, Checkpoint 2] As Mega Man, defeat Cossack Catcher damageless without jumping, without sliding, without E-Tanks, and with Full Arsenal enabled",
     25,
-    FreePlayBossKill(Cossack4, COSSACK_CURRENT, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowFullArsenal = MustBeEnabled, bossDeadHealth = 0x02),
+    FreePlayBossKill(Cossack4, COSSACK_CURRENT, CHECKPOINT_END, allowDamage = 0, allowJumping = 0, allowSliding = 0, allowETanks = 0, allowFullArsenal = MustBeEnabled, bossDeadHealth = 0x02, isProtoManAllowed = 0, isRollAllowed = 0),
     id = 323795,
     badge = "361661"
 )
@@ -1351,9 +1363,9 @@ achievement(
 // Solution: Stand near the middle and slide
 achievement(
     "[Dev Team Challenge VII] Wily Capsule",
-    "[FREE PLAY MODE: Wily 4, Checkpoint 0] Defeat Wily Capsule without jumping",
+    "[FREE PLAY MODE: Wily 4, Checkpoint 0] Defeat Wily Capsule without jumping and without E-Tanks",
     25,
-    FreePlayBossKill(Wily4, WILY_CAPSULE_CURRENT, CHECKPOINT_NONE, allowJumping = 0),
+    FreePlayBossKill(Wily4, WILY_CAPSULE_CURRENT, CHECKPOINT_NONE, allowJumping = 0, allowETanks = 0),
     id = 323797,
     badge = "361725"
 )
@@ -1419,6 +1431,7 @@ function SubmitTime() {
         && CurrentScreen() == WILY_CAPSULE_CURRENT // BOSS_SCREENS[Wily4]["current"]
         && never(PlayerDead())
         && IsBossKilled()
+        && CurrentEquippedWeapon() != EQUIPPED_EXITSTAGE // players can Exit Stage and trigger a submit
 }
 
 leaderboard(
