@@ -80,6 +80,10 @@ function IsParasolVisible() => byte(0x0A14)
 function LevelCounter0X() => byte(0x3583)
 function LevelCounterX0() => byte(0x35A3)
 function LevelCounter() => (LevelCounterX0() * 10) + LevelCounter0X()
+function HammerOneIsAvailable() => byte(0x0680)
+function HammerOneIsActive()  => byte(0x0681)
+function HammerTwoIsAvailable() => byte(0x0690)
+function HammerTwoIsActive() => byte(0x0691)
 // #endregion
 
 // #region Utils --------------------------------------------------------------------------------------------------------------------------
@@ -92,6 +96,19 @@ function Dead() => ExtendedGameState() == Dying
 
 function HasCollectedOneItem()  => IsHatVisible() == 0 || IsPurseVisible() == 0 || IsParasolVisible() == 0
 function HasCollectedAllItems() => IsHatVisible() == 0 && IsPurseVisible() == 0 && IsParasolVisible() == 0 
+
+function StageKindCleared(stageKind) {
+    start = once(InGame())
+
+    cancel = never(GameOver())
+
+    return (
+        start
+        && cancel
+        && CurrentStageKind() == stageKind
+        && ScreenCleared()
+    )
+}
 
 function DefaultSettingsCheck() {
     start = once(ThinGameState() == AttractMode)
@@ -118,16 +135,6 @@ function DeathlessProgress(level, stageKind) {
         start
         && cancel
         && trigger_when(CurrentLevel() == level && CurrentStageKind() == stageKind && ScreenCleared())
-}
-
-function NoJumpBarrelBoard() {
-    start = once(GameStarted()) && once(CurrentStageKind() == Barrel)
-    cancel = never(GameOver()) && never(CurrentStageKind() != Barrel) && never(IsMarioJumpingOrFalling() == 1)
-    
-    return
-        start
-        && cancel
-        && ScreenCleared()
 }
 
 function EarnedScore(score) {
@@ -211,7 +218,10 @@ function KillScreenProgress() {
 
 function PointsBeforeFirstLadder(bonusTimerCutoff) {
     start = once(GameStarted() && CurrentLevel() == 1 && CurrentStageKind() == Barrel)
-    cancel = never(ThinGameState() != GamePlaying) || never(Dead()) || never(ExtendedGameState() == HowHighScreen)
+
+    cancel = 
+        never(ThinGameState() != GamePlaying) || never(Dead()) || never(ExtendedGameState() == HowHighScreen)
+        && never(CurrentLevel() > 1)
     
     return
         start
@@ -219,7 +229,7 @@ function PointsBeforeFirstLadder(bonusTimerCutoff) {
         && CurrentBonusTimerXX00() > bonusTimerCutoff
         && disable_when(IsMarioClimbingLadder() == 1, ExtendedGameState() == HowHighScreen)
         && trigger_when(
-            tally(10,
+            tally(15,
                 prev(PlayerOneScoreComputed()) < PlayerOneScoreComputed(),
                 
                 // For every 300 point jump, add 2 more to hit counter.
@@ -231,60 +241,6 @@ function PointsBeforeFirstLadder(bonusTimerCutoff) {
                 prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
                 prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
                 prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500
-            )
-        )
-}
-
-function PointsBeforeStageClear(pointsNeeded, stageKind) {
-    start = once(GameStarted() && CurrentStageKind() == stageKind)
-    cancel = never(ThinGameState() != GamePlaying) || never(Dead()) || never(ExtendedGameState() == HowHighScreen)
-    
-    return
-        start
-        && cancel
-        && tally(((pointsNeeded - 3000) / 100),
-            prev(PlayerOneScoreComputed()) < PlayerOneScoreComputed(),
-            
-            // Earned 300 points, add 2 more to hit counter.
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 300,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 300,
-            
-            // Earned 500 points, add 4 more to hit counter.
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-            
-            // Earned 800 points, add 7 more to hit counter.
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-            prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800
-        ) && trigger_when(
-                tally(pointsNeeded / 100,
-                    prev(PlayerOneScoreComputed()) < PlayerOneScore(),
-            
-                    // Earned 300 points, add 2 more to hit counter.
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 300,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 300,
-            
-                    // Earned 500 points, add 4 more to hit counter.
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 500,
-            
-                    // Earned 800 points, add 7 more to hit counter.
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800,
-                    prev(PlayerOneScoreComputed()) == PlayerOneScoreComputed() - 800
             )
         )
 }
@@ -314,59 +270,68 @@ function FloorSkipper(count) {
             && ExtendedGameState() == Victory
         )
 }
+
+function LeechFirstFireball() {
+    start = once(InGame() && CurrentLevel() == 1 && CurrentStageKind() == Barrel && IsUsingDefaultSettings())
+
+    cancel = never(ExtendedGameState() != PlayerPlaying) && never(Dead()) && never(CurrentLevel() != 1)
+
+    return (
+        start
+        && cancel
+        && disable_when(ExtendedGameState() == PlayerPlaying && MarioY() <= 0xD3) // Climbed the first ladder
+        && CurrentBonusTimerXX00() == 0x45
+        && IsMarioJumpingOrFalling() == 0x01
+        && PlayerOneScore() > prev(PlayerOneScore())
+    )
+}
 // #endregion
 
 
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
 achievement("DEFAULT SETTINGS CHECK", "Lives = 3, Bonus Life = 7000, One Player Mode", 0, DefaultSettingsCheck())
 
-achievement("How High Can You Try", "Clear 1-1", 5, Progress(1, Barrel))
-achievement("Only 20 More Loops Left", "Clear 1-4", 5, Progress(1, Rivet))
-achievement("Novice of the Arcade", "Clear 2-4", 5, Progress(2, Rivet))
-achievement("Student of the Arcade", "Clear 3-4", 10, Progress(3, Rivet))
-achievement("Enthusiast of the Arcade", "Clear 4-4", 10, Progress(4, Rivet))
-achievement("Adept of the Arcade", "Clear 5-4", 10, Progress(5, Rivet))
+achievement("How High Can You Try", "Clear 1-1 (Barrel)", 3, Progress(1, Barrel))
+achievement("1-2", "Clear 1-2 (Conveyor)", 2, Progress(1, Conveyor))
+achievement("1-3", "Clear 1-3 (Spring)", 3, Progress(1, Spring))
+achievement("1-4", "Clear 1-4 (Rivet)", 2, Progress(1, Rivet))
 
-achievement("Veteran of the Arcade", "Clear 4-4 on your very first life", 25, DeathlessProgress(4, Rivet))
+achievement("2-1", "Clear 2-1 (Barrel)", 5, Progress(2, Barrel))
+achievement("2-2", "Clear 2-2 (Conveyor)", 5, Progress(2, Conveyor))
+achievement("2-3", "Clear 2-3 (Spring)", 5, Progress(2, Spring))
+achievement("2-4", "Clear 2-4 (Rivet)", 5, Progress(2, Rivet))
 
-achievement("Prodigy of the Arcade", "Score 200,000 points", 25, EarnedScore(200000))
-achievement("Connoisseur of the Arcade", "Score 400,000 points", 25, EarnedScore(400000))
-achievement("Master of the Arcade", "Score 600,000 points", 50, EarnedScore(600000))
+achievement("3-3", "Clear 3-3 (Spring)", 5, Progress(3, Spring))
+achievement("3-4", "Clear 3-4 (Rivet)", 10, Progress(3, Rivet))
 
-achievement("Barrel Bounce II", "Leech the first falling barrel on 1-1", 5, BarrelBounce())
+achievement("4-4", "Clear 4-4 (Rivet)", 10, Progress(4, Rivet))
+achievement("5-4", "Clear 5-4 (Rivet)", 10, Progress(5, Rivet))
 
-achievement("Floor Skipper I", "Perform the floor skip on any barrel stage", 5, FloorSkipper(1))
-achievement("Floor Skipper II", "Perform the floor skip four times in a single game", 10, FloorSkipper(4))
-achievement("Floor Skipper III", "Perform the floor skip twelve times in a single game", 25, FloorSkipper(12))
+achievement("Kong Adept", "Clear 4-4 on your very first life", 25, DeathlessProgress(4, Rivet))
 
-achievement("Conveyor Collector II", "Collect all three of Pauline's items on any conveyor board and finish the stage", 5, ClearedWithAllPrizes(Conveyor))
-achievement("Spring Scavenger II", "Collect all three of Pauline's items on any spring board and finish the stage", 5, ClearedWithAllPrizes(Spring))
-achievement("Rivet Retriever II", "Collect all three of Pauline's items on any rivet board and finish the stage", 5, ClearedWithAllPrizes(Rivet))
+achievement("High Scorer I", "Score 50,000 points", 10, EarnedScore(50000))
+achievement("High Scorer II", "Score 100,000 points", 25, EarnedScore(100000))
+achievement("High Scorer III", "Score 150,000 points", 25, EarnedScore(150000))
 
-achievement("Barrel Board Elite", "Clear a barrel board without ever pressing jump", 5, NoJumpBarrelBoard())
+achievement("Barrel Bounce", "On 1-1, leech the first falling barrel", 5, BarrelBounce())
+achievement("Heat Seeker", "On 1-1, score 1,500 points before climbing a single ladder", 10, PointsBeforeFirstLadder(0))
 
-achievement("Barrel Vaulting Pro II", "Make corrupted graphics appear by leaping over three obstacles in a single jump", 10, ObjectsJumpedCount(3))
-achievement("Barrel Vaulting Pro III", "Take advantage of barrel grouping mechanics and leap over four obstacles in a single jump", 10, ObjectsJumpedCount(4))
+achievement("Floor Skipper I", "Perform the floor skip on any barrel stage [See video in comments]", 5, FloorSkipper(1))
+achievement("Floor Skipper II", "Perform the floor skip three times in a single game", 25, FloorSkipper(3))
 
-achievement("Barrel Manipulator V", "Use the ladder trick to dodge 2 barrels in a row (Note: the ladder trick is when you climb a ladder and wait at the top, which forces a barrel to roll by)", 2, LadderTrick(2))
-achievement("Barrel Manipulator VI", "Use the ladder trick to dodge 8 barrels in a row", 3, LadderTrick(8))
+achievement("Conveyor Collector", "Collect all three of Pauline's items on any conveyor board and finish the stage", 5, ClearedWithAllPrizes(Conveyor))
+achievement("Spring Scavenger", "Collect all three of Pauline's items on any spring board and finish the stage", 5, ClearedWithAllPrizes(Spring))
+achievement("Rivet Retriever", "Collect all three of Pauline's items on any rivet board and finish the stage", 5, ClearedWithAllPrizes(Rivet))
 
-achievement("Heat Seeker IV", "Score 1,000 points before climbing a single ladder", 10, PointsBeforeFirstLadder(0))
-achievement("Heat Seeker V", "Score 1,000 points before climbing a single ladder and before the bonus timer hits 4300", 25, PointsBeforeFirstLadder(0x43))
+achievement("Hammered Out I", "Successfully finish a conveyor board after using both hammers", 5, StageKindCleared(Conveyor) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00)
+achievement("Hammered Out II", "Successfully finish a rivet board after using both hammers", 5, StageKindCleared(Rivet) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00)
+achievement("Hammered Out III", "Successfully finish a barrel board after using both hammers", 10, StageKindCleared(Barrel) && HammerOneIsAvailable() == 0x00 && HammerTwoIsAvailable() == 0x00)
 
-achievement("Barrel Buster I", "Score at least 10,000 points on any barrel board before clearing it", 25, PointsBeforeStageClear(10000, Barrel))
-achievement("Barrel Buster II", "Score at least 15,000 points on any barrel board before clearing it", 50, PointsBeforeStageClear(15000, Barrel))
-achievement("Conveyor Buster", "Score at least 5,500 points on any conveyor board before clearing it", 25, PointsBeforeStageClear(5500, Conveyor))
+achievement("Barrel Vaulter I", "Leap over two obstacles in a single jump", 5, ObjectsJumpedCount(2))
+achievement("Barrel Vaulter II", "Make corrupted graphics appear by leaping over three obstacles in a single jump", 10, ObjectsJumpedCount(3))
 
-achievement("Turbo Barrel II", "Finish a barrel board with at least 7600 left on the timer", 10, TimerFinish(Barrel, 0x76))
-achievement("Turbo Conveyor II", "Finish a conveyor board with at least 6800 left on the timer", 25, TimerFinish(Conveyor, 0x68))
-achievement("Turbo Spring II", "Finish a spring board with at least 6800 left on the timer", 50, TimerFinish(Spring, 0x68))
-achievement("Turbo Rivet II", "Finish a rivet board with at least 5100 left on the timer", 50, TimerFinish(Rivet, 0x51))
-
-achievement("Kill Screen I", "Reach 22-1", 25, Progress(21, Rivet))
-achievement("Kill Screen II", "Reach 22-2", 25, Progress(22, Barrel))
-achievement("Kill Screen III", "Reach 22-3", 25, Progress(22, Conveyor))
-achievement("Legend of the Arcade II", "Reach 22-4 and survive until the game gives up", 100, KillScreenProgress())
+achievement("Barrel Manipulator I", "Use the ladder trick to dodge 2 barrels in a row (Note: the ladder trick is when you climb a ladder and wait at the top, which forces a barrel to roll by)", 2, LadderTrick(2))
+achievement("Barrel Manipulator II", "Use the ladder trick to dodge 8 barrels in a row", 3, LadderTrick(8))
 // #endregion
 
 // #region Rich Presence ------------------------------------------------------------------------------------------------------------------
@@ -412,7 +377,7 @@ leaderboard(
 leaderboard(
     "1-1",
     "Points clearing 1-1 on your first life",
-    IsUsingDefaultSettings() && InGame() && CurrentLevel() == 1 && CurrentStageKind() == Barrel,
+    IsUsingDefaultSettings() && InGame(),
     Dead(),
     ScreenCleared(),
     PlayerOneScore()
@@ -421,7 +386,7 @@ leaderboard(
 leaderboard(
     "Heat Seeker",
     "Points before touching a ladder on your first life",
-    IsUsingDefaultSettings() && InGame() && CurrentLevel() == 1 && CurrentStageKind() == Barrel,
+    IsUsingDefaultSettings() && InGame(),
     always_false(),
     Dead() || IsMarioClimbingLadder() == 1,
     PlayerOneScore()
