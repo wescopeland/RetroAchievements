@@ -9,6 +9,7 @@ GamePlaying = 0x03
 
 function ExtendedGameState() => byte(0x000A)
 GameStartCutscene = 0x07
+ScreenFinished = 0x08
 GameOver = 0x10
 HowHighScreen = 0x0A
 PlayerPlaying = 0x0C
@@ -264,6 +265,7 @@ function FloorSkipper(count) {
     return
         start
         && cancel
+        && CurrentStageKind() == Barrel
         && repeated(count,
             IsMarioJumpingOrFalling() == 1
             && prev(ExtendedGameState()) == PlayerPlaying
@@ -291,21 +293,21 @@ function LeechFirstFireball() {
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
 achievement("DEFAULT SETTINGS CHECK", "Lives = 3, Bonus Life = 7000, One Player Mode", 0, DefaultSettingsCheck())
 
-achievement("How High Can You Try", "Clear 1-1 (Barrel)", 3, Progress(1, Barrel))
-achievement("1-2", "Clear 1-2 (Conveyor)", 2, Progress(1, Conveyor))
-achievement("1-3", "Clear 1-3 (Spring)", 3, Progress(1, Spring))
-achievement("1-4", "Clear 1-4 (Rivet)", 2, Progress(1, Rivet))
+achievement("1-1: HOW HIGH CAN YOU TRY", "Clear 1-1 (Barrel)", 3, Progress(1, Barrel))
+achievement("1-2: Conveyor Rookie", "Clear 1-2 (Conveyor)", 2, Progress(1, Conveyor))
+achievement("1-3: Springboard Rookie", "Clear 1-3 (Spring)", 3, Progress(1, Spring))
+achievement("1-4: Rivet Rookie", "Clear 1-4 (Rivet)", 2, Progress(1, Rivet))
 
-achievement("2-1", "Clear 2-1 (Barrel)", 5, Progress(2, Barrel))
-achievement("2-2", "Clear 2-2 (Conveyor)", 5, Progress(2, Conveyor))
-achievement("2-3", "Clear 2-3 (Spring)", 5, Progress(2, Spring))
-achievement("2-4", "Clear 2-4 (Rivet)", 5, Progress(2, Rivet))
+achievement("2-1: YOU CAN TRY VERY HIGH", "Clear 2-1 (Barrel)", 5, Progress(2, Barrel))
+achievement("2-2: Conveyor Intermediate", "Clear 2-2 (Conveyor)", 5, Progress(2, Conveyor))
+achievement("2-3: Springboard Intermediate", "Clear 2-3 (Spring)", 5, Progress(2, Spring))
+achievement("2-4: Rivet Intermediate", "Clear 2-4 (Rivet)", 5, Progress(2, Rivet))
 
-achievement("3-3", "Clear 3-3 (Spring)", 5, Progress(3, Spring))
-achievement("3-4", "Clear 3-4 (Rivet)", 10, Progress(3, Rivet))
+achievement("3-3: Springboard Advanced", "Clear 3-3 (Spring)", 5, Progress(3, Spring))
+achievement("3-4: Rivet Advanced", "Clear 3-4 (Rivet)", 10, Progress(3, Rivet))
 
-achievement("4-4", "Clear 4-4 (Rivet)", 10, Progress(4, Rivet))
-achievement("5-4", "Clear 5-4 (Rivet)", 10, Progress(5, Rivet))
+achievement("4-4: Maximum Difficulty", "Clear 4-4 (Rivet)", 10, Progress(4, Rivet))
+achievement("5-4: 16 More Loops", "Clear 5-4 (Rivet)", 10, Progress(5, Rivet))
 
 achievement("Kong Adept", "Clear 4-4 on your very first life", 25, DeathlessProgress(4, Rivet))
 
@@ -317,7 +319,7 @@ achievement("Barrel Bounce", "On 1-1, leech the first falling barrel", 5, Barrel
 achievement("Heat Seeker", "On 1-1, score 1,500 points before climbing a single ladder", 10, PointsBeforeFirstLadder(0))
 
 achievement("Floor Skipper I", "Perform the floor skip on any barrel stage [See video in comments]", 5, FloorSkipper(1))
-achievement("Floor Skipper II", "Perform the floor skip three times in a single game", 25, FloorSkipper(3))
+achievement("Floor Skipper II", "Perform the floor skip three times in a single game", 25, FloorSkipper(3), id = 326885, badge = "366126")
 
 achievement("Conveyor Collector", "Collect all three of Pauline's items on any conveyor board and finish the stage", 5, ClearedWithAllPrizes(Conveyor))
 achievement("Spring Scavenger", "Collect all three of Pauline's items on any spring board and finish the stage", 5, ClearedWithAllPrizes(Spring))
@@ -376,19 +378,10 @@ leaderboard(
 
 leaderboard(
     "1-1",
-    "Points clearing 1-1 on your first life",
+    "Highest score clearing 1-1 on your first life",
     IsUsingDefaultSettings() && InGame(),
     Dead(),
-    ScreenCleared(),
-    PlayerOneScore()
-)
-
-leaderboard(
-    "Heat Seeker",
-    "Points before touching a ladder on your first life",
-    IsUsingDefaultSettings() && InGame(),
-    always_false(),
-    Dead() || IsMarioClimbingLadder() == 1,
+    ExtendedGameState() == ScreenFinished && prev(ExtendedGameState()) == Victory,
     PlayerOneScore()
 )
 // #endregion
