@@ -465,7 +465,7 @@ function RequireWithoutPasswords() {
 function RequireNewFileWithoutPasswords() {
     return 
         disable_when(
-            CanonicalGameState() == STATE_MEGAMAN_GAME_SELECT && WeaponsEarnedA() != 0 && WeaponsEarnedB() != 0,
+            CanonicalGameState() == STATE_MEGAMAN_GAME_SELECT && (WeaponsEarnedA() != 0 || WeaponsEarnedB() != 0),
             CanonicalGameState() == STATE_MM4_TITLE_SCREEN && WeaponsEarnedA() == 0 && WeaponsEarnedB() == 0
         )
         && RequireWithoutPasswords()
@@ -1031,7 +1031,7 @@ function DamagelessRobotMastersClear(requiredCharacters = 8) {
         )
 }
 
-// @param requiredCharacters {0x00: RequiresAnyCharacter} - Which characters are required to unlock the achievement
+// @param requiredCharacters {8: RequiresNotMan} - Which characters are required to unlock the achievement
 function DamagelessGameClear(requiredCharacters = 8) {
     start =
         once(CanonicalGameState() == STATE_STAGE_SELECT)
