@@ -266,8 +266,10 @@ function FloorSkipper(count) {
         start
         && cancel
         && CurrentStageKind() == Barrel
+        && ExtendedGameState() == Victory
         && repeated(count,
             IsMarioJumpingOrFalling() == 1
+            && CurrentStageKind() == Barrel
             && prev(ExtendedGameState()) == PlayerPlaying
             && ExtendedGameState() == Victory
         )
