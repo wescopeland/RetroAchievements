@@ -15,6 +15,7 @@ _MEM_TRAININGMISSES = 0x30045C
 _MEM_TRAININGSTREAK = 0x300474
 _MEM_TRAININGSCORE = 0x3008B4
 _MEM_WIZSCORE = 0x300254
+_MEM_WIZCURRLIVES = 0x300260
 _MEM_WIZONTITLE = 0x300280
 _MEM_WIZGAMESTATE = 0x300290
 _MEM_WIZSKIPSTATE = 0x300294
@@ -86,6 +87,7 @@ GAME_WIZMAN = 0x05
 function IsPlayingAnyGame() => byte(_MEM_ISPLAYINGGAME)
 
 function WizManCurrentScore() => dword(_MEM_WIZSCORE)
+function WizManCurrentLives() => byte(_MEM_WIZCURRLIVES)
 function WizManIsOnTitleScreen() => byte(_MEM_WIZONTITLE)
 
 function WizManFloorSkipState() => byte(_MEM_WIZSKIPSTATE)
@@ -174,6 +176,14 @@ function NeverEndedWizMan() {
         && never(IsPlayingAnyGame() == FALSE && prev(IsPlayingAnyGame()) == TRUE)
 }
 
+function HasFinishedFourWizManChallenges() {
+    return
+        ChallengeProgress(GAME_WIZMAN, 1) > 0
+        && ChallengeProgress(GAME_WIZMAN, 2) > 0
+        && ChallengeProgress(GAME_WIZMAN, 3) > 0
+        && ChallengeProgress(GAME_WIZMAN, 4) > 0
+}
+
 function BeatWizMan() {
     return
         WizManGameState() == WIZMAN_STATE_ENDING_CUTSCENE
@@ -205,11 +215,21 @@ function PauseIfNotTrainingGame() {
 // @param targetGame {0x05: GAME_WIZMAN} - What game this story challenge belongs to
 // @param challengeNumber {1, 2, 3, or 4} - Which challenge the achievement will unlock for
 function ChallengeCompleted(targetGame = 0x05, challengeNumber = 1) {
-    return
+    start = 
         CurrentKnownGame() == targetGame
+        && once(IsPlayingAnyGame() == TRUE && prev(IsPlayingAnyGame()) == FALSE)
+
+    cancel = never(IsPlayingAnyGame() == FALSE && prev(IsPlayingAnyGame()) == TRUE)
+    if (challengeNumber > 1) {
+        cancel = cancel && never(ChallengeProgress(targetGame, challengeNumber - 1) == 0)
+    }
+
+    return
+        start
+        && cancel
         && trigger_when(
-            ChallengeProgress(targetGame, 1) == CHALLENGE_CLEARED
-            && prev(ChallengeProgress(targetGame, 1)) == CHALLENGE_UNFINISHED
+            ChallengeProgress(targetGame, challengeNumber) == CHALLENGE_CLEARED
+            && prev(ChallengeProgress(targetGame, challengeNumber)) == CHALLENGE_UNFINISHED
         )
 }
 
@@ -260,7 +280,14 @@ function WizManCollectedAllSectionWands(startFloor = 1, isFullPlaythrough = fals
             array_push(allFlags, WIZMAN_LWANDS[index][2])
         }
 
-        trigger = (trigger || measured(sum_of(allFlags, f => f) == length(allFlags)))
+        measuredClause = measured(
+            sum_of(allFlags, f => f) == length(allFlags),
+
+            WizManCurrentStage() == 1 
+            || (WizManCurrentStage() >= 2 && sum_of(allFlags, f => f) >= (WizManCurrentStage() * 3) - 3)
+        )
+
+        trigger = (trigger || measuredClause)
     }
 
     return
@@ -270,9 +297,7 @@ function WizManCollectedAllSectionWands(startFloor = 1, isFullPlaythrough = fals
 }
 
 function WizManWarpedToEnd() {
-    start = 
-        OnceStartedWizMan() 
-        && once(WizManCurrentStage() == 1 && WizManFloorSkipCrystalsCollected() == 1)
+    start = OnceStartedWizMan() 
 
     cancel =
         NeverEndedWizMan()
@@ -292,11 +317,13 @@ function WizManWarpedToEnd() {
     return
         start
         && cancel
+        && HasFinishedFourWizManChallenges()
+        && WizManCurrentStage() >= 2
         && trigger_when(WizManCurrentStage() == WIZMAN_STAGE_FLOOR_32)
 }
 
-function WizManBeaten(areCheatsBanned = false, areFloorSkipsBanned = false) {
-    start = OnceStartedWizMan()
+function WizManFloorsBeaten(startFloor = 1, endFloor = 4, areCheatsBanned = false, areFloorSkipsBanned = false, primeFloor = 2) {
+    start = OnceStartedWizMan() && once(WizManCurrentStage() == startFloor)
     cancel = NeverEndedWizMan()
 
     areCheatsBannedClause = always_true()
@@ -312,13 +339,43 @@ function WizManBeaten(areCheatsBanned = false, areFloorSkipsBanned = false) {
         )
     }
 
+    triggerWhenClause = trigger_when(WizManCurrentStage() > endFloor)
+    if (startFloor == 1 && endFloor == 32) { // requires game clear?
+        triggerWhenClause = 
+            HasFinishedFourWizManChallenges()
+            && WizManCurrentStage() >= primeFloor 
+            && trigger_when(BeatWizMan())
+    }
+
     return
         start
         && cancel
         && areCheatsBannedClause
         && areFloorSkipsBannedClause
-        && WizManCurrentStage() >= WIZMAN_STAGE_FLOOR_32
-        && trigger_when(BeatWizMan())
+        && WizManCurrentStage() >= startFloor
+        && WizManCurrentStage() <= (endFloor + 1)
+        && triggerWhenClause
+}
+
+function WizManEarnedScore(targetScore = 250000) {
+    start = OnceStartedWizMan()
+    cancel = NeverEndedWizMan()
+
+    return
+        start
+        && cancel
+        && WizManCurrentScore() >= (targetScore / 2)
+        && trigger_when(WizManCurrentScore() >= targetScore)
+}
+
+function WizManGotExtraLife() {
+    start = OnceStartedWizMan()
+    cancel = NeverEndedWizMan()
+
+    return
+        start
+        && cancel
+        && WizManCurrentLives() > prev(WizManCurrentLives())
 }
 
 // @param targetScore - At what score will this achievement unlock
@@ -410,9 +467,17 @@ achievement("Wiz-Man Two", "", 5, ChallengeCompleted(GAME_WIZMAN, 2))
 achievement("Wiz-Man Three", "", 5, ChallengeCompleted(GAME_WIZMAN, 3))
 achievement("Wiz-Man Four", "", 5, ChallengeCompleted(GAME_WIZMAN, 4))
 achievement("Wiz-Man Floor Skip", "", 5, WizManFloorSkipped())
-achievement("Wiz-Man Beat No Cheats", "", 5, WizManBeaten(areCheatsBanned = true))
-achievement("Wiz-Man Beat No Cheats or Skips", "", 5, WizManBeaten(areCheatsBanned = true, areFloorSkipsBanned = true))
+achievement("Wiz-Man Beat No Cheats", "", 5, WizManFloorsBeaten(startFloor = 1, endFloor = 32, primeFloor = 29, areCheatsBanned = true))
+achievement("Wiz-Man Beat No Cheats or Skips", "", 5, WizManFloorsBeaten(startFloor = 1, endFloor = 32, primeFloor = 2, areCheatsBanned = true, areFloorSkipsBanned = true))
 achievement("Wiz-Man Warped to End", "Warp-Man", 5, WizManWarpedToEnd())
+achievement("Wiz-Man Cleared Section 1", "", 5, WizManFloorsBeaten(startFloor = 1, endFloor = 4, areFloorSkipsBanned = true))
+achievement("Wiz-Man Cleared Section 2", "", 5, WizManFloorsBeaten(startFloor = 5, endFloor = 8, areFloorSkipsBanned = true))
+achievement("Wiz-Man Cleared Section 3", "", 5, WizManFloorsBeaten(startFloor = 9, endFloor = 12, areFloorSkipsBanned = true))
+achievement("Wiz-Man Cleared Section 4", "", 5, WizManFloorsBeaten(startFloor = 13, endFloor = 16, areFloorSkipsBanned = true))
+achievement("Wiz-Man Cleared Section 5", "", 5, WizManFloorsBeaten(startFloor = 17, endFloor = 20, areFloorSkipsBanned = true))
+achievement("Wiz-Man Cleared Section 6", "", 5, WizManFloorsBeaten(startFloor = 21, endFloor = 24, areFloorSkipsBanned = true))
+achievement("Wiz-Man Cleared Section 7", "", 5, WizManFloorsBeaten(startFloor = 25, endFloor = 28, areFloorSkipsBanned = true))
+achievement("Wiz-Man Cleared Section 8", "", 5, WizManFloorsBeaten(startFloor = 29, endFloor = 32, areFloorSkipsBanned = true))
 achievement("Wiz-Man All Section 1 Light Wands", "", 5, WizManCollectedAllSectionWands(startFloor = 1))
 achievement("Wiz-Man All Section 2 Light Wands", "", 5, WizManCollectedAllSectionWands(startFloor = 5))
 achievement("Wiz-Man All Section 3 Light Wands", "", 5, WizManCollectedAllSectionWands(startFloor = 9))
@@ -422,9 +487,36 @@ achievement("Wiz-Man All Section 6 Light Wands", "", 5, WizManCollectedAllSectio
 achievement("Wiz-Man All Section 7 Light Wands", "", 5, WizManCollectedAllSectionWands(startFloor = 25))
 achievement("Wiz-Man All Section 8 Light Wands", "", 5, WizManCollectedAllSectionWands(startFloor = 29))
 achievement("Wiz-Man All Light Wands Clear", "", 5, WizManCollectedAllSectionWands(startFloor = 1, isFullPlaythrough = true))
+achievement("Wiz-Man Extra Life", "", 5, WizManGotExtraLife())
+achievement("Wiz-Man 125,000 Points", "", 5, WizManEarnedScore(125000))
+achievement("Wiz-Man 250,000 Points", "", 5, WizManEarnedScore(250000))
+achievement("Wiz-Man 500,000 Points", "", 5, WizManEarnedScore(500000))
+achievement("Wiz-Man 1,000,000 Points", "", 5, WizManEarnedScore(1000000))
 // #endregion
 
 // #region Leaderboards -------------------------------------------------------------------------------------------------------------------
+leaderboard(
+    "Wiz-Man High Score",
+    "Get the highest score you can!",
+
+    start =
+        CurrentKnownGame() == GAME_WIZMAN
+        && WizManIsOnTitleScreen() == FALSE
+        && (
+            prev(WizManGameState()) == WIZMAN_STATE_VIEWING_TITLE_SCREEN
+            || prev(WizManGameState()) == WIZMAN_STATE_FLOOR_SELECT
+        )
+        && WizManGameState() == WIZMAN_STATE_ACTIVELY_PLAYING,
+
+    cancel = WizManGameState() == WIZMAN_STATE_VIEWING_TITLE_SCREEN,
+
+    submit =
+        WizManGameState() == WIZMAN_STATE_GAME_OVER
+        || (IsPlayingAnyGame() == FALSE && prev(IsPlayingAnyGame()) == TRUE)
+        || (WizManGameState() == WIZMAN_STATE_ENDING_CUTSCENE && WizManCurrentStage() == 0x21),
+
+    value = WizManCurrentScore()
+)
 // #endregion
 
 // #region Rich Presence ------------------------------------------------------------------------------------------------------------------
