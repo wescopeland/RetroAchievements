@@ -410,7 +410,14 @@ function BuildSpeedrunCancel() {
             )
     }
 
-    return onDeathsClause || boardScoreClause
+    return 
+        onDeathsClause 
+        || boardScoreClause 
+        || (
+            CurrentStage() == 0 
+            && ExtendedGameState() == EXTENDED_GAME_STATE_STAGE_DONE 
+            && PlayerOneScore() != 14800
+        )
 }
 
 leaderboard(
