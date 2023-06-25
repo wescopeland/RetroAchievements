@@ -94,19 +94,26 @@ function ResetIfEndedGame() {
 // #endregion
 
 // #region Leaderboards -------------------------------------------------------------------------------------------------------------------
+function StartLeaderboard() {
+    return 
+        IsMusicPlaying() == TRUE && prev(IsMusicPlaying()) == FALSE
+        && SettingLives() == 3
+        && IsTwoPlayer() == FALSE
+}
+
 leaderboard(
     "High Score",
     "Default settings (3 lives, single player)",
-    OnceStartedGame(),
+    StartLeaderboard(),
     always_false(),
-    CurrentRemainingLives() == 0,
+    CurrentRemainingLives() == 0 && prev(CurrentRemainingLives()) == 1,
     PlayerOneScore()
 )
 
 leaderboard(
     "First Life",
     "Highest score on your very first Pac-Man",
-    OnceStartedGame(),
+    StartLeaderboard(),
     always_false(),
     CurrentRemainingLives() < prev(CurrentRemainingLives()),
     PlayerOneScore()
@@ -176,7 +183,7 @@ rich_presence_conditional_display(
     && repeated(3, PlayerOneScoreX00000() == 0 && prev(PlayerOneScoreX00000()) == 9)
     && never(CurrentRemainingLives() == 0),
 
-    "Board {0} [{1}] • {2} {3} • 1,{4}{5}{6},{7} points",
+    "Board {0} [{1}] • {2} {3} • 1,{4}{5}{6},{7}{8}{9} points",
     rich_presence_value("Current Stage", CurrentStage() + 1),
     rich_presence_lookup("Stage Name", CurrentStage(), stageLabels, "Cherry"),
     rich_presence_value("Lives Count", CurrentRemainingLives()),
@@ -184,7 +191,9 @@ rich_presence_conditional_display(
     rich_presence_value("Score X00000", PlayerOneScoreX00000()),
     rich_presence_value("Score 0X0000", PlayerOneScore0X0000()),
     rich_presence_value("Score 00X000", PlayerOneScore00X000()),
-    rich_presence_value("Score Hundreths", PlayerOneScore000XXX())
+    rich_presence_value("Score 000X00", PlayerOneScore000X00()),
+    rich_presence_value("Score 0000X0", PlayerOneScore0000X0()),
+    rich_presence_value("Score 00000X", PlayerOneScore00000X())
 )
 // "2,200,000 points"
 rich_presence_conditional_display(
@@ -192,7 +201,7 @@ rich_presence_conditional_display(
     && repeated(2, PlayerOneScoreX00000() == 0 && prev(PlayerOneScoreX00000()) == 9)
     && never(CurrentRemainingLives() == 0),
 
-    "Board {0} [{1}] • {2} {3} • 1,{4}{5}{6},{7} points",
+    "Board {0} [{1}] • {2} {3} • 1,{4}{5}{6},{7}{8}{9} points",
     rich_presence_value("Current Stage", CurrentStage() + 1),
     rich_presence_lookup("Stage Name", CurrentStage(), stageLabels, "Cherry"),
     rich_presence_value("Lives Count", CurrentRemainingLives()),
@@ -200,7 +209,9 @@ rich_presence_conditional_display(
     rich_presence_value("Score X00000", PlayerOneScoreX00000()),
     rich_presence_value("Score 0X0000", PlayerOneScore0X0000()),
     rich_presence_value("Score 00X000", PlayerOneScore00X000()),
-    rich_presence_value("Score Hundreths", PlayerOneScore000XXX())
+    rich_presence_value("Score 000X00", PlayerOneScore000X00()),
+    rich_presence_value("Score 0000X0", PlayerOneScore0000X0()),
+    rich_presence_value("Score 00000X", PlayerOneScore00000X())
 )
 // "1,200,000 points"
 rich_presence_conditional_display(
@@ -208,7 +219,7 @@ rich_presence_conditional_display(
     && repeated(1, PlayerOneScoreX00000() == 0 && prev(PlayerOneScoreX00000()) == 9)
     && never(CurrentRemainingLives() == 0),
 
-    "Board {0} [{1}] • {2} {3} • 1,{4}{5}{6},{7} points",
+    "Board {0} [{1}] • {2} {3} • 1,{4}{5}{6},{7}{8}{9} points",
     rich_presence_value("Current Stage", CurrentStage() + 1),
     rich_presence_lookup("Stage Name", CurrentStage(), stageLabels, "Cherry"),
     rich_presence_value("Lives Count", CurrentRemainingLives()),
@@ -216,7 +227,9 @@ rich_presence_conditional_display(
     rich_presence_value("Score X00000", PlayerOneScoreX00000()),
     rich_presence_value("Score 0X0000", PlayerOneScore0X0000()),
     rich_presence_value("Score 00X000", PlayerOneScore00X000()),
-    rich_presence_value("Score Hundreths", PlayerOneScore000XXX())
+    rich_presence_value("Score 000X00", PlayerOneScore000X00()),
+    rich_presence_value("Score 0000X0", PlayerOneScore0000X0()),
+    rich_presence_value("Score 00000X", PlayerOneScore00000X())
 )
 // "200,000 points"
 rich_presence_conditional_display(
@@ -225,13 +238,15 @@ rich_presence_conditional_display(
     && never(PlayerOneScoreX00000() == 0 && prev(PlayerOneScoreX00000()) == 9)
     && never(CurrentRemainingLives() == 0),
 
-    "Board {0} [{1}] • {2} {3} • {4},{5} points",
+    "Board {0} [{1}] • {2} {3} • {4},{5}{6}{7} points",
     rich_presence_value("Current Stage", CurrentStage() + 1),
     rich_presence_lookup("Stage Name", CurrentStage(), stageLabels, "Cherry"),
     rich_presence_value("Lives Count", CurrentRemainingLives()),
     rich_presence_lookup("Lives Label", CurrentRemainingLives(), livesLabels, "lives"),
     rich_presence_value("Score Thousandths", PlayerOneScoreXXX000()),
-    rich_presence_value("Score Hundreths", PlayerOneScore000XXX())
+    rich_presence_value("Score 000X00", PlayerOneScore000X00()),
+    rich_presence_value("Score 0000X0", PlayerOneScore0000X0()),
+    rich_presence_value("Score 00000X", PlayerOneScore00000X())
 )
 // "600 points"
 rich_presence_conditional_display(
@@ -383,40 +398,35 @@ function EarnedExtraLife() {
 // #region Achievements -------------------------------------------------------------------------------------------------------------------
 achievement("DEFAULT SETTINGS CHECK", "Lives = 3, One Player Mode, Free Play Disabled", 0, StartedWithDefaultSettings())
 
-achievement("Stage 1: Cherry", "", 1, CompletedStage(1))
-achievement("Stage 2: Strawberry", "", 2, CompletedStage(2))
-achievement("Stage 4: 2nd Peach", "", 3, CompletedStage(4))
-achievement("Stage 6: 2nd Apple", "", 5, CompletedStage(6))
-achievement("Stage 8: 2nd Grape", "", 5, CompletedStage(8))
-achievement("Stage 10: 2nd Galboss", "", 5, CompletedStage(10))
-achievement("Stage 12: 2nd Bell", "", 5, CompletedStage(12))
-achievement("Stage 13: 1st Key", "", 10, CompletedStage(13))
-achievement("Stage 15: 3rd Key", "", 10, CompletedStage(15))
-achievement("Stage 17: 5th Key", "", 10, CompletedStage(17))
-achievement("Stage 19: 7th Key", "", 10, CompletedStage(19))
-achievement("Stage 21: 9th Key", "", 25, CompletedStage(21))
+achievement("Stage 1: Cherry", "Clear board 1", 1, CompletedStage(1))
+achievement("Stage 2: Strawberry", "Clear board 2", 2, CompletedStage(2))
+achievement("Stage 4: 2nd Orange", "Clear board 4", 3, CompletedStage(4))
+achievement("Stage 6: 2nd Apple", "Clear board 6", 5, CompletedStage(6))
+achievement("Stage 8: 2nd Melon", "Clear board 8", 5, CompletedStage(8))
+achievement("Stage 10: 2nd Galboss", "Clear board 10", 5, CompletedStage(10))
+achievement("Stage 12: 2nd Bell", "Clear board 12", 5, CompletedStage(12))
+achievement("Stage 13: 1st Key", "Clear board 13", 10, CompletedStage(13))
+achievement("Stage 15: 3rd Key", "Clear board 15", 10, CompletedStage(15))
+achievement("Stage 17: 5th Key", "Clear board 17", 10, CompletedStage(17))
+achievement("Stage 19: 7th Key", "Clear board 19", 10, CompletedStage(19))
+achievement("Stage 21: 9th Key", "Clear board 21", 25, CompletedStage(21))
 
-achievement("Cherry Eaten", "", 1, FruitEatenOnStages([1]))
-achievement("Strawberry Eaten", "", 1, FruitEatenOnStages([2]))
-achievement("Peach Eaten", "", 1, FruitEatenOnStages([3, 4]))
-achievement("Apple Eaten", "", 2, FruitEatenOnStages([5, 6]))
-achievement("Grape Eaten", "", 3, FruitEatenOnStages([7, 8]))
-achievement("Galboss Eaten", "", 5, FruitEatenOnStages([9, 10]))
-achievement("Bell Eaten", "", 5, FruitEatenOnStages([11, 12]))
-achievement("Key Eaten", "", 5, FruitEatenOnStages([13, 255]))
+achievement("Extra Life", "Score 10,000 points and earn an extra life", 1, EarnedExtraLife())
 
-achievement("Perfect Stage 1", "", 5, CompletedStage(1, requiresScore = 14800))
-achievement("Perfect Stage 2", "", 5, CompletedStage(2, requiresScore = 30000))
-achievement("Perfect Stage 3", "", 10, CompletedStage(3, requiresScore = 45600))
-achievement("Perfect Stage 4", "", 10, CompletedStage(4, requiresScore = 61200))
+achievement("Cherry Eaten", "Eat a cherry on board 1", 1, FruitEatenOnStages([1]))
+achievement("Strawberry Eaten", "Eat a strawberry on board 2", 1, FruitEatenOnStages([2]))
+achievement("Orange Eaten", "Eat an orange on boards 3 or 4", 1, FruitEatenOnStages([3, 4]))
+achievement("Apple Eaten", "Eat an apple on boards 5 or 6", 2, FruitEatenOnStages([5, 6]))
+achievement("Melon Eaten", "Eat a melon on boards 7 or 8", 3, FruitEatenOnStages([7, 8]))
+achievement("Galboss Eaten", "Eat a Galboss on boards 9 or 10", 5, FruitEatenOnStages([9, 10]))
+achievement("Bell Eaten", "Eat a bell on boards 11 or 12", 5, FruitEatenOnStages([11, 12]))
+achievement("Key Eaten", "Eat a key on boards 13+", 5, FruitEatenOnStages([13, 255]))
 
-achievement("Pacifist Stage 1", "", 5, CompletedStageGhostless(1))
-achievement("Pacifist Stage 2", "", 5, CompletedStageGhostless(2))
-achievement("Pacifist Stage 3", "", 10, CompletedStageGhostless(3))
-achievement("Pacifist Stage 4", "", 10, CompletedStageGhostless(4))
+achievement("Perfect Cherry", "Finish board 1 with a score of 14,800 points", 5, CompletedStage(1, requiresScore = 14800))
+achievement("Perfect Strawberry", "Finish board 2 with a score of 30,000 points", 5, CompletedStage(2, requiresScore = 30000))
+achievement("Perfect 1st Orange", "Finish board 3 with a score of 45,600 points", 10, CompletedStage(3, requiresScore = 45600))
+achievement("Perfect 2nd Orange", "Finish board 4 with a score of 61,200 points", 10, CompletedStage(4, requiresScore = 61200))
 
-achievement("Extra Life", "", 1, EarnedExtraLife())
-
-achievement("100,000 Points", "", 25, EarnedScore(100000))
-achievement("250,000 Points", "", 50, EarnedScore(200000))
+achievement("Score Buster I", "Score 100,000 points", 25, EarnedScore(100000))
+achievement("Score Buster II", "Score 200,000 points", 50, EarnedScore(200000))
 // #endregion
