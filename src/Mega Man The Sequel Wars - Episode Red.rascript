@@ -1080,7 +1080,8 @@ function DefaultSettingsCheck() {
     start = once(CanonicalGameState() == STATE_MM4_SETTINGS)
 
     cancel = 
-        never(!IsUsingOnlyAllowedModifiers()) 
+        never(!IsUsingOnlyAllowedModifiers())
+        && never(CurrentCharacter() == CHAR_MAN)
         && never(CanonicalGameState() != STATE_MM4_SETTINGS && CanonicalGameState() != STATE_STAGE_SELECT && CanonicalGameState() != STATE_LEVEL)
 
     return
