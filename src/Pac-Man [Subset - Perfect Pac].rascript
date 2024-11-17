@@ -1,4 +1,4 @@
-// Pac-Man | Puck Man [Subset - Perfect Pac]
+// Pac-Man [Subset - Perfect Pac]
 // #ID = 24933
 
 // #region Memory Symbols -----------------------------------------------------------------------------------------------------------------
@@ -15,6 +15,9 @@ _MEM_ISTWOPLAYER       = 0x0670
 _MEM_P1SCORE0000XX     = 0x0680
 _MEM_P1SCORE00XX00     = 0x0681
 _MEM_P1SCOREXX0000     = 0x0682
+_MEM_HIGHSCORE0000XX   = 0x0688
+_MEM_HIGHSCORE00XX00   = 0x0689
+_MEM_HIGHSCOREXX0000   = 0x068A
 _MEM_CURRSOUND         = 0x06BC
 _MEM_ISMUSICPLAYING    = 0x06DC
 // #endregion
@@ -43,6 +46,7 @@ function SettingLives() => byte(_MEM_SETTINGLIVES)
 function IsTwoPlayer() => byte(_MEM_ISTWOPLAYER)
 function DoesGameRequireMoney() => byte(_MEM_REQUIRESMONEY)
 function PlayerOneScore() => bcd(tbyte(_MEM_P1SCORE0000XX))
+function SystemHighScore() => bcd(tbyte(_MEM_HIGHSCORE0000XX))
 
 function CurrentSound() => byte(_MEM_CURRSOUND)
 CURRENT_SOUND_FRUIT_EATEN = 0x04
@@ -771,6 +775,7 @@ function ReachedSplitScreen() {
         start
         && cancel
         && CurrentStage() == 0xFF
+        && byte(_MEM_HIGHSCOREXX0000) >= 0x99
 }
 // #endregion
 
@@ -805,5 +810,6 @@ achievement("8%", "Clear the 8th Key board with a score of 365,600 points", 25, 
 achievement("28%", "Clear the 59th Key board with a score of 1,008,200 points", 50, PerfectProgression(71))
 achievement("59%", "Clear the 150th Key board with a score of 2,003,600 points", 50, PerfectProgression(150))
 achievement("90%", "Clear the 230th Key board with a score of 3,011,600 points", 50, PerfectProgression(230))
-achievement("Endgame", "Reach board 256, the final stage in Pac-Man [Any Score Allowed] [Deaths Allowed]", 50, ReachedSplitScreen())
+achievement("Endgame", "Reach board 256, the final stage in Pac-Man [Any Score Allowed] [Deaths Allowed]", 100, ReachedSplitScreen())
+achievement("Endgame [fixed]", "Reach board 256, the final stage in Pac-Man [Any Score Allowed] [Deaths Allowed]", 100, ReachedSplitScreen())
 achievement("Perfect Pac", "Score 3,333,360 points by eating every dot, power pellet, ghost, and fruit in the entire game", 100, GotPerfectGame())
