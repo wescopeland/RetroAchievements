@@ -1003,7 +1003,7 @@ function DeathlessGameClear(requiredCharacters = 8, requiredDifficulty = 0x01) {
         CanonicalGameState() == STATE_GAME_INTRO
     )
     && disable_when(
-        CanonicalGameState() == STATE_LEVEL
+        CanonicalGameState() == STATE_PAUSE_MENU_OPEN
         && TotalETanksLeft() < prev(TotalETanksLeft()),
         CanonicalGameState() == STATE_GAME_INTRO
     )
@@ -1135,12 +1135,12 @@ achievement("Metall Daddy", "Defeat Metall Daddy", 5, BossKill(Wily1), id = 3236
 achievement("Tako Trash", "Defeat Tako Trash", 5, BossKill(Wily2), id = 323679, badge = "361634")
 achievement("Wily Machine 4", "Defeat Wily Machine 4", 5, BossKill(Wily3, bossLifeBarCount = 2), id = 323680, badge = "361663")
 
-achievement("Mega Man Game Clear [m]", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323681, badge = "361682")
-achievement("Mega Perseverance [m]", "As Mega Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323683, badge = "361683")
-achievement("Proto Man Game Clear [m]", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323684, badge = "361684")
-achievement("Proto Perseverance [m]", "As Proto Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323685, badge = "361685")
-achievement("Roll Game Clear [m]", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323686, badge = "361686")
-achievement("Roll's Perseverance [m]", "As Roll, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresRoll, DIFFICULTY_HARD), id = 323687, badge = "361687")
+achievement("Mega Man Game Clear", "As Mega Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323681, badge = "361682")
+achievement("Mega Perseverance", "As Mega Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323683, badge = "361683")
+achievement("Proto Man Game Clear", "As Proto Man, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323684, badge = "361684")
+achievement("Proto Perseverance", "As Proto Man, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323685, badge = "361685")
+achievement("Roll Game Clear", "As Roll, beat the game [No Loaded Saves] [No Passwords]", 10, GameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323686, badge = "361686")
+achievement("Roll's Perseverance", "As Roll, beat the game [Hard] [No Loaded Saves] [No Passwords]", 25, GameClear(RequiresRoll, DIFFICULTY_HARD), id = 323687, badge = "361687")
 
 achievement("Toad-ally Unharmed", "Reach Toad Man's boss doors without taking damage or dying", 10, BossDoorDamageless(ToadMan, RequiresNotMan), id = 323688, badge = "361416")
 achievement("Spotless Luminary", "Reach Bright Man's boss doors without taking damage or dying", 10, BossDoorDamageless(BrightMan, RequiresNotMan), id = 323689, badge = "361417")
@@ -1236,24 +1236,24 @@ achievement("Buster Proficiency", "As Mega Man, defeat all 8 Robot Masters in th
 achievement("Shield Proficiency", "As Proto Man, defeat all 8 Robot Masters in the boss rush without dying and with only the P. Buster [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresProtoMan), id = 323764, badge = "361728")
 achievement("Broom Proficiency", "As Roll, defeat all 8 Robot Masters in the boss rush without dying and with only the R. Broom [No E-Tanks]", 25, BossRushNoSpecialWeapons(RequiresRoll), id = 323765, badge = "361729")
 
-achievement("Mega Momentum [m]", "As Mega Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323766, badge = "361688")
-achievement("Mega Mastery [m]", "As Mega Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323767, badge = "361689")
-achievement("Proto Progress [m]", "As Proto Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323768, badge = "361690")
-achievement("Proto Perfection [m]", "As Proto Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323769, badge = "361691")
-achievement("Roll's Resolve [m]", "As Roll, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323770, badge = "361692")
-achievement("Roll's Resilience [m]", "As Roll, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323771, badge = "361693")
+achievement("Mega Momentum", "As Mega Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323766, badge = "361688")
+achievement("Mega Mastery", "As Mega Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresMegaMan, DIFFICULTY_HARD), id = 323767, badge = "361689")
+achievement("Proto Progress", "As Proto Man, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323768, badge = "361690")
+achievement("Proto Perfection", "As Proto Man, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresProtoMan, DIFFICULTY_HARD), id = 323769, badge = "361691")
+achievement("Roll's Resolve", "As Roll, beat the game without ever using a continue [No Loaded Saves] [No Passwords]", 10, ContinuelessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323770, badge = "361692")
+achievement("Roll's Resilience", "As Roll, beat the game without ever using a continue [Hard] [No Loaded Saves] [No Passwords]", 25, ContinuelessGameClear(RequiresRoll, DIFFICULTY_HARD), id = 323771, badge = "361693")
 
-achievement("Mega Maniac [m]", "As Mega Man, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323772, badge = "361694")
-achievement("Agent of Anarchy [m]", "As Proto Man, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323773, badge = "361695")
-achievement("Maid of Mayhem [m]", "As Roll, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323774, badge = "361696")
+achievement("Mega Maniac", "As Mega Man, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresMegaMan, DIFFICULTY_MEDIUM), id = 323772, badge = "361694")
+achievement("Agent of Anarchy", "As Proto Man, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresProtoMan, DIFFICULTY_MEDIUM), id = 323773, badge = "361695")
+achievement("Maid of Mayhem", "As Roll, beat the game without dying [Normal] [No E-Tanks] [No Loaded Saves] [No Passwords]", 50, DeathlessGameClear(RequiresRoll, DIFFICULTY_MEDIUM), id = 323774, badge = "361696")
 
-achievement("Ancient Air-Lift [m]", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"), id = 323775, badge = "361987")
-achievement("Wire We Diving? [m]", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776, badge = "361988")
+achievement("Ancient Air-Lift", "Acquire the Balloon Adaptor on Pharaoh Man's stage", 5, GetWeapon("Balloon"), id = 323775, badge = "361987")
+achievement("Wire We Diving?", "Acquire the Wire Adaptor on Dive Man's stage", 5, GetWeapon("Wire"), id = 323776, badge = "361988")
 
 // Idea credit: Lion Sum
-achievement("Pharaoh's Flood [m]", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 2, PharaohManHardenQuicksand(), id = 323777, badge = "361989")
+achievement("Pharaoh's Flood", "Harden the quicksand in Pharaoh Man's stage with Rain Flush", 2, PharaohManHardenQuicksand(), id = 323777, badge = "361989")
 // Idea credit: Lion Sum
-achievement("Desert Blackout [m]", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 2, PharaohManTurnOffLights(), id = 323778, badge = "361990")
+achievement("Desert Blackout", "Turn off the lights in Pharaoh Man's stage with Rain Flush", 2, PharaohManTurnOffLights(), id = 323778, badge = "361990")
 
 // Idea credit: Fox in Yellow Socks
 achievement(
@@ -1282,20 +1282,20 @@ achievement("The Kremlin Crawl", "Unlock Dr. Cossack's stages by defeating all e
 achievement("9 Times the Charm", "Hold 9 lives at once", 5, NineLives(), id = 323782, badge = "361993")
 achievement("Soda Popinski's Envy", "Hold 9 E-Tanks at once", 5, NineETanks(), id = 323783, badge = "361994")
 
-achievement("Lumen-ating Path [m]", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn(), id = 323784, badge = "361995")
+achievement("Lumen-ating Path", "Reach Bright Man in his stage without turning the lights off", 5, BrightManStageLightsAlwaysOn(), id = 323784, badge = "361995")
 
 // Idea credit: JackelZXA
 achievement("Tako 'Bout Defense!", "As Proto Man, defeat Tako Trash using only the shield [No E-Tanks]", 5, BossKillNoWeapons(Wily2, RequiresProtoMan), id = 323785, badge = "361997")
 
 // Idea: Fox in Yellow Socks
-achievement("Wired for Victory [m]", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill(), id = 323786, badge = "362043")
+achievement("Wired for Victory", "Deliver the killing blow to Wily Machine 4 with the Wire Adaptor", 5, WilyMachine4WireKill(), id = 323786, badge = "362043")
 
-achievement("A Mega Surprise [m]", "On Dr. Cossack's third stage, hold on to a platform with the Wire Adaptor for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787, badge = "361998")
+achievement("A Mega Surprise", "On Dr. Cossack's third stage, hold on to a platform with the Wire Adaptor for as long as possible during an autoscroll section", 1, WireEasterEgg(), id = 323787, badge = "361998")
 achievement("Drilling a New Passage", "Use Drill Bomb on Tako Trash to vaporize his hitbox, then walk behind him", 2, TakoTrashHitboxHidingSpot(), id = 323788, badge = "362035")
-achievement("A Splash of Ingenuity [m]", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg(), id = 323789, badge = "362034")
+achievement("A Splash of Ingenuity", "Immediately after defeating Wily Machine 4, use Rain Flush on Dr. Wily's capsule before he can fly away", 2, WilyUmbrellaEasterEgg(), id = 323789, badge = "362034")
 
 // Idea: frijoles / FlashbackYT
-achievement("Toad-ally Skipped [m]", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip(), id = 323790, badge = "362044")
+achievement("Toad-ally Skipped", "Use Flash Stopper to skip an Escaroo miniboss on Toad Man's stage", 5, EscarooSkip(), id = 323790, badge = "362044")
 
 // Idea: Fox in Yellow Socks
 achievement(
