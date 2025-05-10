@@ -695,9 +695,8 @@ function FreePlayBossKill(
 ) {
     allowJumpingClause = always_true()
     if (allowJumping == 0) {
-        allowJumpingClause = disable_when(
-            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == currentScreen && IsJumping(),
-            FreePlayChallengeReset()
+        allowJumpingClause = never(
+            CanonicalGameState() == STATE_LEVEL && CurrentScreen() == currentScreen && IsJumping()
         )
     }
 
